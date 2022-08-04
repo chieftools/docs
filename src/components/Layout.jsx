@@ -22,7 +22,7 @@ const navigation = [
     title: 'Account Chief',
     links: [
       { title: 'Introduction', href: '/accountchief' },
-      { title: 'Personal Access Tokens', href: '/accountchief/personal-access-tokens' },
+      { title: 'Tokens', href: '/accountchief/tokens' },
     ],
   },
   {

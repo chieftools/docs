@@ -1,15 +1,15 @@
 ---
-title: Personal Access Tokens
-description: Learn about Chief Tools Personal Access Tokens and how to use and secure them.
+title: Chief Tools tokens
+description: Learn about Chief Tools tokens and how to use and secure them.
 ---
 
-Personal Access Tokens can be used to access the API of one or more Chief Tools without the need for your username and/or password.
+Chief Tools tokens can be used to access the API of one or more Chief Tools without the need for your username and/or password. Tokens are managed by Account Chief.
 
 ---
 
-## Where to create
+## Personal Access Tokens
 
-Personal Access Tokens can be created from your account, you can access it directly by going to: [account.chief.app/api/tokens](https://account.chief.app/api/tokens).
+Personal Access Tokens (PAT for short): are used to authenticate as your user account, it has the same access as you have in our web UI. Personal Access Tokens can be created from your account, you can access it directly by going to: [account.chief.app/api/tokens](https://account.chief.app/api/tokens).
 
 ### Expiring tokens
 
@@ -26,6 +26,38 @@ If you whish for the token to be valid for all tools, don't select any.
 ### Revoking tokens
 
 You can remove the token at any time, the token will be revoked immediately and will stop working right away so make sure the token is no longer in use when you do this.
+
+---
+
+## Token Format
+
+We took inspiration from how [GitHub](https://github.blog/2021-04-05-behind-githubs-new-authentication-token-formats/) generates tokens and based our token format on theirs.
+
+Our tokens are comprised of the following parts:
+
+- tokens always start with a prefix of `ct` (Chief Tools)
+- followed by a 1-4 character type indicator (see [prefixes](#prefixes))
+- followed by a `_`
+- followed by 30-242 characters of randomness
+- followed by a 6 character base62 CRC32 checksum
+
+A token currently cannot exceed 255 characters, although this might change in the future.
+
+### Parsing
+
+If you want you can use the following regex to identify and parse a Chief Tools token: 
+
+```regexp
+(?<prefix>ct[a-zA-Z0-9]{1,4})_(?<random>[a-zA-Z0-9]{30,242})(?<checksum>[a-zA-Z0-9]{6})
+```
+
+We have our "random token" parser, generator and validator [open sourced](https://github.com/chieftools/sdk/blob/02d30fc7be9bfa016fbc3ca267d620b2570318af/src/Helpers/RandomToken.php) as part of our internal SDK.
+
+### Prefixes
+
+This is a list of prefixes and what those prefixes mean:
+
+- `ctp` for [Personal Access Tokens](#personal-access-tokens)
 
 ---
 
