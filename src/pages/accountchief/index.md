@@ -6,7 +6,7 @@ description: A quick introduction to Account Chief, what it does and how to use 
 Account Chief, sometimes lovingly called the Mothership, is the central hub where Chief Tools manages your login, team and billing information and shares information to the other Chief Tools if required.
 
 {% callout title="We are working on it!" %}
-This documentation site is fresh and we know many things are still missing, please [contact us](https://chief.app/contact) if you are looking for a specific answer that is not yet found here!
+This documentation site is fresh and we know many things are still missing or incomplete, please [contact us](https://chief.app/contact) if you are looking for a specific answer that is not yet answered here!
 {% /callout %}
 
 ---

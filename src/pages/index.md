@@ -7,7 +7,7 @@ description: Everything Chief Tools, learn about how the Chief Tools work and ho
 Start by picking the Chief Tool you want to learn more about. {% .lead %}
 
 {% callout title="We are working on it!" %}
-This documentation site is fresh and we know many things are still missing, please [contact us](https://chief.app/contact) if you are looking for a specific answer that is not yet found here! 
+This documentation site is fresh and we know many things are still missing or incomplete, please [contact us](https://chief.app/contact) if you are looking for a specific answer that is not yet answered here! 
 {% /callout %}
 
 {% quick-links %}
