@@ -21,6 +21,23 @@ module.exports = {
       '9xl': ['8rem', { lineHeight: '1' }],
     },
     extend: {
+      colors:     {
+        brand:   {
+          DEFAULT: '#34495e',
+          '50':    '#a8bccf',
+          '100':   '#98afc6',
+          '200':   '#7795b4',
+          '300':   '#587ca0',
+          '400':   '#46627f',
+          '500':   '#34495e',
+          '600':   '#222f3d',
+          '700':   '#10161c',
+        },
+        muted:   '#6b7280', // gray-500
+        danger:  '#dc2626', // red-600
+        success: '#16a34a', // green-600
+        warning: '#eab308', // yellow-500
+      },
       fontFamily: {
         sans: ['Inter', ...defaultTheme.fontFamily.sans],
         mono: ['Fira Code', ...defaultTheme.fontFamily.mono],
