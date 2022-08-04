@@ -1,0 +1,15 @@
+{
+    "index_name": "chieftools_docs",
+    "start_urls": [
+        "https://docs.chief.app"
+    ],
+    "selectors": {
+        "lvl0": "article header h1",
+        "lvl1": "article h2",
+        "lvl2": "article h3",
+        "lvl3": "article h4",
+        "lvl4": "article h5",
+        "lvl5": "article h6",
+        "text": "article div p,article div ul,article div ol"
+    }
+}
