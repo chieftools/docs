@@ -21,3 +21,5 @@ This documentation site is fresh and we know many things are still missing or in
 {% quick-link title="Tny" href="/certchief" description="Shorten URL's, redirect your own domains and even bring your own branded domain for nice Tny links." /%}
 
 {% /quick-links %}
+
+If you have ideas or feature requests you can submit them on our [public roadmap](https://roadmap.chief.app).
