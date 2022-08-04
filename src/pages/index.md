@@ -1,6 +1,6 @@
 ---
 title: Welcome
-pageTitle: Chief Tools - Tools helping you manage and monitor your infrastructure.
+pageTitle: Chief Tools docs
 description: Everything Chief Tools, learn about how the Chief Tools work and how to use them.
 ---
 
