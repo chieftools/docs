@@ -47,7 +47,7 @@ A token currently cannot exceed 255 characters, although this might change in th
 
 If you want you can use the following regex to identify and parse a Chief Tools token: 
 
-```regexp
+```regex
 (?<prefix>ct[a-zA-Z0-9]{1,4})_(?<random>[a-zA-Z0-9]{30,242})(?<checksum>[a-zA-Z0-9]{6})
 ```
 
