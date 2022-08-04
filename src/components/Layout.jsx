@@ -25,6 +25,25 @@ const navigation = [
       { title: 'Personal Access Tokens', href: '/accountchief/personal-access-tokens' },
     ],
   },
+  {
+    title: 'Cert Chief',
+    links: [
+      { title: 'Introduction', href: '/certchief' },
+      { title: 'IP addresses', href: '/certchief/ip-addresses' },
+    ],
+  },
+  {
+    title: 'Deploy Chief',
+    links: [
+      { title: 'Introduction', href: '/deploychief' },
+    ],
+  },
+  {
+    title: 'Tny',
+    links: [
+      { title: 'Introduction', href: '/tny' },
+    ],
+  },
 ]
 
 function GitHubIcon(props) {
