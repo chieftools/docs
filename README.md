@@ -2,7 +2,7 @@
 
 Learn about how the Chief Tools work and how to use them.
 
-This is the code that runs [docs.chief.app](https://docs.chief.app).
+This is the code that runs [docs.chief.tools](https://docs.chief.tools).
 
 ## Contributing
 
@@ -16,7 +16,7 @@ cp .env.example .env.local
 Next, run the development server:
 
 ```bash
-npm run dev
+yarn run dev
 ```
 
 Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the site.
