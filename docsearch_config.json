@@ -5,8 +5,8 @@
     ],
     "selectors": {
         "lvl0": {
-            "selector": "article header h1",
             "global": true,
+            "selector": "article header h1",
             "default_value": "Documentation"
         },
         "lvl1": "article h2",
