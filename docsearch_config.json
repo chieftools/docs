@@ -1,7 +1,7 @@
 {
     "index_name": "chieftools_docs",
     "start_urls": [
-        "https://docs.chief.app"
+        "https://docs.chief.tools"
     ],
     "selectors": {
         "lvl0": {
