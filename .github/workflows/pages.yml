@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1.0.7
+        uses: actions/deploy-pages@v1.2.2
 
   index:
     runs-on: ubuntu-latest
