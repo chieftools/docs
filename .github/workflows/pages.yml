@@ -29,7 +29,7 @@ jobs:
           node-version: 16
 
       - name: Restore cache
-        uses: actions/cache@v3.0.6
+        uses: actions/cache@v3.0.11
         with:
           path: |
             .next/cache
