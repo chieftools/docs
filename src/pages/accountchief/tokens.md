@@ -78,3 +78,24 @@ There are a few steps to take:
 If the token was a valid Chief Tools token we will let GitHub know that they succesfully reported a token to us, if the token was not we will let them know it was a false-positive.
 
 No other information about the token or what it could access is shared with GitHub.
+
+---
+
+## GitGuardian
+
+[GitGuardian](https://www.gitguardian.com/?ref=chiefdocs) helps developers keep 250+ types of secrets out of their source code. Their automated secrets detection and remediation solution secures every step of the development life cycle, helping you monitor your code for sensitive data.
+
+You can read more about the capabilities of [GitGuardian](https://www.gitguardian.com/?ref=chiefdocs) scanning for Chief Tools tokens [in their docs](https://docs.gitguardian.com/secrets-detection/detectors/specifics/chief_app_key?ref=chiefdocs).
+
+### What to do when GitGuardian alerts you of a token
+
+There are a few steps to take:
+
+1. Revoke the token from your user account [here](https://account.chief.app/api/tokens).
+2. Validate that the token was not misused. Even though the token was only public for a short time it's possible it was maliciously used, check to make sure no unintended changes are made to your account
+3. Ensure that the token is not in use currently, if it is you should issue and a new token and prevent it from being published publicly
+4. Validate your processes to prevent publishing Chief Tools tokens publicly
+
+### What information is shared with GitGuardian
+
+No information is shared directly with [GitGuardian](https://www.gitguardian.com/?ref=chiefdocs), they are only scanning for tokens according to our format and alert if they think they found a token matching that format.
