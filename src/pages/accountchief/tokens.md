@@ -10,7 +10,7 @@ Chief Tools tokens can be used to access the API of one or more Chief Tools with
 
 ## Personal Access Tokens
 
-Personal Access Tokens (PAT for short): are used to authenticate as your user account, it has the same access as you have in our web UI. Personal Access Tokens can be created from your account, you can access it directly by going to: [account.chief.app/api/tokens](https://account.chief.app/api/tokens).
+Personal Access Tokens (PAT for short): are used to authenticate as your user account, it has the same access as you have in our web UI. Personal Access Tokens can be created from your account, you can access it directly by going to: {% external-link href="https://account.chief.app/api/tokens?rel=chiefdocs" %}account.chief.app/api/tokens{% /external-link %}.
 
 ### Expiring tokens
 
@@ -32,7 +32,7 @@ You can remove the token at any time, the token will be revoked immediately and 
 
 ## Token Format
 
-We took inspiration from how [GitHub](https://github.blog/2021-04-05-behind-githubs-new-authentication-token-formats/) generates tokens and based our token format on theirs.
+We took {% external-link href="https://github.blog/2021-04-05-behind-githubs-new-authentication-token-formats/?ref=chieftools" %}inspiration{% /external-link %} from how GitHub generates their tokens and based our token format on theirs.
 
 Our tokens are comprised of the following parts:
 
@@ -52,7 +52,7 @@ If you want you can use the following regex to identify and parse a Chief Tools 
 (?<prefix>ct[a-zA-Z0-9]{1,4})_(?<random>[a-zA-Z0-9]{30,242})(?<checksum>[a-zA-Z0-9]{6})
 ```
 
-We have our "random token" parser, generator and validator [open sourced](https://github.com/chieftools/sdk/blob/02d30fc7be9bfa016fbc3ca267d620b2570318af/src/Helpers/RandomToken.php) as part of our internal SDK.
+We have our "random token" parser, generator and validator {% external-link href="https://github.com/chieftools/sdk/blob/02d30fc7be9bfa016fbc3ca267d620b2570318af/src/Helpers/RandomToken.php" %}open sourced{% /external-link %} as part of our internal SDK.
 
 ### Prefixes
 
@@ -64,7 +64,9 @@ This is a list of prefixes and what those prefixes mean:
 
 ## GitHub Secret Scanning
 
-Chief Tools tokens are part of the [GitHub Secret Scanning](https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning) program. This means that if you accidentally push a token to a public repository we will be notified by GitHub and immediately revoke the token. 
+Chief Tools tokens are part of the {% external-link href="https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning/?ref=chieftools" %}GitHub Secret Scanning{% /external-link %} program. 
+This means that if you accidentally push a token to a public repository we will be notified by GitHub and immediately revoke the token.
+You can read their announcement on the {% external-link href="https://github.blog/changelog/2022-10-26-chief-tools-is-now-a-github-secret-scanning-partner/?ref=chieftools" %}GitHub blog{% /external-link %}.
 
 ### What to do when a token is revoked
 
@@ -84,19 +86,20 @@ No other information about the token or what it could access is shared with GitH
 
 ## GitGuardian
 
-[GitGuardian](https://www.gitguardian.com/?ref=chiefdocs) helps developers keep 250+ types of secrets out of their source code. Their automated secrets detection and remediation solution secures every step of the development life cycle, helping you monitor your code for sensitive data.
+{% external-link href="https://www.gitguardian.com/?ref=chieftools" %}GitGuardian{% /external-link %} helps developers keep 250+ types of secrets out of their source code. 
+Their automated secrets detection and remediation solution secures every step of the development life cycle, helping you monitor your code for sensitive data.
 
-You can read more about the capabilities of [GitGuardian](https://www.gitguardian.com/?ref=chiefdocs) scanning for Chief Tools tokens [in their docs](https://docs.gitguardian.com/secrets-detection/detectors/specifics/chief_app_key?ref=chiefdocs).
+You can read more about the capabilities of {% external-link href="https://www.gitguardian.com/?ref=chieftools" %}GitGuardian{% /external-link %} scanning for Chief Tools tokens {% external-link href="https://docs.gitguardian.com/secrets-detection/detectors/specifics/chief_app_key?ref=chieftools" %}in their docs{% /external-link %}.
 
 ### What to do when GitGuardian alerts you of a token
 
 There are a few steps to take:
 
-1. Revoke the token from your user account [here](https://account.chief.app/api/tokens).
+1. Revoke the token from your user account {% external-link href="https://account.chief.app/api/tokens?ref=chiefdocs" %}here{% /external-link %}.
 2. Validate that the token was not misused. Even though the token was only public for a short time it's possible it was maliciously used, check to make sure no unintended changes are made to your account
 3. Ensure that the token is not in use currently, if it is you should issue and a new token and prevent it from being published publicly
 4. Validate your processes to prevent publishing Chief Tools tokens publicly
 
 ### What information is shared with GitGuardian
 
-No information is shared directly with [GitGuardian](https://www.gitguardian.com/?ref=chiefdocs), they are only scanning for tokens according to our format and alert if they think they found a token matching that format.
+No information is shared directly with {% external-link href="https://www.gitguardian.com/?ref=chieftools" %}GitGuardian{% /external-link %}, they are only scanning for tokens according to our format and alert if they think they found a token matching that format.

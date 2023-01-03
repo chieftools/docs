@@ -7,7 +7,7 @@ description: A quick introduction to Account Chief, what it does and how to use 
 Account Chief, sometimes lovingly called the Mothership, is the central hub where Chief Tools manages your login, team and billing information and shares information to the other Chief Tools if required.
 
 {% callout title="We are working on it!" %}
-This documentation site is fresh and we know many things are still missing or incomplete, please [contact us](https://chief.app/contact) if you are looking for a specific answer that is not yet answered here!
+This documentation site is fresh and we know many things are still missing or incomplete, please {% external-link href="https://chief.app/contact?rel=chiefdocs" %}contact us{% /external-link %} if you are looking for a specific answer that is not yet answered here!
 {% /callout %}
 
 ---
@@ -18,9 +18,9 @@ There are multiple ways to sign-in to Chief Tools and option to secure your acco
 
 ### Username and password
 
-With Chief Tools your username is your e-mail adddress, you can change the e-mail address used in your [profile](https://account.chief.app/account/profile) if required.
+With Chief Tools your username is your e-mail adddress, you can change the e-mail address used in your {% external-link href="https://account.chief.app/account/profile?rel=chiefdocs" %}profile{% /external-link %} if required.
 
-You can also update your password from your [account](https://account.chief.app/account/password) page.
+You can also update your password from your {% external-link href="https://account.chief.app/account/password?rel=chiefdocs" %}account{% /external-link %} page.
 
 ### Two-factor
 
@@ -28,6 +28,6 @@ You can (optionally, though recommended) enable TOTP (like Google Authenticator 
 
 ### Social login
 
-You can (optionally) [connect](https://account.chief.app/account/social) your account to sing-in with GitHub, GitLab, BitBucket or Apple. This allows a convienent way to login without entering your username and password.
+You can (optionally) {% external-link href="https://account.chief.app/account/social?rel=chiefdocs" %}connect{% /external-link %} your account to sing-in with GitHub, GitLab, BitBucket or Apple. This allows a convienent way to login without entering your username and password.
 
-If you feel the social account connected to your account are sufficently secured already you can choose to bypass two-factor when signing in with a social account from your [preferences](https://account.chief.app/account/preferences).
+If you feel the social account connected to your account are sufficently secured already you can choose to bypass two-factor when signing in with a social account from your {% external-link href="https://account.chief.app/account/preferences?rel=chiefdocs" %}preferences{% /external-link %}.

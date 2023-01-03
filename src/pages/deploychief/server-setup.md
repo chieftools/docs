@@ -54,4 +54,4 @@ With this change it's no longer needed to restart the `php-fpm` deamon or NGINX 
 
 ### Ploi
 
-If you are using [Ploi](https://ploi.io/?ref=chieftools) to manage your servers you can use this webserver configuration template to apply the needed changes when creating your site: [Zero downtime deployment NGINX template](https://ploi.io/panel/marketplace/162-laravel-zero-downtime-deployment-nginx-template).
+If you are using {% external-link href="https://ploi.io/?ref=chieftools" %}Ploi{% /external-link %} to manage your servers you can use this webserver configuration template to apply the needed changes when creating your site: [Zero downtime deployment NGINX template](https://ploi.io/panel/marketplace/162-laravel-zero-downtime-deployment-nginx-template).

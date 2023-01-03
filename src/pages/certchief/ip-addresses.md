@@ -14,6 +14,6 @@ We cannot guarantee that the list of IP's will never change or that we will anno
 
 ## Lists
 
-- [Combined](https://cert.chief.app/.well-known/ip-list)
-- [IPv4](https://cert.chief.app/.well-known/ip-list-v4)
-- [IPv6](https://cert.chief.app/.well-known/ip-list-v6)
+- {% external-link href="https://cert.chief.app/.well-known/ip-list" %}Combined{% /external-link %}
+- {% external-link href="https://cert.chief.app/.well-known/ip-list-v4" %}IPv4{% /external-link %}
+- {% external-link href="https://cert.chief.app/.well-known/ip-list-v6" %}IPv6{% /external-link %}
