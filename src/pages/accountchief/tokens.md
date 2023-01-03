@@ -1,5 +1,6 @@
 ---
-title: Chief Tools tokens
+title: API Tokens
+pageTitle: API Tokens - Account Chief docs
 description: Learn about Chief Tools tokens and how to use and secure them.
 ---
 

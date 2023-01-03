@@ -1,5 +1,6 @@
 ---
 title: Introduction
+pageTitle: Introduction - Cert Chief docs
 description: A quick introduction to Cert Chief, what it does and how to use it.
 ---
 

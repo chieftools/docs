@@ -1,5 +1,6 @@
 ---
 title: Introduction
+pageTitle: Introduction - Tny docs
 description: A quick introduction to Tny, what it does and how to use it.
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Introduction
+pageTitle: Introduction - Account Chief docs
 description: A quick introduction to Account Chief, what it does and how to use it.
 ---
 

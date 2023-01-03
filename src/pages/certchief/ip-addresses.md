@@ -1,5 +1,6 @@
 ---
 title: IP addresses
+pageTitle: IP addresses - Cert Chief docs
 description: Learn about which IP addresses Cert Chief uses to monitor your domains.
 ---
 

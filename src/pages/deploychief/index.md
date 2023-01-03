@@ -1,5 +1,6 @@
 ---
 title: Introduction
+pageTitle: Introduction - Deploy Chief docs
 description: A quick introduction to Deploy Chief, what it does and how to use it.
 ---
 
