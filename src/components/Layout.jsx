@@ -36,6 +36,7 @@ const navigation = [
     title: 'Deploy Chief',
     links: [
       { title: 'Introduction', href: '/deploychief' },
+      { title: 'Server Setup', href: '/deploychief/server-setup' },
     ],
   },
   {
