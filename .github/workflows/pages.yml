@@ -75,7 +75,7 @@ jobs:
 
       - name: Get DocSearch config
         id: algolia_config
-        run: echo "config=$(cat docsearch_config.json | jq -r tostring)"
+        run: echo "config=$(cat docsearch_config.json | jq -r tostring)" >> $GITHUB_OUTPUT
 
       - name: Index to Algolia
         uses: signcl/docsearch-scraper-action@v1.0.1
