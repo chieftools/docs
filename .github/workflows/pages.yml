@@ -20,16 +20,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3
 
       - name: Setup Node
-        uses: actions/setup-node@v3.4.1
+        uses: actions/setup-node@v3
         with:
           cache: yarn
           node-version: 16
 
       - name: Restore cache
-        uses: actions/cache@v3.0.6
+        uses: actions/cache@v3
         with:
           path: |
             .next/cache
@@ -48,7 +48,7 @@ jobs:
         run: yarn next export
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1.0.1
+        uses: actions/upload-pages-artifact@v1
         with:
           path: ./out
 
@@ -61,21 +61,21 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1.0.7
+        uses: actions/deploy-pages@v1
 
   index:
     runs-on: ubuntu-latest
     needs: [ deploy ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3
 
       - name: Give GitHub a little time to deploy
         run: sleep 30s
 
       - name: Get DocSearch config
         id: algolia_config
-        run: echo "::set-output name=config::$(cat docsearch_config.json | jq -r tostring)"
+        run: echo "config=$(cat docsearch_config.json | jq -r tostring)"
 
       - name: Index to Algolia
         uses: signcl/docsearch-scraper-action@v1.0.1
