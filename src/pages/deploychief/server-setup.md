@@ -37,7 +37,7 @@ This line will cause NGINX to serve the `index.php` file from the current releas
 
 PHP's OPcache will cache the file by that path. The problem with this is that when the symlink is updated to the new release folder, the `SCRIPT_FILENAME` will still be the same and PHP will still serve the cached version of the file instead of the new version.
 
-To fix this we need to change the `SCRIPT_FILENAME` to the actual file path that is being served, which is in the release folder, we do this by changing the snippet to use the [`$realpath_root`](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_realpath_root) variable instead of [`$document_root`](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_document_root):
+To fix this we need to change the `SCRIPT_FILENAME` to the actual file path that is being served, which is in the release folder, we do this by changing the snippet to use the {% external-link href="https://nginx.org/en/docs/http/ngx_http_core_module.html#var_realpath_root" %}`$realpath_root`{% /external-link %} variable instead of {% external-link href="https://nginx.org/en/docs/http/ngx_http_core_module.html#var_document_root" %}`$document_root`{% /external-link %}:
 
 ```
 fastcgi_param  SCRIPT_FILENAME    $realpath_root$fastcgi_script_name;
