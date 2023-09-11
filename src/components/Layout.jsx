@@ -45,6 +45,13 @@ const navigation = [
       { title: 'Introduction', href: '/tny' },
     ],
   },
+  {
+    title: 'Bill.DO',
+    links: [
+      { title: 'Introduction', href: '/billdo' },
+      { title: 'Frequently asked questions', href: '/billdo/faq' },
+    ],
+  },
 ]
 
 function GitHubIcon(props) {
