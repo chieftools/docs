@@ -14,11 +14,13 @@ This documentation site is fresh and we know many things are still missing or in
 
 {% quick-link title="Account Chief" href="/accountchief" description="Account, team and billing management shared by all Chief Tools." /%}
 
-{% quick-link title="Cert Chief" href="/certchief" description="Monitor your domains for expired certificates and bad configuration." /%}
+{% quick-link title="Cert Chief" href="/certchief" description="Monitor your domains for expired certificates and bad configuration. Checks for certificate expiration, DNS problems, and so much more." /%}
 
-{% quick-link title="Deploy Chief" href="/certchief" description="Deploy your applications with zero downtime from GitHub, GitLab and Bitbucket to your servers." /%}
+{% quick-link title="Deploy Chief" href="/deploychief" description="Deploy your applications with zero downtime from GitHub, GitLab and Bitbucket to your servers. Built for PHP, optimized for Laravel." /%}
 
-{% quick-link title="Tny" href="/certchief" description="Shorten URL's, redirect your own domains and even bring your own branded domain for nice Tny links." /%}
+{% quick-link title="Tny" href="/tny" description="Shorten URL's, redirect your own domains and even bring your own branded domain. Shorten using our API, integrations or manually." /%}
+
+{% quick-link title="Bill.DO" href="/billdo" description="Get insights in your DigitalOcean spending. Imports all billable resources and gives you insights and alerting on usage changes." /%}
 
 {% /quick-links %}
 
