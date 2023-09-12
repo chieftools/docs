@@ -30,13 +30,26 @@ This is because DigitalOcean does not provide a very detailed invoice or way to 
 
 Going forward Bill.DO will provide a much more detailed information and will be able to provide much more detailed insights because it collects all active resources in your account and calculates spending based on that instead of what DigitalOcean provides.
 
+## Insights
+
 ### How often is my data updated?
 
-We update your data every hour, this means you will see your current spend and predicted spend updated every hour and resources be added and removed within the hour.
+We update your data every hour, this means you will see your current spend and predicted spend updated every hour and resources be added and removed within the hour. This also means that if resources are active for less than an hour they might not be included in the calculations since we have not seen the resource active.
 
 ### What's currently imported/monitored?
 
 At the moment we are monitoring: Apps, Droplets (this also includes Kubernetes Cluster nodes), Databases, Volumes, Snapshots and Load Balancers, other resources are getting skipped. If you want to see support for other resources open up or vote on our [roadmap](https://roadmap.chief.tools/projects/billdo?ref=chiefdocs).
+
+### There is a drop in my spend at the end of the month?
+
+You will never be billed more than the monthly cost of your Droplet (or other resource). All resources are billed hourly up to a monthly cap of 672 hours (the number of hours in 4 weeks). 
+If you use your resource for fewer than 672 hours during the month, you will be billed for each hour that you used it. If you use a resource for more than 672 hours that month, you will be billed at the monthly cost. 
+
+For example, if you spin up a $10/mo Droplet and use it for 336 hours, then you would be charged $5 (going by the hourly rate). If you use that Droplet for 700 hours, then you would be charged $10 (capped at the monthly rate).
+
+To provide you accurate insights we calculate the spend based on the hourly rate and not the monthly rate. This means that for resources that are active a full month you will see a drop at the end of the month because you will have crossed the 672 hours treshold that month the rest is "free".
+
+This answer was taking from the [DigitalOcean FAQ](https://www.digitalocean.com/pricing?ref=chieftools).
 
 ### Credits not visible?
 
