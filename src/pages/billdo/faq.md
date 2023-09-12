@@ -49,7 +49,7 @@ For example, if you spin up a $10/mo Droplet and use it for 336 hours, then you 
 
 To provide you accurate insights we calculate the spend based on the hourly rate and not the monthly rate. This means that for resources that are active a full month you will see a drop at the end of the month because you will have crossed the 672 hours treshold that month the rest is "free".
 
-This answer was taking from the [DigitalOcean FAQ](https://www.digitalocean.com/pricing?ref=chieftools).
+This answer was mostly copied from the [DigitalOcean FAQ](https://www.digitalocean.com/pricing?ref=chieftools).
 
 ### Credits not visible?
 
