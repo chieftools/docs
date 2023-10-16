@@ -53,6 +53,12 @@ const navigation = [
       { title: 'Frequently asked questions', href: '/billdo/faq' },
     ],
   },
+  {
+    title: 'Shared',
+    links: [
+      { title: 'Bots', href: '/bots' },
+    ],
+  },
 ]
 
 function GitHubIcon(props) {
