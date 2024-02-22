@@ -59,6 +59,8 @@ We have our "random token" parser, generator and validator {% external-link href
 This is a list of prefixes and what those prefixes mean:
 
 - `ctp` for [Personal Access Tokens](#personal-access-tokens)
+- `cto` for OAuth Access Tokens
+- `ctr` for OAuth Refresh Tokens
 
 ---
 
