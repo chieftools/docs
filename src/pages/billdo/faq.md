@@ -12,7 +12,7 @@ Bill.DO is a DigitalOcean billing monitoring tool where you can setup alerts to 
 
 ### Why would I need Bill.DO?
 
-DigitalOcean only shows you your current spend (updated daily) and will notify you when you rise above a certain treshold. The problem with that is that's it takes a big spreadsheet to figure out what the bill is going to be at the end of the month. And as soon as DigitalOcean sends you a notification indicating you are past a treshold, you are past it and the money is already spent. Bill.DO gives you insights and alerting to act before something happens and allows you to react before it get's out of hand by setting up alerts for predicted costs and not only spend money.
+DigitalOcean only shows you your current spend (updated daily) and will notify you when you rise above a certain threshold. The problem with that is that's it takes a big spreadsheet to figure out what the bill is going to be at the end of the month. And as soon as DigitalOcean sends you a notification indicating you are past a threshold, you are past it and the money is already spent. Bill.DO gives you insights and alerting to act before something happens and allows you to react before it get's out of hand by setting up alerts for predicted costs and not only spend money.
 
 ## Connecting with DigitalOcean
 
@@ -47,7 +47,7 @@ If you use your resource for fewer than 672 hours during the month, you will be 
 
 For example, if you spin up a $10/mo Droplet and use it for 336 hours, then you would be charged $5 (going by the hourly rate). If you use that Droplet for 700 hours, then you would be charged $10 (capped at the monthly rate).
 
-To provide you accurate insights we calculate the spend based on the hourly rate and not the monthly rate. This means that for resources that are active a full month you will see a drop at the end of the month because you will have crossed the 672 hours treshold that month the rest is "free".
+To provide you accurate insights we calculate the spend based on the hourly rate and not the monthly rate. This means that for resources that are active a full month you will see a drop at the end of the month because you will have crossed the 672 hours threshold that month the rest is "free".
 
 This answer was mostly copied from the [DigitalOcean FAQ](https://www.digitalocean.com/pricing?ref=chieftools).
 

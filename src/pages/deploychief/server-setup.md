@@ -7,14 +7,14 @@ description: To take full advantage of Deploy Chief a little work is needed on y
 Deploy Chief offers zero downtime deployments. 
 This means that your application will be available during the deployment process and will not be interrupted when a new version is deployed.
 
-To achieve this, Deploy Chief will create a new release folder seperate from your running application and run the deployment process in there.
+To achieve this, Deploy Chief will create a new release folder separate from your running application and run the deployment process in there.
 After all deployment steps have been executed, it will be symlinked to the current release folder which is instantly available to your users. 
 This means that you need to make sure that your application and webserver is able to handle this gracefully which is not always the case.
 
 ## Webserver configuration
 
-Sometimes it is recommended when doing a zero downtime deployment to restart your webserver or even the `php-fpm` deamon, this is however not strictly necessary as long as the webserver is configured correctly.
-We even strongly recommend against doing this since restarting the webserver or the `php-fpm` deamon will cause a short downtime of your application which is not very zero downtime 😉.
+Sometimes it is recommended when doing a zero downtime deployment to restart your webserver or even the `php-fpm` daemon, this is however not strictly necessary as long as the webserver is configured correctly.
+We even strongly recommend against doing this since restarting the webserver or the `php-fpm` daemon will cause a short downtime of your application which is not very zero downtime 😉.
 
 ### NGINX
 
