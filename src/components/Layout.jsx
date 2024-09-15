@@ -44,6 +44,7 @@ const navigation = [
     title: 'Tny',
     links: [
       { title: 'Introduction', href: '/tny' },
+      { title: 'Custom Domains', href: '/tny/custom-domains' },
     ],
   },
   {
