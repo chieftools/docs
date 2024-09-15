@@ -14,16 +14,16 @@ We try to teach our bots to be good bots, but if you feel like one of our bots i
 
 Our bots will always identify themselves with a user agent that contains the string `AppName/X1X2X3X4` or `AppNameBot/X1X2X3X4` when possible.
 
-For example, [Cert Chief](/certchief) might use the following user agent when monitoring your domains:
+For example, {% external-link href="https://cert.chief.app/?rel=chiefdocs" %}Cert Chief{% /external-link %} might use the following user agent when monitoring your domains:
 
 ```
-CertChiefBot/X1X2X3X4 (+https://docs.chief.tools/bots)
+CertChiefBot/X1X2X3X4 (+https://aka.chief.app/bot)
 ```
 
 Or when our {% external-link href="https://favicon.chief.tools/?rel=chiefdocs" %}favicon proxy{% /external-link %} is looking for your favicon it might use the following user agent:
 
 ```
-Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ChiefToolsFaviconBot/X1X2X3X4; +https://docs.chief.tools/bots) Chrome/49.0.2623.75 Safari/537.36
+Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ChiefToolsFaviconBot/X1X2X3X4; +https://aka.chief.app/bot) Chrome/123.0.6312.58 Safari/537.36
 ```
 
 _Note: The `X1X2X3X4` part will be replaced with a unique identifier for the version of the bot that is making the request, this is a dynamic value that will change over time so do not use it for detection purposes. The value might look like `040bd810` or it might look like `1.0.0`._
