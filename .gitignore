@@ -1,0 +1,25 @@
+# Node.js
+/node_modules
+/yarn-error.log
+/webpack.stats.json
+/webpack.stats.json.tmp
+
+# IDE
+/.idea
+/.php_cs.cache
+/_ide_helper.php
+/.phpstorm.meta.php
+/.php-cs-fixer.cache
+/programmatic-types.graphql
+
+# OSX Crap
+.DS_Store
+
+# Environment config
+.env
+.env.gen
+.env.testing
+/storage/*.key
+
+# Build output
+dist/
