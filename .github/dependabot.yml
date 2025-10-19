@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      time: "10:00"
+      interval: monthly
+      timezone: Europe/Amsterdam
+    labels:
+      - ":link: dependencies"
