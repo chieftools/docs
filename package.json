@@ -22,5 +22,6 @@
     "@typescript-eslint/parser": "^8",
     "eslint": "^9",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
