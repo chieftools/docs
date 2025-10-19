@@ -36,7 +36,7 @@ const config: ZudokuConfig = {
     navigation: [
         {
             type: 'category',
-            label: 'Get Started',
+            label: 'Documentation',
             items: [
                 {
                     type: 'category',
@@ -64,9 +64,17 @@ const config: ZudokuConfig = {
                     items: [
                         '/domainchief/introduction',
                         {
-                            type: 'link',
+                            type: 'category',
                             label: 'API',
-                            to: '/api/domainchief',
+                            collapsible: false,
+                            items: [
+                                '/domainchief/api/introduction',
+                                {
+                                    type: 'link',
+                                    label: 'Playground',
+                                    to: '/api/domainchief',
+                                },
+                            ],
                         },
                     ],
                 },
