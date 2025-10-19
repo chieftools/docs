@@ -69,6 +69,7 @@ const config: ZudokuConfig = {
                             collapsible: false,
                             items: [
                                 '/domainchief/api/introduction',
+                                '/domainchief/api/metadata',
                                 {
                                     type: 'link',
                                     label: 'Playground',
