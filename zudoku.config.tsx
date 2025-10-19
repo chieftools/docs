@@ -136,7 +136,7 @@ const config: ZudokuConfig = {
     ],
     redirects: [
         {
-            from: '/', to: '/support',
+            from: '/', to: '/introduction',
         },
     ],
     apis: [
