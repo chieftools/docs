@@ -152,9 +152,13 @@ const config: ZudokuConfig = {
         },
     ],
     redirects: [
-        {
-            from: '/', to: '/introduction',
-        },
+        {from: '/', to: '/introduction'},
+        {from: '/accountchief', to: '/accountchief/introduction'},
+        {from: '/billdo', to: '/billdo/introduction'},
+        {from: '/certchief', to: '/certchief/introduction'},
+        {from: '/deploychief', to: '/deploychief/introduction'},
+        {from: '/domainchief', to: '/domainchief/introduction'},
+        {from: '/tny', to: '/tny/introduction'},
     ],
     apis: [
         {
