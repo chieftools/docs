@@ -77,6 +77,14 @@ const config: ZudokuConfig = {
                                 },
                             ],
                         },
+                        {
+                            type: 'category',
+                            label: 'Developers',
+                            collapsible: false,
+                            items: [
+                                '/domainchief/developers/domain-connect',
+                            ],
+                        },
                     ],
                 },
                 {
