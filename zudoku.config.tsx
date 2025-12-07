@@ -17,6 +17,12 @@ const config: ZudokuConfig = {
         showPoweredBy: false,
     },
     docs: {
+        files: 'pages/**/*.{md,mdx}',
+        llms: {
+            llmsTxt: true,
+            llmsTxtFull: true,
+            includeProtected: false,
+        },
         defaultOptions: {
             suggestEdit: {
                 text: 'Edit this page',
