@@ -45,6 +45,7 @@ const config: ZudokuConfig = {
                     items: [
                         '/introduction',
                         '/support',
+                        '/security',
                         '/bots',
                     ],
                 },
