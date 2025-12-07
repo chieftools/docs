@@ -8,7 +8,7 @@ const config: ZudokuConfig = {
         logo: {
             src: {
                 light: 'https://static.assets.chief.tools/icons/accountchief_full_256.png',
-                dark: 'https://static.assets.chief.tools/icons/accountchief_full_256.png',
+                dark: 'https://static.assets.chief.tools/icons/accountchief_full_white_256.png',
             },
             alt: 'Chief Tools Logo',
             href: 'https://chief.app?ref=chiefdocs',
