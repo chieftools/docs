@@ -117,6 +117,14 @@ const config: ZudokuConfig = {
                 },
                 {
                     type: 'category',
+                    label: 'FlowGuard',
+                    icon: 'book',
+                    items: [
+                        '/flowguard/introduction',
+                    ],
+                },
+                {
+                    type: 'category',
                     label: 'Bill.DO',
                     icon: 'book',
                     items: [
