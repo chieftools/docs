@@ -1,0 +1,48 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Setup .env file
+        run: cp .env.example .env
+      - name: Build project
+        run: yarn build
+
+      - name: Deploy to Bunny
+        uses: R-J-dev/bunny-deploy@v2
+        with:
+          concurrency: "25"
+          directory-to-upload: "./dist"
+          enable-delete-action: true
+          enable-purge-pull-zone: true
+
+          storage-endpoint: "https://storage.bunnycdn.com"
+          storage-zone-name: ${{ secrets.BUNNY_STORAGE_ZONE }}
+          storage-zone-password: ${{ secrets.BUNNY_STORAGE_ZONE_PASSWORD }}
+
+          access-key: ${{ secrets.BUNNY_ACCESS_KEY }}
+          pull-zone-id: ${{ secrets.BUNNY_PULL_ZONE_ID }}
+          replication-timeout: "15000"
