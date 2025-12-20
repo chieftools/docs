@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "zudoku dev",
-    "build": "zudoku build",
+    "build": "zudoku build && node scripts/restructure-dist.js",
     "preview": "zudoku preview",
     "lint": "eslint"
   },
