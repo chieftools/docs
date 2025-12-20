@@ -32,7 +32,7 @@ jobs:
         run: yarn build
 
       - name: Deploy to Bunny
-        uses: R-J-dev/bunny-deploy@v2
+        uses: R-J-dev/bunny-deploy@v2.1.1
         with:
           concurrency: "25"
           directory-to-upload: "./dist"
