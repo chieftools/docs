@@ -1,0 +1,151 @@
+---
+title: Testing with .example
+description: Learn how to use the .example TLD to test Domain Chief's API and UI features without real domain registration costs.
+---
+
+The `.example` TLD is a special testing TLD available on Domain Chief that lets you explore and test all features without registering real domains. It's completely free to use and perfect for development, testing, and learning how Domain Chief works.
+
+## Overview
+
+Any domain ending in `.example` can be registered, managed, and tested through Domain Chief's API and UI just like a real domain. However, these domains only exist within Domain Chief and won't resolve on the public internet.
+
+### Key Benefits
+
+- **Free testing** - No registration or renewal costs
+- **Instant setup** - Domains are provisioned immediately
+- **Full feature access** - Test DNS, nameservers, WHOIS, transfers, and more
+- **Failure simulation** - Test error handling in your applications
+- **Safe experimentation** - No risk to real domains or DNS configurations
+
+## Basic Usage
+
+Simply use any name with the `.example` extension:
+
+```
+mywebsite.example
+test-domain.example
+api-integration.example
+```
+
+All standard operations work as expected: registration, DNS management, WHOIS updates, nameserver changes, and domain locking.
+
+## Special Keywords
+
+You can use specific words in your domain name to simulate different scenarios and test how your application handles them.
+
+### Premium Domains
+
+Include **`premium`** anywhere in your domain name to simulate premium domain pricing:
+
+```
+premium-brand.example
+my-premium-domain.example
+premium.example
+```
+
+Premium domains cost 10× the standard price for registration and renewal, allowing you to test premium domain workflows and pricing display.
+
+### Transfer Simulation
+
+Include **`transfer`** in your domain name to make it available for transfer testing:
+
+```
+transfer-test.example
+my-transfer-domain.example
+transfer.example
+```
+
+These domains appear as already registered and active, enabling you to test the domain transfer process without needing two separate accounts.
+
+### Failure Testing
+
+Include **`fail`** in your domain name to simulate registration and transfer failures:
+
+```
+fail-test.example
+registration-fail.example
+fail.example
+```
+
+When attempting to register or transfer these domains, the operation will fail with a registry error, allowing you to test error handling, user notifications, and retry logic in your applications.
+
+## Use Cases
+
+### API Development
+
+Test API integrations without incurring domain costs:
+
+```bash
+# Test domain availability check
+curl -X POST https://api.chief.app/v1/domains/check \
+  -d '{"domain": "my-api-test.example"}'
+
+# Test domain registration
+curl -X POST https://api.chief.app/v1/domains \
+  -d '{"domain": "my-api-test.example", ...}'
+```
+
+### Error Handling
+
+Ensure your application handles errors gracefully:
+
+```bash
+# This will trigger a registration failure
+curl -X POST https://api.chief.app/v1/domains \
+  -d '{"domain": "registration-fail.example", ...}'
+```
+
+### UI Testing
+
+Explore Domain Chief's interface and features without commitment. Perfect for:
+- Learning the platform
+- Training team members
+- Creating demos and screenshots
+- Testing DNS configurations
+- Evaluating premium domain features
+
+## Transferring Between Teams
+
+You can transfer `.example` domains between your teams or to other Domain Chief accounts using auth codes, just like real domains. This is useful for testing complete transfer workflows.
+
+### How It Works
+
+1. **Get the auth code** - Request the transfer authorization code from your domain's settings
+2. **Initiate transfer** - Use the auth code to transfer the domain to another team or account
+3. **Complete transfer** - The domain moves to the new team instantly
+
+This allows you to test:
+- Multi-account transfer flows
+- Auth code handling in your applications
+- Transfer notifications and confirmations
+- Domain ownership changes
+
+Unlike external registry transfers, internal `.example` transfers complete immediately and are completely free.
+
+## Limitations
+
+While `.example` domains behave like real domains within Domain Chief, they have important limitations:
+
+- **No public DNS resolution** - These domains won't resolve on the internet
+- **Testing only** - Not suitable for production use
+- **No actual registrar connection** - Not registered with any real domain registry
+- **Mock data** - Some registry-specific features may return simulated data
+
+## Combining Keywords
+
+You can combine multiple keywords to test complex scenarios:
+
+```
+premium-transfer.example      # Premium domain available for transfer
+fail-premium.example          # Premium domain that fails to register
+transfer-fail.example         # Transfer attempt that will fail
+```
+
+## Getting Started
+
+1. Log into your Domain Chief account
+2. Search for any domain ending in `.example`
+3. Register it for free
+4. Start testing all available features
+
+No special setup or approval required - just use `.example` and start exploring.

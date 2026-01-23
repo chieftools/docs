@@ -89,6 +89,7 @@ const config: ZudokuConfig = {
                             label: 'Developers',
                             collapsible: false,
                             items: [
+                                '/domainchief/developers/example-tld',
                                 '/domainchief/developers/domain-connect',
                             ],
                         },
