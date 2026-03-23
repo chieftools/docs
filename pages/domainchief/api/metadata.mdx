@@ -204,23 +204,35 @@ When a metadata value contains a valid URL (starting with `https://`), it will a
 }
 ```
 
-### Special Metadata Keys for Domains
+### Tags
 
-The `external_url` metadata key has special meaning when set on a domain. It will display a prominent button in the Domain Chief UI, providing quick access to the external resource.
+When a metadata key is named `tag`, its value will be displayed as a visual tag label in the Domain Chief UI, making it easy to visually categorize and identify resources at a glance. This works on domains, contacts, and DNS records.
+
+For domains, the tag is also clickable and filters the domain list to show only domains with the same tag.
 
 **Example:**
 ```json
 {
-  "domain": "example.com",
-  "is_using_hosted_dns": true,
   "metadata": {
-    "domain_id": "1234",
-    "external_url": "https://example.com/manage-domain/1234"
+    "tag": "production"
   }
 }
 ```
 
-This is particularly useful for linking domains to external management tools, customer portals, or related resources.
+### External URL
+
+The `external_url` metadata key displays a prominent link button in the Domain Chief UI, providing quick access to an external resource. This works on domains, contacts, and DNS records. The value must be a valid `https://` URL.
+
+**Example:**
+```json
+{
+  "metadata": {
+    "external_url": "https://example.com/manage/1234"
+  }
+}
+```
+
+This is particularly useful for linking resources to external management tools, customer portals, or related systems.
 
 ## Best Practices
 
