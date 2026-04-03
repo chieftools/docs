@@ -30,7 +30,7 @@ _Note: This file might be located in a different folder depending on your operat
 
 This line will cause NGINX to serve the `index.php` file from the current release folder, however it will not see that the folder is a symlink so it `SCRIPT_FILENAME` (and `DOCUMENT_ROOT`) will be set to something like:
 
-```term
+```
 /var/www/app/production/current/public/index.php
 ```
 
@@ -45,7 +45,7 @@ fastcgi_param  DOCUMENT_ROOT      $realpath_root;
 
 This will resolve the symlink first and then set the `SCRIPT_FILENAME` (and `DOCUMENT_ROOT`) to the actual path that is being served, which is something like:
 
-```term
+```
 /var/www/app/production/releases/c5111f1f-120d-4ea2-b707-ed46952f4f2e/public/index.php
 ```
 
