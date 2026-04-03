@@ -1,0 +1,68 @@
+---
+title: Scopes
+description: Learn how scopes control what your API tokens can access across Chief Tools.
+---
+
+Scopes define what actions an API token is allowed to perform. When creating an [Access Token](/accountchief/api/tokens#access-tokens), you can assign scopes to limit its access to only what is needed.
+
+## Scope Format
+
+Scopes follow a hierarchical format using colons as separators:
+
+```
+{app}:{resource}:{action}
+```
+
+For example:
+- `domainchief` — full access to Domain Chief
+- `domainchief:domains:read` — read-only access to domains in Domain Chief
+- `domainchief:dns:write` — create, update, and delete DNS records
+
+<Callout type="info" title="We are working on it!">
+    Not all Chief Tools support fine-grained scopes yet, but we are actively working on adding more scopes across all our tools. Check the documentation for the specific tool you are integrating with to see which scopes are currently available.
+</Callout>
+
+## How Scope Resolution Works
+
+Scopes are resolved hierarchically. A broader scope automatically grants access to all more specific scopes beneath it. This means you don't need to list every individual scope — a single parent scope covers all its children.
+
+### Parent Scopes
+
+A parent scope grants access to all its children:
+
+| Token has | Grants access to |
+|---|---|
+| `domainchief` | Everything in Domain Chief |
+| `domainchief:domains` | All domain operations (read, write, register, transfer) |
+| `domainchief:domains:read` | Read-only domain access |
+
+### Write Implies Read
+
+A `:write` scope at any level also grants `:read` access at the same level:
+
+| Token has | Also grants |
+|---|---|
+| `domainchief:write` | `domainchief:read` |
+| `domainchief:domains:write` | `domainchief:domains:read` |
+| `domainchief:dns:write` | `domainchief:dns:read` |
+
+### Cross-Cutting Scopes
+
+An action scope at the application level applies across all resources:
+
+| Token has | Grants access to |
+|---|---|
+| `domainchief:read` | `domainchief:domains:read`, `domainchief:contacts:read`, `domainchief:dns:read`, etc. |
+| `domainchief:write` | All `:write` and `:read` scopes across all resources |
+
+## Best Practices
+
+- **Principle of least privilege** — only grant the scopes your integration actually needs. A DNS automation script should use `domainchief:dns:write`, not `domainchief`.
+- **Use expiring tokens** — combine scopes with [token expiration](/accountchief/tokens#expiring-tokens) for temporary access.
+- **Separate tokens per integration** — create dedicated tokens for each integration so you can revoke access independently.
+
+## Available Scopes
+
+Each application defines its own scopes. Not all tools support fine grained scopes. See the documentation for the specific tool you are integrating with:
+
+- [Domain Chief API Scopes](/domainchief/api/scopes)

@@ -1,0 +1,117 @@
+---
+title: Scopes
+description: Available API scopes for Domain Chief and which endpoints they control.
+---
+
+API scopes control what actions a token can perform in the Domain Chief API. Scopes are assigned when creating an [Access Token](/accountchief/api/tokens#access-tokens).
+For a general overview of how scopes work, see the [scopes documentation](/accountchief/api/scopes) page.
+
+---
+
+## Available Scopes
+
+### Full Access
+
+| Scope | Description |
+|---|---|
+| `domainchief` | Full access to all Domain Chief API endpoints |
+
+### Broad Scopes
+
+| Scope | Description |
+|---|---|
+| `domainchief:read` | Read-only access to all resources |
+| `domainchief:write` | Read and write access to all resources (does not include register or transfer) |
+
+### Domain Scopes
+
+| Scope | Description |
+|---|---|
+| `domainchief:domains` | Full access to all domain operations |
+| `domainchief:domains:read` | List and view domains |
+| `domainchief:domains:read:availability` | Check domain availability only |
+| `domainchief:domains:write` | Update domain settings |
+| `domainchief:domains:register` | Register and transfer domains |
+| `domainchief:domains:transfer` | View and send auth codes, initiate push transfers |
+
+<Callout type="info">
+`domainchief:domains:register` is separate from `domainchief:domains:write` because registration incurs charges. Use the parent scope `domainchief:domains` to grant both.
+</Callout>
+
+### Contact Scopes
+
+| Scope | Description |
+|---|---|
+| `domainchief:contacts:read` | List and view contacts |
+| `domainchief:contacts:write` | Create, update, and delete contacts |
+
+### DNS Scopes
+
+| Scope | Description |
+|---|---|
+| `domainchief:dns:read` | List and view DNS records |
+| `domainchief:dns:write` | Create, update, delete, clear, and reset DNS records |
+
+### Redirect Scopes
+
+| Scope | Description |
+|---|---|
+| `domainchief:redirects_web:read` | List and view web redirects |
+| `domainchief:redirects_web:write` | Create, update, and delete web redirects |
+| `domainchief:redirects_mail:read` | List and view mail redirects |
+| `domainchief:redirects_mail:write` | Create, update, and delete mail redirects |
+
+### Other Scopes
+
+| Scope | Description |
+|---|---|
+| `domainchief:tlds:read` | List and view available TLDs and pricing |
+| `domainchief:activity:read` | View domain activity logs |
+
+---
+
+Each endpoint in the [API playground](/api/domainchief) shows its required scope in the security section.
+
+---
+
+## Example Token Configurations
+
+### DNS-Only Automation
+
+For a script that manages DNS records without access to other resources:
+
+```
+Scopes: domainchief:dns:write
+```
+
+This grants read and write access to DNS records only. The script cannot list domains, manage contacts, or perform any other operations.
+
+### Read-Only Monitoring
+
+For a dashboard that displays domain and DNS information:
+
+```
+Scopes: domainchief:read
+```
+
+This grants read access to all resources (domains, contacts, DNS records, TLDs, activity) but cannot make any changes.
+
+### Domain Availability Checker
+
+For a tool that only checks domain availability:
+
+```
+Scopes: domainchief:domains:read:availability
+```
+
+This is the narrowest scope — it can only check availability and cannot list or view existing domains.
+
+### Full Domain Management (Without Registration)
+
+For an integration that manages existing domains but should not register new ones:
+
+```
+Scopes: domainchief:domains:write, domainchief:dns:write, domainchief:contacts:write
+```
+
+This grants full management of existing domains, DNS, and contacts, but cannot register new domains or initiate transfers.

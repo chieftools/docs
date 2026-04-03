@@ -1,15 +1,23 @@
 ---
-title: API Tokens
+title: Tokens
 description: Learn about Chief Tools tokens and how to use and secure them.
 ---
 
-Chief Tools tokens can be used to access the API of one or more Chief Tools without the need for your username and/or password. Tokens are managed by Account Chief.
+Chief Tools tokens can be used to access the API of one or more Chief Tools without the need for your username and/or password. Tokens are managed by Account Chief centrally.
 
 ---
 
-## Personal Access Tokens
+## Access Tokens
 
-Personal Access Tokens (PAT for short): are used to authenticate as your user account, it has the same access as you have in our web UI. Personal Access Tokens can be created from your account, you can access it directly by going to: <ExternalLink href="https://account.chief.app/api/tokens">account.chief.app/api/tokens</ExternalLink>.
+### Token Types
+
+##### Personal Access Tokens
+
+Personal Access Tokens (PAT for short): are used to authenticate as your user account. Personal Access Tokens can be created from your account, you can access it directly by going to: <ExternalLink href="https://account.chief.app/api/tokens">account.chief.app/api/tokens</ExternalLink>.
+
+##### Team Access Tokens
+
+Team Access Tokens: are used to authenticate as a team. Team Access Tokens can be created from your team settings, you can access it directly by going to: <ExternalLink href="https://account.chief.app/teams">account.chief.app/teams</ExternalLink> selecting a team and scrolling to the "Team API access tokens" section.
 
 ### Expiring tokens
 
@@ -17,11 +25,11 @@ When creating a token you get the option to set a date when the token expires, a
 
 If you whish for the token to remain active indefinitly you can leave the field empty.
 
-### Allowed applications
+### Scopes
 
 You can select for which Chief Tool(s) the token you create is usable, this is recommended to limit the scope of what the token can access.
 
-If you whish for the token to be valid for all tools, don't select any.
+You can read more about scopes and how they work in the [scopes documentation](/accountchief/api/scopes).
 
 ### Revoking tokens
 
@@ -58,6 +66,7 @@ We have our "random token" parser, generator and validator <ExternalLink href="h
 This is a list of prefixes and what those prefixes mean:
 
 - `ctp` for [Personal Access Tokens](#personal-access-tokens)
+- `ctt` for [Team Access Tokens](#team-access-tokens)
 - `cto` for OAuth Access Tokens
 - `ctr` for OAuth Refresh Tokens
 
