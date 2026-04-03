@@ -1,8 +1,13 @@
-import type {ZudokuConfig} from 'zudoku';
-import {createApiIdentityPlugin} from 'zudoku/plugins';
 import {ExternalLink} from './src/ExternalLink.js';
+import {createApiIdentityPlugin} from 'zudoku/plugins';
+import {defaultLanguages, type ZudokuConfig} from 'zudoku';
 
 const config: ZudokuConfig = {
+    mdx: {
+        components: {
+            ExternalLink,
+        },
+    },
     site: {
         title: 'Chief Tools Documentation',
         logo: {
@@ -15,6 +20,20 @@ const config: ZudokuConfig = {
             width: '160px',
         },
         showPoweredBy: false,
+    },
+    apis: {
+        type: 'file',
+        path: '/api/domainchief',
+        input: './apis/domainchief.json',
+        options: {
+            schemaDownload: {
+                enabled: true,
+            },
+            examplesLanguage: 'shell',
+            supportedLanguages: [
+                {label: 'cURL', value: 'shell'},
+            ],
+        },
     },
     docs: {
         files: 'pages/**/*.{md,mdx}',
@@ -31,6 +50,31 @@ const config: ZudokuConfig = {
             showLastModified: false,
         },
     },
+    search: {
+        type: 'pagefind',
+    },
+    plugins: [
+        createApiIdentityPlugin({
+            getIdentities: async (context) => [
+                {
+                    id: 'openid',
+                    label: 'Chief Tools (OpenID)',
+                    authorizeRequest: async (request) => {
+                        // We get the access token from the
+                        // authentication provider (Auth0) and add it to the request headers
+                        // @ts-ignore
+                        const token = await context.authentication?.getAccessToken();
+
+                        if (token) {
+                            request.headers.set('Authorization', `Bearer ${token}`);
+                        }
+
+                        return request;
+                    },
+                },
+            ],
+        }),
+    ],
     sitemap: {
         siteUrl: 'https://docs.chief.tools',
     },
@@ -39,6 +83,16 @@ const config: ZudokuConfig = {
         defaultTitle: 'Chief Tools Documentation',
         favicon: 'https://static.assets.chief.tools/icons/accountchief_favicon.svg',
     },
+    redirects: [
+        {from: '/', to: '/introduction'},
+        {from: '/accountchief', to: '/accountchief/introduction'},
+        {from: '/accountchief/tokens', to: '/accountchief/api/tokens'},
+        {from: '/billdo', to: '/billdo/introduction'},
+        {from: '/certchief', to: '/certchief/introduction'},
+        {from: '/deploychief', to: '/deploychief/introduction'},
+        {from: '/domainchief', to: '/domainchief/introduction'},
+        {from: '/tny', to: '/tny/introduction'},
+    ],
     navigation: [
         {
             type: 'category',
@@ -176,55 +230,14 @@ const config: ZudokuConfig = {
             label: 'Domain Chief API',
         },
     ],
-    redirects: [
-        {from: '/', to: '/introduction'},
-        {from: '/accountchief', to: '/accountchief/introduction'},
-        {from: '/accountchief/tokens', to: '/accountchief/api/tokens'},
-        {from: '/billdo', to: '/billdo/introduction'},
-        {from: '/certchief', to: '/certchief/introduction'},
-        {from: '/deploychief', to: '/deploychief/introduction'},
-        {from: '/domainchief', to: '/domainchief/introduction'},
-        {from: '/tny', to: '/tny/introduction'},
-    ],
-    apis: [
-        {
-            type: 'url',
-            input: process.env.ZUDOKU_PUBLIC_DOMAINCHIEF_API_SPEC,
-            path: '/api/domainchief',
-        },
-    ],
-    search: {
-        type: 'pagefind',
-    },
     authentication: {
         type: 'openid',
-        clientId: process.env.ZUDOKU_PUBLIC_AUTH_CLIENT_ID,
-        issuer: process.env.ZUDOKU_PUBLIC_AUTH_ISSUER,
         scopes: ['openid', 'profile', 'email', 'domainchief'],
+        issuer: process.env.ZUDOKU_PUBLIC_AUTH_ISSUER as string,
+        clientId: process.env.ZUDOKU_PUBLIC_AUTH_CLIENT_ID as string,
     },
-    plugins: [
-        createApiIdentityPlugin({
-            getIdentities: async (context) => [
-                {
-                    id: 'openid',
-                    label: 'Chief Tools (OpenID)',
-                    authorizeRequest: async (request) => {
-                        // We get the access token from the
-                        // authentication provider (Auth0) and add it to the request headers
-                        const token = await context.authentication?.getAccessToken();
-                        if (token) {
-                            request.headers.set('Authorization', `Bearer ${token}`);
-                        }
-                        return request;
-                    },
-                },
-            ],
-        }),
-    ],
-    mdx: {
-        components: {
-            ExternalLink,
-        },
+    syntaxHighlighting: {
+        languages: [...defaultLanguages, 'nginx', 'regex'],
     },
 };
 
