@@ -3,7 +3,20 @@ title: Introduction
 description: A quick introduction to Cert Chief, what it does and how to use it.
 ---
 
-Cert Chief, monitor your domains for expired certificates and bad configuration. Checks for certificate expiration, DNS problems, and so much more.
+Cert Chief helps you monitor domains and TLS-enabled services so certificate and HTTPS problems are caught before your users notice them.
+
+With Cert Chief you can keep an eye on things like:
+
+- certificate expiration, revocation, and unexpected certificate changes;
+- broken TLS configuration or hostname mismatches;
+- DNS resolution, DNSSEC, and DANE issues;
+- HTTP or HTTPS behavior such as unexpected status codes and redirects to HTTPS.
+
+Cert Chief performs recurring checks for the domains and services you ask it to monitor and notifies you when something changes or needs attention.
+
+You can also run a more extensive TLS/SSL Server Test powered by <ExternalLink href="https://testssl.sh/?ref=certchief">testssl.sh</ExternalLink> from <ExternalLink href="https://cert.chief.app/testssl">cert.chief.app/testssl</ExternalLink>. For monitored domains, Cert Chief may also periodically refresh these test results for you.
+
+If you need a provider-facing explanation of the monitoring traffic Cert Chief generates, including user agents and IP addresses, see [Bot information](/certchief/bot).
 
 <Callout type="info" title="We are working on it!">
     This documentation site is fresh and we know many things are still missing or incomplete, please <ExternalLink href="https://chief.app/contact">contact us</ExternalLink> if you are looking for a specific answer that is not yet answered here!

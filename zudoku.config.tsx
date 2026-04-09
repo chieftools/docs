@@ -87,11 +87,13 @@ const config: ZudokuConfig = {
         {from: '/', to: '/introduction'},
         {from: '/accountchief', to: '/accountchief/introduction'},
         {from: '/accountchief/tokens', to: '/accountchief/api/tokens'},
-        {from: '/billdo', to: '/billdo/introduction'},
-        {from: '/certchief', to: '/certchief/introduction'},
-        {from: '/deploychief', to: '/deploychief/introduction'},
         {from: '/domainchief', to: '/domainchief/introduction'},
+        {from: '/certchief', to: '/certchief/introduction'},
+        {from: '/certchief/ip-addresses', to: '/certchief/bot#ip-addresses'},
+        {from: '/deploychief', to: '/deploychief/introduction'},
         {from: '/tny', to: '/tny/introduction'},
+        {from: '/flowguard', to: '/flowguard/introduction'},
+        {from: '/billdo', to: '/billdo/introduction'},
     ],
     navigation: [
         {
@@ -100,7 +102,7 @@ const config: ZudokuConfig = {
             items: [
                 {
                     type: 'category',
-                    label: 'Getting Started',
+                    label: 'General',
                     icon: 'sparkles',
                     items: [
                         '/introduction',
@@ -164,7 +166,7 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/certchief/introduction',
-                        '/certchief/ip-addresses',
+                        '/certchief/bot',
                     ],
                 },
                 {

@@ -1,0 +1,79 @@
+---
+title: Bot information
+description: Learn what the Cert Chief bot does, why it may connect to your services, and how to identify it.
+---
+
+Cert Chief is a monitoring bot. It connects to domains and TLS-enabled services that our users explicitly asked us to monitor so we can warn them before certificate, DNS, or HTTPS problems turn into outages.
+
+This page is intended for hosting providers, firewall administrators, abuse desks, and security teams that want to understand why traffic from Cert Chief may reach their systems.
+
+## Why this bot exists
+
+We use Cert Chief to help customers detect problems such as:
+
+- expiring, expired, changed, or revoked certificates;
+- broken certificate chains or hostname mismatches;
+- DNS resolution problems, including DNSSEC issues;
+- DANE validation problems;
+- HTTP or HTTPS issues such as unexpected status codes or missing redirects to HTTPS.
+
+## What Cert Chief does
+
+Depending on the type of monitor and configuration, Cert Chief may:
+
+- resolve `A` and `AAAA` records for the monitored host;
+- inspect DNSSEC status for the monitored name;
+- open a TCP connection to the configured port and perform a TLS handshake;
+- collect the presented certificate and certificate chain;
+- validate certificate expiration, trust, hostname coverage, revocation, and related TLS details;
+- make a small number of HTTP or HTTPS requests to check reachability, redirects, and status codes on a configured path.
+
+By default, Cert Chief performs recurring checks roughly every 5 minutes. Higher-risk domains, such as domains with certificates that are close to expiring, may be checked more often.
+
+## testssl.sh scans
+
+Cert Chief also offers a TLS/SSL Server Test powered by <ExternalLink href="https://testssl.sh/?ref=certchief">testssl.sh</ExternalLink> at <ExternalLink href="https://cert.chief.app/testssl">cert.chief.app/testssl</ExternalLink>.
+
+Users can start these scans manually for a host, and Cert Chief may also periodically run or refresh `testssl.sh`-based scans for eligible monitored domains.
+
+Because these scans are more in-depth than the regular certificate and HTTP checks, they may generate additional connections and probe a broader set of TLS/SSL configuration details on the target host.
+
+## What Cert Chief does not do
+
+Cert Chief is not a content crawler or search engine bot. It does not:
+
+- browse arbitrary pages on a site;
+- submit forms, sign in, or interact with user accounts;
+- execute JavaScript in a browser;
+- attempt to bypass access controls;
+- follow off-site redirect chains for monitoring purposes.
+
+When doing HTTP checks, Cert Chief only needs the response status and headers and avoids downloading the full response body where possible.
+
+## How to identify Cert Chief
+
+Cert Chief identifies itself with a user agent that contains `CertChiefBot/<version>` and references `https://aka.chief.app/bot`.
+
+For example:
+
+```text
+Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; CertChiefBot/X1X2X3X4; +https://aka.chief.app/bot) Chrome/137.0.0.0 Safari/537.36
+```
+
+The version identifier changes over time and should not be used as the only detection signal. You can also refer to the general [Bots](/bots) page for shared Chief Tools bot behavior.
+
+## IP addresses
+
+Although we do not recommend allowlisting our IP addresses because they can change at any time, we do publish the current addresses you can expect Cert Chief to use when monitoring your domains.
+
+- [Combined](https://cert.chief.app/.well-known/ip-list)
+- [IPv4](https://cert.chief.app/.well-known/ip-list-v4)
+- [IPv6](https://cert.chief.app/.well-known/ip-list-v6)
+
+<Callout type="info">
+    We cannot guarantee that this list will never change or that we will announce every IP change, so use this information with caution and at your own risk.
+</Callout>
+
+## Questions or concerns
+
+If you believe Cert Chief is misbehaving or if you need additional information for allowlisting, please <ExternalLink href="https://chief.app/contact">contact us</ExternalLink>.
