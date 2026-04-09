@@ -86,7 +86,9 @@ const config: ZudokuConfig = {
     redirects: [
         {from: '/', to: '/introduction'},
         {from: '/accountchief', to: '/accountchief/introduction'},
-        {from: '/accountchief/tokens', to: '/accountchief/api/tokens'},
+        {from: '/accountchief/tokens', to: '/api/tokens'},
+        {from: '/accountchief/api/tokens', to: '/api/tokens'},
+        {from: '/accountchief/api/scopes', to: '/api/scopes'},
         {from: '/domainchief', to: '/domainchief/introduction'},
         {from: '/certchief', to: '/certchief/introduction'},
         {from: '/certchief/ip-addresses', to: '/certchief/bot#ip-addresses'},
@@ -109,6 +111,15 @@ const config: ZudokuConfig = {
                         '/support',
                         '/security',
                         '/bots',
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: false,
+                            items: [
+                                '/api/tokens',
+                                '/api/scopes',
+                            ],
+                        },
                     ],
                 },
                 {
@@ -117,15 +128,6 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/accountchief/introduction',
-                        {
-                            type: 'category',
-                            label: 'API',
-                            collapsible: false,
-                            items: [
-                                '/accountchief/api/tokens',
-                                '/accountchief/api/scopes',
-                            ],
-                        },
                     ],
                 },
                 {

@@ -3,7 +3,7 @@ title: Scopes
 description: Learn how scopes control what your API tokens can access across Chief Tools.
 ---
 
-Scopes define what actions an API token is allowed to perform. When creating an [Access Token](/accountchief/api/tokens#access-tokens), you can assign scopes to limit its access to only what is needed.
+Scopes define what actions an API token is allowed to perform. When creating an [access token](/api/tokens#access-tokens), you can assign scopes to limit its access to only what is needed.
 
 ## Scope Format
 
@@ -58,7 +58,7 @@ An action scope at the application level applies across all resources:
 ## Best Practices
 
 - **Principle of least privilege** — only grant the scopes your integration actually needs. A DNS automation script should use `domainchief:dns:write`, not `domainchief`.
-- **Use expiring tokens** — combine scopes with [token expiration](/accountchief/tokens#expiring-tokens) for temporary access.
+- **Use expiring tokens** — combine scopes with [token expiration](/api/tokens#expiring-tokens) for temporary access.
 - **Separate tokens per integration** — create dedicated tokens for each integration so you can revoke access independently.
 
 ## Available Scopes
