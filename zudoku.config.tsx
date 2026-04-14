@@ -136,6 +136,7 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/domainchief/introduction',
+                        '/domainchief/ai',
                         {
                             type: 'category',
                             label: 'API',

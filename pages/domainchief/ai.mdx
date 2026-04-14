@@ -1,0 +1,148 @@
+---
+title: AI
+description: Connect Domain Chief to your AI agent and manage domains with MCP.
+---
+
+Domain Chief works with AI agents through MCP, the Model Context Protocol.
+
+If your AI client supports MCP, you can connect it directly to Domain Chief and let it inspect or manage domains, DNS records, redirects, contacts, and more.
+
+## MCP Server URL
+
+Use this MCP server URL:
+
+```text
+https://domain.chief.app/mcp
+```
+
+## Getting Started
+
+Most MCP-compatible AI clients follow the same setup flow:
+
+1. Open your client’s MCP or integrations settings.
+2. Add a new remote MCP server.
+3. Use `https://domain.chief.app/mcp` as the server URL.
+4. Save the server.
+5. Sign in with your Chief account when the client asks you to authenticate.
+6. Approve the requested scopes.
+
+After that, your AI client can call Domain Chief tools directly.
+
+<Callout type="info">
+Today, the requested scopes are approved as a set. If your client requests multiple scopes, you approve all of them or none of them.
+</Callout>
+
+## What Your Agent Can Do
+
+Today, the Domain Chief MCP server can help with:
+
+- Looking up supported TLDs and pricing
+- Finding and inspecting contacts
+- Listing domains
+- Updating existing domain settings
+- Checking domain availability
+- Inspecting hosted DNS records
+- Creating, updating, deleting, clearing, and resetting hosted DNS records
+- Inspecting hosted web redirects
+- Creating, updating, and deleting hosted web redirects
+
+This makes it useful for tasks like:
+
+- “Check whether `example.com` is available”
+- “Show me the DNS records for `example.nl`”
+- “Update the metadata on this domain”
+- “Create a redirect from `www` to my main site”
+- “Find the right contact handle for a transfer or registration workflow”
+
+## Available Tools
+
+### TLDs
+
+| Tool | What it does |
+|---|---|
+| `list-tlds` | List supported TLDs and indicative pricing |
+| `get-tld` | Show details for a single TLD |
+
+### Contacts
+
+| Tool | What it does |
+|---|---|
+| `list-contacts` | List your team contacts |
+| `get-contact` | Show a single contact |
+
+### Domains
+
+| Tool | What it does |
+|---|---|
+| `list-domains` | List your team domains |
+| `update-domain` | Update an existing domain |
+| `check-domain-availability` | Check whether a domain can be registered or transferred |
+
+### DNS
+
+| Tool | What it does |
+|---|---|
+| `get-dns-record` | Show a single hosted DNS record |
+| `list-dns-records` | List hosted DNS records for a domain |
+| `create-dns-record` | Create a hosted DNS record |
+| `update-dns-record` | Update a hosted DNS record |
+| `delete-dns-record` | Delete a hosted DNS record |
+| `clear-dns-records` | Remove hosted DNS records while keeping redirect-managed records intact |
+| `reset-dns-records` | Reset hosted DNS records back to Domain Chief defaults |
+
+### Web Redirects
+
+| Tool | What it does |
+|---|---|
+| `get-web-redirect` | Show a single hosted web redirect |
+| `list-web-redirects` | List hosted web redirects for a domain |
+| `create-web-redirect` | Create a hosted web redirect |
+| `update-web-redirect` | Update a hosted web redirect |
+| `delete-web-redirect` | Delete a hosted web redirect |
+
+## Permissions and Scopes
+
+Your AI client only gets access to the tools allowed by the scopes you approve.
+
+Some common examples:
+
+| Scope | Access |
+|---|---|
+| `domainchief:tlds:read` | View TLDs |
+| `domainchief:contacts:read` | View contacts |
+| `domainchief:domains:read` | View domains |
+| `domainchief:domains:read:availability` | Check availability only |
+| `domainchief:domains:write` | Update existing domains |
+| `domainchief:dns:read` | View hosted DNS records |
+| `domainchief:dns:write` | Manage hosted DNS records |
+| `domainchief:redirects_web:read` | View hosted web redirects |
+| `domainchief:redirects_web:write` | Manage hosted web redirects |
+
+For the full scope reference, see [Domain Chief API scopes](/domainchief/api/scopes).
+
+## Recommended Setup
+
+For most users, this is a good default approach:
+
+1. Connect the MCP server using `https://domain.chief.app/mcp`.
+2. Review the scopes your client requests before approving access.
+3. Only continue if those scopes match what you want the agent to do.
+4. If you want a narrower permission set, configure your client to request fewer scopes before connecting.
+
+This helps you control what your AI agent is allowed to do.
+
+## When To Use MCP vs The API
+
+Use MCP when:
+
+- You want an AI agent to work with Domain Chief directly
+- You want a guided, tool-based interface instead of building against raw endpoints
+- You want scoped access that only exposes the tasks the agent should perform
+
+Use the REST API when:
+
+- You are building a traditional application integration
+- You need an endpoint that is not available through MCP yet
+- You want full low-level API control
+
+You can learn more about the API in the [Domain Chief API documentation](/domainchief/api/introduction).
