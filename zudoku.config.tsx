@@ -29,6 +29,7 @@ const config: ZudokuConfig = {
             schemaDownload: {
                 enabled: true,
             },
+            disableSecurity: false,
             examplesLanguage: 'shell',
             supportedLanguages: [
                 {label: 'cURL', value: 'shell'},
