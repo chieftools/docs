@@ -1,0 +1,74 @@
+---
+title: Scopes
+description: Available API scopes for Tny and which endpoints they control.
+---
+
+API scopes control what actions a token can perform in the Tny API. Scopes are assigned when creating an [access token](/api/tokens#access-tokens).
+For a general overview of how scopes work, see the [scopes documentation](/api/scopes) page.
+
+---
+
+## Available Scopes
+
+### Full Access
+
+| Scope | Description |
+|---|---|
+| `tny` | Full access to all Tny API endpoints and GraphQL operations |
+
+### Link Scopes
+
+| Scope | Description |
+|---|---|
+| `tny:links:read` | List and view Tny links |
+| `tny:links:write` | Create, update, and delete Tny links, including custom social cards |
+
+### Domain Scopes
+
+| Scope | Description |
+|---|---|
+| `tny:domains:read` | List and view custom domains and domain redirects |
+
+### Utility Scopes
+
+| Scope | Description |
+|---|---|
+| `tny:utilities:read` | Unshorten URLs and fetch URL metadata |
+
+<Callout type="info">
+The `tny` scope grants access to every `tny:*` scope. Existing tokens with the `tny` scope continue to work without changes.
+</Callout>
+
+---
+
+Each protected field in the [API playground](/api/tny) shows its required scope in the security section.
+
+---
+
+## Example Token Configurations
+
+### Read-Only Link and Domain Access
+
+For a tool that should only inspect links and domains:
+
+```
+Scopes: tny:links:read, tny:domains:read
+```
+
+### Link Management
+
+For an integration that creates and manages short links:
+
+```
+Scopes: tny:links:write
+```
+
+This also allows reading links, so a separate `tny:links:read` scope is not required.
+
+### Utility-Only Access
+
+For a tool that only unshortens URLs or fetches metadata:
+
+```
+Scopes: tny:utilities:read
+```

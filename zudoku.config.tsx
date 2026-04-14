@@ -188,6 +188,14 @@ const config: ZudokuConfig = {
                     items: [
                         '/tny/introduction',
                         '/tny/custom-domains',
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: false,
+                            items: [
+                                '/tny/api/scopes',
+                            ],
+                        },
                     ],
                 },
                 {
