@@ -89,7 +89,6 @@ const config: ZudokuConfig = {
         {from: '/accountchief', to: '/accountchief/introduction'},
         {from: '/accountchief/tokens', to: '/api/tokens'},
         {from: '/accountchief/api/tokens', to: '/api/tokens'},
-        {from: '/accountchief/api/scopes', to: '/api/scopes'},
         {from: '/domainchief', to: '/domainchief/introduction'},
         {from: '/certchief', to: '/certchief/introduction'},
         {from: '/certchief/ip-addresses', to: '/certchief/bot#ip-addresses'},
@@ -119,6 +118,7 @@ const config: ZudokuConfig = {
                             items: [
                                 '/api/tokens',
                                 '/api/scopes',
+                                '/api/discovery',
                             ],
                         },
                     ],
@@ -129,6 +129,14 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/accountchief/introduction',
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: false,
+                            items: [
+                                '/accountchief/api/scopes',
+                            ],
+                        },
                     ],
                 },
                 {

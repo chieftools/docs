@@ -1,30 +1,54 @@
 ---
 title: Scopes
-description: Learn how scopes control what your API tokens can access across Chief Tools.
+description: Learn how scopes control what OAuth clients and API tokens can access across Chief Tools.
 ---
 
-Scopes define what actions an API token is allowed to perform. When creating an [access token](/api/tokens#access-tokens), you can assign scopes to limit its access to only what is needed.
+Scopes define what an OAuth client or API token is allowed to access across Chief Tools. Some scopes are shared OAuth scopes managed by Account Chief, while others are product-specific scopes for tools like Domain Chief and Tny.
 
-## Scope Format
+## Scope Families
 
-Scopes follow a hierarchical format using colons as separators:
+### Account Scopes
 
-```
+| Scope | Description |
+|---|---|
+| `profile` | See your name and profile picture |
+| `email` | See your primary email address |
+| `teams` | List the teams authorized for the current token |
+
+### App Scopes
+
+App scopes follow a hierarchical format using colons as separators:
+
+```text
 {app}:{resource}:{action}
 ```
 
 For example:
-- `domainchief` — full access to Domain Chief
-- `domainchief:domains:read` — read-only access to domains in Domain Chief
-- `domainchief:dns:write` — create, update, and delete DNS records
+- `domainchief` - full access to Domain Chief
+- `domainchief:domains:read` - read-only access to domains in Domain Chief
+- `domainchief:dns:write` - create, update, and delete DNS records
+
+App specific scope documentation:
+- [Account Chief API Scopes](/accountchief/api/scopes)
+- [Domain Chief API Scopes](/domainchief/api/scopes)
+- [Tny API Scopes](/tny/api/scopes)
 
 <Callout type="info" title="We are working on it!">
     Not all Chief Tools support fine-grained scopes yet, but we are actively working on adding more scopes across all our tools. Check the documentation for the specific tool you are integrating with to see which scopes are currently available.
 </Callout>
 
-## How Scope Resolution Works
+### OAuth Scopes
 
-Scopes are resolved hierarchically. A broader scope automatically grants access to all more specific scopes beneath it. This means you don't need to list every individual scope — a single parent scope covers all its children.
+These scopes are not tied to a single Chief Tool:
+
+| Scope | Description |
+|---|---|
+| `openid` | Request OpenID Connect authentication so the client can receive an ID token |
+| `offline_access` | Allow the client to keep access without requiring you to sign in again |
+
+## How App Scope Resolution Works
+
+App scopes are resolved hierarchically. A broader scope automatically grants access to all more specific scopes beneath it. This means you don't need to list every individual scope - a single parent scope covers all its children.
 
 ### Parent Scopes
 
@@ -57,13 +81,7 @@ An action scope at the application level applies across all resources:
 
 ## Best Practices
 
-- **Principle of least privilege** — only grant the scopes your integration actually needs. A DNS automation script should use `domainchief:dns:write`, not `domainchief`.
-- **Use expiring tokens** — combine scopes with [token expiration](/api/tokens#expiring-tokens) for temporary access.
-- **Separate tokens per integration** — create dedicated tokens for each integration so you can revoke access independently.
-
-## Available Scopes
-
-Each application defines its own scopes. Not all tools support fine grained scopes. See the documentation for the specific tool you are integrating with:
-
-- [Domain Chief API Scopes](/domainchief/api/scopes)
-- [Tny API Scopes](/tny/api/scopes)
+- **Principle of least privilege** - only grant the scopes your integration actually needs. A DNS automation script should use `domainchief:dns:write`, not `domainchief`.
+- **Use expiring tokens** - combine scopes with [token expiration](/api/tokens#expiring-tokens) for temporary access.
+- **Separate tokens per integration** - create dedicated tokens for each integration so you can revoke access independently.
+- **Only request `offline_access` when needed** - ask for refresh-token access only when your client needs to keep working after the user is no longer present.

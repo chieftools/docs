@@ -1,0 +1,52 @@
+---
+title: Scopes
+description: Available identity and account scopes managed by Account Chief.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes - Account Chief</title>
+</Head>
+
+Account Chief manages the identity and account scopes used across Chief Tools. These scopes describe what an OAuth client can learn about your account.
+
+For the general overview of how scopes work across Chief Tools, including shared OAuth scopes like `openid` and `offline_access`, see the [shared scopes documentation](/api/scopes) page.
+
+---
+
+## Available Scopes
+
+### Profile Scopes
+
+| Scope | Description |
+|---|---|
+| `profile` | See your name and profile picture |
+| `email` | See your primary email address |
+
+### Account Scopes
+
+| Scope | Description |
+|---|---|
+| `teams` | List the teams authorized for the current token |
+
+<Callout type="info">
+Shared OAuth scopes like `openid` and `offline_access` are documented on the shared [scopes](/api/scopes) page because they are not Account Chief-only product scopes.
+</Callout>
+
+---
+
+## How These Scopes Differ From App Scopes
+
+These Account Chief scopes are not resource scopes like `domainchief:dns:write` or `tny:links:read`.
+They describe access to your identity and account context, while app scopes describe what a client can do inside a specific Chief Tool.
+
+## Personal Access Tokens
+
+Personal access tokens always include these default Account Chief API scopes:
+
+```text
+profile email teams
+```
+
+You can read more about token behavior on the [tokens documentation](/api/tokens) page.

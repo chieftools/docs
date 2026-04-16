@@ -1,0 +1,32 @@
+---
+title: OAuth Discovery
+description: OpenID Connect and OAuth 2.0 discovery metadata for Account Chief.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>OAuth Discovery - Account Chief</title>
+</Head>
+
+Account Chief publishes standard discovery metadata so OAuth 2.0 and OpenID Connect clients can automatically discover the correct endpoints and capabilities.
+
+## Discovery URLs
+
+Use one of these discovery documents:
+
+- <ExternalLink href="https://account.chief.app/.well-known/openid-configuration">`https://account.chief.app/.well-known/openid-configuration`</ExternalLink>
+- <ExternalLink href="https://account.chief.app/.well-known/oauth-authorization-server">`https://account.chief.app/.well-known/oauth-authorization-server`</ExternalLink>
+
+<Callout type="info">
+Both URLs currently return the same metadata document. They are exposed separately so OpenID Connect and OAuth 2.0 clients can use the discovery URL they expect.
+</Callout>
+
+<Callout type="tip">
+If you want to integrate with Chief Tools using OAuth, you can request an OAuth client ID and secret by <ExternalLink href="https://chief.app/contact">contacting us</ExternalLink>.
+</Callout>
+
+## Related Documentation
+
+- [API scopes](/api/scopes)
+- [API tokens](/api/tokens)

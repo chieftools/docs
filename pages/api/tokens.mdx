@@ -27,9 +27,11 @@ If you whish for the token to remain active indefinitly you can leave the field 
 
 ### Scopes
 
-You can select for which Chief Tool(s) the token you create is usable, this is recommended to limit the scope of what the token can access.
+Personal and team access tokens use app scopes to control which Chief Tool(s) they can access. Personal access tokens also always include the default Account Chief API scopes `profile`, `email`, and `teams`.
 
-You can read more about scopes and how they work in the [scopes documentation](/api/scopes).
+OAuth clients can additionally request shared OAuth scopes such as `openid` and `offline_access`.
+
+You can read more about scopes and how they work in the [API scopes documentation](/api/scopes). For the Account Chief identity scopes, see [Account Chief API scopes](/accountchief/api/scopes).
 
 ### Revoking tokens
 
