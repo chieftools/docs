@@ -37,12 +37,12 @@ const config: ZudokuConfig = {
         },
     },
     docs: {
-        files: 'pages/**/*.{md,mdx}',
         llms: {
             llmsTxt: true,
             llmsTxtFull: true,
             includeProtected: false,
         },
+        files: 'pages/**/*.{md,mdx}',
         defaultOptions: {
             suggestEdit: {
                 text: 'Edit this page',
@@ -50,6 +50,7 @@ const config: ZudokuConfig = {
             },
             showLastModified: false,
         },
+        publishMarkdown: true,
     },
     search: {
         type: 'pagefind',
