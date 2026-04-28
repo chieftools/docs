@@ -10,9 +10,9 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "react": ">=19.0.0",
-    "react-dom": ">=19.0.0",
-    "zudoku": "^0.74"
+    "react": ">=19",
+    "react-dom": ">=19",
+    "zudoku": "^0.76"
   },
   "devDependencies": {
     "@types/node": "^25",
