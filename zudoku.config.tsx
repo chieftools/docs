@@ -97,6 +97,7 @@ const config: ZudokuConfig = {
         {from: '/tny', to: '/tny/introduction'},
         {from: '/flowguard', to: '/flowguard/introduction'},
         {from: '/billdo', to: '/billdo/introduction'},
+        {from: '/toolchief', to: '/introduction'},
     ],
     navigation: [
         {
