@@ -27,7 +27,7 @@ For a general overview of how scopes work, see the [scopes documentation](/api/s
 | Scope | Description |
 |---|---|
 | `domainchief:read` | Read-only access to all resources |
-| `domainchief:write` | Read and write access to all resources (does not include register or transfer) |
+| `domainchief:write` | Read and write access to all resources (does not include register, transfer, or immediate domain deletion) |
 
 ### Domain Scopes
 
@@ -39,9 +39,10 @@ For a general overview of how scopes work, see the [scopes documentation](/api/s
 | `domainchief:domains:write` | Update domain settings |
 | `domainchief:domains:register` | Register and transfer domains |
 | `domainchief:domains:transfer` | View and send auth codes, initiate push transfers |
+| `domainchief:domains:delete` | Request immediate deletion of domains |
 
 <Callout type="info">
-`domainchief:domains:register` is separate from `domainchief:domains:write` because registration incurs charges. Use the parent scope `domainchief:domains` to grant both.
+`domainchief:domains:register`, `domainchief:domains:transfer`, and `domainchief:domains:delete` are separate from `domainchief:domains:write` because they perform high-impact domain lifecycle actions. Use the parent scope `domainchief:domains` only when the integration should manage the full domain lifecycle.
 </Callout>
 
 ### Contact Scopes
@@ -112,12 +113,12 @@ Scopes: domainchief:domains:read:availability
 
 This is the narrowest scope — it can only check availability and cannot list or view existing domains.
 
-### Full Domain Management (Without Registration)
+### Existing Domain Management
 
-For an integration that manages existing domains but should not register new ones:
+For an integration that manages existing domain settings but should not register, transfer, or delete domains:
 
 ```
 Scopes: domainchief:domains:write, domainchief:dns:write, domainchief:contacts:write
 ```
 
-This grants full management of existing domains, DNS, and contacts, but cannot register new domains or initiate transfers.
+This grants full management of existing domains, DNS, and contacts, but cannot register new domains, initiate transfers, or delete domains immediately.
