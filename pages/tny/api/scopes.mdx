@@ -1,6 +1,6 @@
 ---
 title: Scopes
-description: Available API scopes for Tny and which endpoints they control.
+description: Choose what an access token can read or change through the Tny API.
 ---
 
 import {Head} from "zudoku/components";
@@ -9,72 +9,69 @@ import {Head} from "zudoku/components";
   <title>Scopes | Tny</title>
 </Head>
 
-API scopes control what actions a token can perform in the Tny API. Scopes are assigned when creating an [access token](/api/tokens#access-tokens).
-For a general overview of how scopes work, see the [scopes documentation](/api/scopes) page.
+Scopes limit what an access token can do in Tny. Choose them when you create an [access token](/api/tokens#access-tokens). Start with the narrowest scope that covers your integration. The shared [scopes guide](/api/scopes) explains how parent scopes and write access work.
 
----
+## Available scopes
 
-## Available Scopes
+### Broad scopes
 
-### Full Access
-
-| Scope | Description |
+| Scope | Access |
 |---|---|
-| `tny` | Full access to all Tny API endpoints and GraphQL operations |
+| `tny` | Every Tny API operation |
+| `tny:read` | Read all Tny resources |
+| `tny:write` | Read and change all Tny resources |
 
-### Link Scopes
+### Link scopes
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
-| `tny:links:read` | List and view Tny links |
-| `tny:links:write` | Create, update, and delete Tny links, including custom social cards |
+| `tny:links:read` | List and view shortened URLs |
+| `tny:links:write` | Create, update, and delete shortened URLs, including custom social cards |
 
-### Domain Scopes
+### Domain scopes
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
-| `tny:domains:read` | List and view custom domains and domain redirects |
+| `tny:domains:read` | List and view link domains and domain redirects |
 
-### Utility Scopes
+### Utility scopes
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
-| `tny:utilities:read` | Unshorten URLs and fetch URL metadata |
+| `tny:utilities:read` | Unshorten URLs and look up URL metadata |
 
 <Callout type="info">
-The `tny` scope grants access to every `tny:*` scope. Existing tokens with the `tny` scope continue to work without changes.
+Scopes are hierarchical. `tny:write` includes every Tny write scope and its matching read scope. `tny` grants all Tny scopes.
 </Callout>
 
----
+## Example token configurations
 
-Each protected field in the [API playground](/api/tny) shows its required scope in the security section.
+### Read links and domains
 
----
+Use separate read scopes when an integration only needs links and domains.
 
-## Example Token Configurations
-
-### Read-Only Link and Domain Access
-
-For a tool that should only inspect links and domains:
-
-```
-Scopes: tny:links:read, tny:domains:read
+```text
+tny:links:read tny:domains:read
 ```
 
-### Link Management
+### Manage links
 
-For an integration that creates and manages short links:
-
-```
-Scopes: tny:links:write
+```text
+tny:links:write
 ```
 
-This also allows reading links, so a separate `tny:links:read` scope is not required.
+Write access includes read access at the same level, so this token can also list and view links.
 
-### Utility-Only Access
+### Read everything
 
-For a tool that only unshortens URLs or fetches metadata:
+Use the broad read scope for reporting or monitoring across Tny.
 
+```text
+tny:read
 ```
-Scopes: tny:utilities:read
+
+### Use URL utilities
+
+```text
+tny:utilities:read
 ```
