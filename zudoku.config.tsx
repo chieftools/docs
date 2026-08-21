@@ -1,4 +1,5 @@
 import {ExternalLink} from './src/ExternalLink.js';
+import {graphqlPlugin} from '@zudoku/plugin-graphql';
 import {createApiIdentityPlugin} from 'zudoku/plugins';
 import {defaultLanguages, type ZudokuConfig} from 'zudoku';
 
@@ -60,18 +61,48 @@ const config: ZudokuConfig = {
             getIdentities: async (context) => [
                 {
                     id: 'openid',
-                    label: 'Chief Tools (OpenID)',
+                    label: 'Chief Tools account',
                     authorizeRequest: async (request) => {
-                        const token = await context.authentication?.getAccessToken?.();
-
-                        if (token) {
-                            request.headers.set('Authorization', `Bearer ${token}`);
+                        if (!context.getAuthState().isAuthenticated) {
+                            throw new Error(
+                                'Sign in to Chief Tools from the documentation header before sending an authenticated request.',
+                            );
                         }
 
-                        return request;
+                        return context.signRequest(request);
+                    },
+                    authorizationFields: {
+                        headers: ['Authorization'],
                     },
                 },
             ],
+        }),
+        graphqlPlugin({
+            schema: './apis/certchief.graphql',
+            endpoint: 'https://cert.chief.app/api/graphql',
+            path: '/api/certchief',
+            options: {
+                title: 'Cert Chief GraphQL API',
+                description: 'Query and manage Cert Chief domains, monitors, and TLS server tests.',
+            },
+        }),
+        graphqlPlugin({
+            schema: './apis/tny.graphql',
+            endpoint: 'https://tny.app/api/graphql',
+            path: '/api/tny',
+            options: {
+                title: 'Tny GraphQL API',
+                description: 'Query Tny links, custom domains, and URL utilities.',
+            },
+        }),
+        graphqlPlugin({
+            schema: './apis/deploychief.graphql',
+            endpoint: 'https://deploy.chief.app/api/graphql',
+            path: '/api/deploychief',
+            options: {
+                title: 'Deploy Chief GraphQL API',
+                description: 'Query and manage applications, servers, environments, and deployments.',
+            },
         }),
     ],
     sitemap: {
@@ -178,6 +209,19 @@ const config: ZudokuConfig = {
                     items: [
                         '/certchief/introduction',
                         '/certchief/bot',
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: false,
+                            items: [
+                                {
+                                    type: 'link',
+                                    label: 'GraphQL API',
+                                    to: '/api/certchief',
+                                    stack: true,
+                                },
+                            ],
+                        },
                     ],
                 },
                 {
@@ -187,6 +231,19 @@ const config: ZudokuConfig = {
                     items: [
                         '/deploychief/introduction',
                         '/deploychief/server-setup',
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: false,
+                            items: [
+                                {
+                                    type: 'link',
+                                    label: 'GraphQL API',
+                                    to: '/api/deploychief',
+                                    stack: true,
+                                },
+                            ],
+                        },
                     ],
                 },
                 {
@@ -202,6 +259,12 @@ const config: ZudokuConfig = {
                             collapsible: false,
                             items: [
                                 '/tny/api/scopes',
+                                {
+                                    type: 'link',
+                                    label: 'GraphQL API',
+                                    to: '/api/tny',
+                                    stack: true,
+                                },
                             ],
                         },
                     ],
@@ -253,7 +316,15 @@ const config: ZudokuConfig = {
     ],
     authentication: {
         type: 'openid',
-        scopes: ['openid', 'profile', 'email', 'domainchief'],
+        scopes: [
+            'openid',
+            'profile',
+            'email',
+            'domainchief:read',
+            'certchief',
+            'tny:read',
+            'deploychief',
+        ],
         issuer: process.env.ZUDOKU_PUBLIC_AUTH_ISSUER as string,
         clientId: process.env.ZUDOKU_PUBLIC_AUTH_CLIENT_ID as string,
     },

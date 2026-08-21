@@ -1,3 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-curl https://domain.chief.app/api/spec/v1.json > apis/domainchief.json
+set -euo pipefail
+
+curl --fail --silent --show-error --location \
+  https://domain.chief.app/api/spec/v1.json \
+  --output apis/domainchief.json
+
+curl --fail --silent --show-error --location \
+  https://cert.chief.app/api/graphql/schema \
+  --output apis/certchief.graphql
+
+curl --fail --silent --show-error --location \
+  https://tny.app/api/graphql/schema \
+  --output apis/tny.graphql
+
+curl --fail --silent --show-error --location \
+  https://deploy.chief.app/api/graphql/schema \
+  --output apis/deploychief.graphql
