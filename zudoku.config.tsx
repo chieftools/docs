@@ -81,7 +81,7 @@ const config: ZudokuConfig = {
         siteUrl: 'https://docs.chief.tools',
     },
     metadata: {
-        title: '%s - Chief Tools Documentation',
+        title: '%s | Chief Tools Documentation',
         defaultTitle: 'Chief Tools Documentation',
         favicon: 'https://static.assets.chief.tools/icons/accountchief_favicon.svg',
     },

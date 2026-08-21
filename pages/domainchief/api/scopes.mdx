@@ -1,124 +1,111 @@
 ---
 title: Scopes
-description: Available API scopes for Domain Chief and which endpoints they control.
+description: Choose which Domain Chief API operations an access token can perform.
 ---
 
 import {Head} from "zudoku/components";
 
 <Head>
-  <title>Scopes - Domain Chief</title>
+  <title>API scopes | Domain Chief</title>
 </Head>
 
-API scopes control what actions a token can perform in the Domain Chief API. Scopes are assigned when creating an [access token](/api/tokens#access-tokens).
-For a general overview of how scopes work, see the [scopes documentation](/api/scopes) page.
+Scopes limit what an access token can do. Choose them when you create an [access token](/api/tokens#access-tokens). The general [scopes guide](/api/scopes) explains how Chief Tools applies scopes across its APIs.
 
----
+Each endpoint in the [API playground](/api/domainchief) lists its required scope under security.
 
-## Available Scopes
+## Available scopes
 
-### Full Access
+### Full access
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
-| `domainchief` | Full access to all Domain Chief API endpoints |
+| `domainchief` | Every Domain Chief API endpoint |
 
-### Broad Scopes
+### Broad scopes
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
-| `domainchief:read` | Read-only access to all resources |
-| `domainchief:write` | Read and write access to all resources (does not include register, transfer, or immediate domain deletion) |
+| `domainchief:read` | Read all resources |
+| `domainchief:write` | Read and update resources, except domain registration, transfer operations, and immediate deletion |
 
-### Domain Scopes
+### Domains
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
-| `domainchief:domains` | Full access to all domain operations |
+| `domainchief:domains` | All domain operations |
 | `domainchief:domains:read` | List and view domains |
-| `domainchief:domains:read:availability` | Check domain availability only |
+| `domainchief:domains:read:availability` | Check domain availability |
 | `domainchief:domains:write` | Update domain settings |
-| `domainchief:domains:register` | Register and transfer domains |
-| `domainchief:domains:transfer` | View and send auth codes, initiate push transfers |
-| `domainchief:domains:delete` | Request immediate deletion of domains |
+| `domainchief:domains:register` | Register domains and manage inbound transfers |
+| `domainchief:domains:transfer` | View or send authorization codes and manage outbound transfers |
+| `domainchief:domains:delete` | Delete domains immediately |
 
 <Callout type="info">
-`domainchief:domains:register`, `domainchief:domains:transfer`, and `domainchief:domains:delete` are separate from `domainchief:domains:write` because they perform high-impact domain lifecycle actions. Use the parent scope `domainchief:domains` only when the integration should manage the full domain lifecycle.
+Registration, transfer, and immediate deletion use separate scopes because they change domain ownership or lifecycle state. Grant `domainchief:domains` only when an integration needs every domain operation.
 </Callout>
 
-### Contact Scopes
+### Contacts
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
 | `domainchief:contacts:read` | List and view contacts |
 | `domainchief:contacts:write` | Create, update, and delete contacts |
 
-### DNS Scopes
+### DNS records
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
 | `domainchief:dns:read` | List and view DNS records |
 | `domainchief:dns:write` | Create, update, delete, clear, and reset DNS records |
 
-### Redirect Scopes
+### Redirects
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
 | `domainchief:redirects_web:read` | List and view web redirects |
 | `domainchief:redirects_web:write` | Create, update, and delete web redirects |
 | `domainchief:redirects_mail:read` | List and view mail redirects |
 | `domainchief:redirects_mail:write` | Create, update, and delete mail redirects |
 
-### Other Scopes
+### TLDs and activity
 
-| Scope | Description |
+| Scope | Access |
 |---|---|
 | `domainchief:tlds:read` | List and view available TLDs and pricing |
 | `domainchief:activity:read` | View domain activity logs |
 
----
+## Common token setups
 
-Each endpoint in the [API playground](/api/domainchief) shows its required scope in the security section.
+Start with the narrowest scopes that cover the integration.
 
----
+### Manage DNS records
 
-## Example Token Configurations
-
-### DNS-Only Automation
-
-For a script that manages DNS records without access to other resources:
-
-```
-Scopes: domainchief:dns:write
+```text
+domainchief:dns:write
 ```
 
-This grants read and write access to DNS records only. The script cannot list domains, manage contacts, or perform any other operations.
+The token can read and change DNS records. It cannot list domains, manage contacts, or run domain lifecycle operations.
 
-### Read-Only Monitoring
+### Read data for monitoring
 
-For a dashboard that displays domain and DNS information:
-
-```
-Scopes: domainchief:read
+```text
+domainchief:read
 ```
 
-This grants read access to all resources (domains, contacts, DNS records, TLDs, activity) but cannot make any changes.
+The token can read domains, contacts, DNS records, TLDs, and activity. It cannot change them.
 
-### Domain Availability Checker
+### Check domain availability
 
-For a tool that only checks domain availability:
-
-```
-Scopes: domainchief:domains:read:availability
+```text
+domainchief:domains:read:availability
 ```
 
-This is the narrowest scope — it can only check availability and cannot list or view existing domains.
+The token can check availability. It cannot list domains or retrieve an existing domain.
 
-### Existing Domain Management
+### Manage existing domains
 
-For an integration that manages existing domain settings but should not register, transfer, or delete domains:
-
-```
-Scopes: domainchief:domains:write, domainchief:dns:write, domainchief:contacts:write
+```text
+domainchief:domains:write, domainchief:dns:write, domainchief:contacts:write
 ```
 
-This grants full management of existing domains, DNS, and contacts, but cannot register new domains, initiate transfers, or delete domains immediately.
+The token can update existing domains, DNS records, and contacts. It cannot register domains, manage transfers, or delete domains immediately.

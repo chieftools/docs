@@ -1,14 +1,16 @@
 ---
 title: Introduction
-description: A quick introduction to the Domain Chief API, what it does and how to use it.
+description: Use the Domain Chief API to manage domains, contacts, DNS records, redirects, and related data.
 ---
 
 import {Head} from "zudoku/components";
 
 <Head>
-  <title>Introduction - Domain Chief</title>
+  <title>API introduction | Domain Chief</title>
 </Head>
 
-The Domain Chief API allows you to programmatically interact with Domain Chief. You can use the API to perform any action that you can perform via the web interface.
+The Domain Chief API lets you manage domains, contacts, DNS records, and redirects from your own software. You can also check domain availability, read TLD pricing, and retrieve domain activity.
 
-You can authenticate with the API using [Personal Access Tokens](/api/tokens#personal-access-tokens). In the [playground](/api/domainchief) you can login using your Domain Chief account credentials to try out requests.
+Authenticate each request with an [access token](/api/tokens#access-tokens). Give the token only the [scopes](/domainchief/api/scopes) your integration needs.
+
+Use the [API playground](/api/domainchief) to inspect endpoints and send test requests. Sign in with your Domain Chief account when the playground asks for authentication.

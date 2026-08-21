@@ -1,117 +1,77 @@
 ---
 title: Metadata
-description: Learn how to attach custom metadata to domains, contacts, and DNS records via the Domain Chief API.
+description: Store your own identifiers and labels on domains, contacts, and DNS records.
 ---
 
 import {Head} from "zudoku/components";
 
 <Head>
-  <title>Metadata - Domain Chief</title>
+  <title>Metadata | Domain Chief</title>
 </Head>
 
-Metadata allows you to attach custom key-value pairs to certain objects in the Domain Chief API. This is useful for storing additional information or associating your own identifiers with Domain Chief resources.
+Metadata stores your own key-value pairs on Domain Chief resources. Use it for identifiers, labels, or links that belong to your system but do not have a standard API field.
 
-## Supported Objects
+The API accepts metadata on:
 
-Metadata can be attached to the following objects:
+- Domains during registration or update
+- Contacts during creation or update
+- DNS records during creation or update
 
-- **Domains** - When registering or updating a domain
-- **Contacts** - When creating or updating a contact
-- **DNS Records** - When creating or updating a DNS record
+## Set metadata
 
-## Use Cases
-
-Metadata is particularly useful for:
-
-- Storing your internal identifiers or reference numbers
-- Tagging resources for organizational purposes
-- Tracking additional information not captured by standard fields
-- Integrating Domain Chief with your own systems
-
-## Adding Metadata
-
-Metadata is provided as a JSON object where keys and values must be strings. You can include metadata when creating or updating supported objects.
-
-### Example: Registering a Domain with Metadata
+Pass a `metadata` object when you create or update a supported resource. Keys and values are strings.
 
 ```json
 {
-  "domain": "example.com",
-  "is_using_hosted_dns": true,
   "metadata": {
-    "customer_id": "12345",
-    "project": "website-redesign",
-    "department": "marketing"
+    "customer_id": "customer_4821",
+    "environment": "staging",
+    "service": "mail"
   }
 }
 ```
 
-### Example: Creating a Contact with Metadata
+The API returns metadata on the resource:
 
 ```json
 {
-  "first_name": "John",
-  "last_name": "Doe",
-  "address_street": "Main Street",
-  "address_house_number": "123",
-  "address_postal_code": "1234AB",
-  "address_city": "Amsterdam",
-  "address_country_code": "NL",
-  "email": "john@example.com",
-  "phone": "+31 20 1234567",
+  "id": "7f942c3e-791f-4b24-9a84-2f7db248cf60",
+  "domain": "mailbox-lab.example",
   "metadata": {
-    "crm_id": "CRM-98765",
-    "account_type": "premium"
+    "customer_id": "customer_4821",
+    "environment": "staging",
+    "service": "mail"
   }
 }
 ```
 
-### Example: Creating a DNS Record with Metadata
+Resources without metadata return an empty object in the `metadata` field.
+
+## Update metadata
+
+An update merges the supplied keys with the existing metadata. It does not replace the full object.
+
+Send a new value to add a key or change its value:
 
 ```json
 {
-  "type": "A",
-  "name": "www",
-  "content": "192.0.2.1",
-  "ttl": 3600,
   "metadata": {
-    "service": "web-server",
     "environment": "production"
   }
 }
 ```
 
-## Updating Metadata
-
-When updating an object, the metadata you provide is **merged** with existing metadata, not replaced entirely.
-
-### Adding or Updating a Metadata Key
-
-To add a new key or update an existing one, simply include it in the metadata object:
+Send an empty string to remove one key:
 
 ```json
 {
   "metadata": {
-    "new_key": "new_value"
+    "environment": ""
   }
 }
 ```
 
-### Removing a Specific Metadata Key
-
-To remove a specific metadata key, set its value to an empty string:
-
-```json
-{
-  "metadata": {
-    "key_to_remove": ""
-  }
-}
-```
-
-### Removing All Metadata
-
-To remove all metadata from an object, set the metadata field to an empty object:
+Send an empty object to remove all user-defined metadata:
 
 ```json
 {
@@ -119,104 +79,39 @@ To remove all metadata from an object, set the metadata field to an empty object
 }
 ```
 
-## Limitations
+## Validation rules
 
-The following limitations apply to metadata:
+| Part | Rule |
+|---|---|
+| Key | Must be a non-empty string |
+| Key length | At most 40 characters |
+| Key characters | Cannot contain `[` or `]` |
+| Value | Must be a string |
+| Value length | At most 500 characters |
+| Keys per resource | At most 50 |
 
-### Keys
-- Must be strings
-- Cannot exceed **40 characters**
-- Cannot contain `[` or `]` characters
+For example, `customer[id]` is invalid because metadata keys cannot contain square brackets. A numeric value such as `123` is also invalid. Send it as the string `"123"`.
 
-### Values
-- Must be strings
-- Cannot exceed **500 characters**
+## Display in Domain Chief
 
-### Total Keys
-- An object cannot have more than **50 metadata keys**
+Domain Chief displays all metadata in the web interface. Some values have extra behavior.
 
-## Validation Examples
+### HTTPS URLs
 
-### Valid Metadata
+A value that starts with `https://` appears as a link.
 
 ```json
 {
   "metadata": {
-    "customer_id": "12345",
-    "project_name": "Q4-2023-Website-Redesign",
-    "contact_email": "admin@example.com",
-    "notes": "This is a short note about the resource"
-  }
-}
-```
-
-### Invalid Metadata
-
-The following examples show invalid metadata that will be rejected by the API:
-
-**Key contains `[` or `]` characters:**
-```json
-{
-  "metadata": {
-    "customer[id]": "12345"
-  }
-}
-```
-
-**Value is not a string:**
-```json
-{
-  "metadata": {
-    "count": 123
-  }
-}
-```
-
-## Retrieving Metadata
-
-When you retrieve an object that has metadata, it will be included in the response as a `metadata` field:
-
-```json
-{
-  "id": "01234567-89ab-cdef-0123-456789abcdef",
-  "domain": "example.com",
-  "metadata": {
-    "customer_id": "12345",
-    "project": "website-redesign",
-    "department": "marketing"
-  }
-}
-```
-
-If an object has no metadata, the `metadata` field will be an empty object `{}`.
-
-## UI Integration
-
-<Callout type="tip">
-    Metadata is displayed in the Domain Chief web interface with special handling for certain values.
-</Callout>
-
-### URLs
-
-When a metadata value contains a valid URL (starting with `https://`), it will automatically become clickable in the Domain Chief UI, making it easy to navigate to external resources.
-
-**Example:**
-```json
-{
-  "metadata": {
-    "documentation": "https://docs.example.com/project-123",
-    "monitoring": "https://status.example.com/dashboard"
+    "runbook": "https://ops.example.net/runbooks/mail"
   }
 }
 ```
 
 ### Tags
 
-When a metadata key is named `tag`, its value will be displayed as a visual tag label in the Domain Chief UI, making it easy to visually categorize and identify resources at a glance. This works on domains, contacts, and DNS records.
+The `tag` key appears as a label on domains, contacts, and DNS records. On a domain, selecting the tag filters the domain list to domains with the same value.
 
-For domains, the tag is also clickable and filters the domain list to show only domains with the same tag.
-
-**Example:**
 ```json
 {
   "metadata": {
@@ -225,25 +120,18 @@ For domains, the tag is also clickable and filters the domain list to show only 
 }
 ```
 
-### External URL
+### External links
 
-The `external_url` metadata key displays a prominent link button in the Domain Chief UI, providing quick access to an external resource. This works on domains, contacts, and DNS records. The value must be a valid `https://` URL.
+The `external_url` key adds a link button to domains, contacts, and DNS records. Its value must be a valid `https://` URL.
 
-**Example:**
 ```json
 {
   "metadata": {
-    "external_url": "https://example.com/manage/1234"
+    "external_url": "https://portal.example.net/resources/4821"
   }
 }
 ```
 
-This is particularly useful for linking resources to external management tools, customer portals, or related systems.
+## Keep metadata safe
 
-## Best Practices
-
-- **Use descriptive keys** - Choose clear, meaningful key names that make it easy to understand what each metadata entry represents.
-- **Keep values concise** - While values can be up to 500 characters, shorter values are easier to work with and display.
-- **Use consistent naming** - Establish a naming convention for your metadata keys (e.g., snake_case, camelCase) and stick to it.
-- **Don't store sensitive data** - Metadata is stored as plain text and may be visible in logs and API responses. Don't use it for passwords, API keys, or other sensitive information.
-- **Plan your key structure** - With a limit of 50 keys per object, think about how you'll organize your metadata to stay within this limit.
+Metadata is plain text and appears in API responses. Do not store passwords, access tokens, API keys, or other secrets in it. Use one naming style for keys so integrations can read them consistently.
