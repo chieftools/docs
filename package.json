@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "zudoku dev",
     "build": "./bin/update-schemas.sh && zudoku build",
+    "start": "serve dist --listen 3000 --no-clipboard",
     "preview": "zudoku preview",
     "lint": "eslint",
     "postinstall": "patch-package",
@@ -15,6 +16,7 @@
     "@zudoku/plugin-graphql": "0.0.12",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "serve": "14.2.6",
     "zudoku": "0.83.1"
   },
   "devDependencies": {
