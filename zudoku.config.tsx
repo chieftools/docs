@@ -62,10 +62,7 @@ const config: ZudokuConfig = {
                     id: 'openid',
                     label: 'Chief Tools (OpenID)',
                     authorizeRequest: async (request) => {
-                        // We get the access token from the
-                        // authentication provider (Auth0) and add it to the request headers
-                        // @ts-ignore
-                        const token = await context.authentication?.getAccessToken();
+                        const token = await context.authentication?.getAccessToken?.();
 
                         if (token) {
                             request.headers.set('Authorization', `Bearer ${token}`);

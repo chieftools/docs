@@ -7,21 +7,37 @@
     "dev": "zudoku dev",
     "build": "./bin/update-schemas.sh && zudoku build",
     "preview": "zudoku preview",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "react": ">=19",
-    "react-dom": ">=19",
-    "zudoku": "^0.76"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zudoku": "0.83.1"
   },
   "devDependencies": {
-    "@types/node": "^25",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@typescript-eslint/eslint-plugin": "^8",
-    "@typescript-eslint/parser": "^8",
-    "eslint": "^10",
-    "typescript": "^6"
+    "@eslint/js": "10.0.1",
+    "@types/json-schema": "7.0.15",
+    "@types/node": "26.2.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@typescript-eslint/eslint-plugin": "8.67.0",
+    "@typescript-eslint/parser": "8.67.0",
+    "eslint": "10.8.1",
+    "globals": "17.11.0",
+    "rollup": "4.62.5",
+    "typescript": "6.0.3"
   },
-  "packageManager": "yarn@1.22.22"
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "packageManager": "yarn@1.22.22",
+  "resolutions": {
+    "@radix-ui/react-dismissable-layer": "1.1.19",
+    "brace-expansion": "5.0.9",
+    "fast-uri": "3.1.5",
+    "hono": "4.13.3",
+    "zudoku/gray-matter/js-yaml": "3.15.1",
+    "zudoku/json-schema-to-typescript-lite/**/js-yaml": "4.3.1"
+  }
 }
