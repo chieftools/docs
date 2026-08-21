@@ -1,157 +1,103 @@
 ---
 title: Testing with .example
-description: Learn how to use the .example TLD to test Domain Chief's API and UI features without real domain registration costs.
+description: Use the .example TLD to test Domain Chief's API and UI without registering a public domain.
 ---
 
 import {Head} from "zudoku/components";
 
 <Head>
-  <title>Testing with .example - Domain Chief</title>
+  <title>Testing with .example | Domain Chief</title>
 </Head>
 
-The `.example` TLD is a special testing TLD available on Domain Chief that lets you explore and test all features without registering real domains. It's completely free to use and perfect for development, testing, and learning how Domain Chief works.
+Use `.example` domains to test registration, transfers, DNS, contacts, nameservers, and lock settings without registering a public domain. They exist only inside Domain Chief and have no registration or renewal cost.
 
-## Overview
+## Basic use
 
-Any domain ending in `.example` can be registered, managed, and tested through Domain Chief's API and UI just like a real domain. However, these domains only exist within Domain Chief and won't resolve on the public internet.
+Search for any name ending in `.example`, then register it through the Domain Chief UI or API.
 
-### Key Benefits
-
-- **Free testing** - No registration or renewal costs
-- **Instant setup** - Domains are provisioned immediately
-- **Full feature access** - Test DNS, nameservers, WHOIS, transfers, and more
-- **Failure simulation** - Test error handling in your applications
-- **Safe experimentation** - No risk to real domains or DNS configurations
-
-## Basic Usage
-
-Simply use any name with the `.example` extension:
-
-```
-mywebsite.example
-test-domain.example
-api-integration.example
+```text
+project-lab.example
+api-client.example
+training-site.example
 ```
 
-All standard operations work as expected: registration, DNS management, WHOIS updates, nameserver changes, and domain locking.
+Domain Chief runs its normal application workflows for these domains. The Mock Registry supplies the provider response, so no request reaches a real registry and the domain will not resolve on the public internet.
 
-## Special Keywords
+## Scenario inputs
 
-You can use specific words in your domain name to simulate different scenarios and test how your application handles them.
+The Mock Registry recognizes these reserved inputs:
 
-### Premium Domains
+| Input | Where to use it | Result |
+| --- | --- | --- |
+| `premium` | Anywhere in the domain name | Marks the domain as premium and charges ten times the standard registration and renewal price. |
+| `transfer` | Anywhere in the domain name | Reports the domain as registered, so Domain Chief starts an incoming transfer instead of a registration. |
+| `fail` | Anywhere in the domain name | Ends a registration or transfer with a generic registry failure. |
+| `invalid-auth-code` | The authorization-code field of a transfer | Rejects the transfer as an incorrect authorization code. Retry with another value to complete the transfer. |
 
-Include **`premium`** anywhere in your domain name to simulate premium domain pricing:
+Domain-name keywords use lowercase substring matching. The `invalid-auth-code` value is exact and case-sensitive.
 
-```
+### Premium pricing
+
+These names return premium pricing:
+
+```text
 premium-brand.example
-my-premium-domain.example
-premium.example
+catalog-premium.example
 ```
 
-Premium domains cost 10× the standard price for registration and renewal, allowing you to test premium domain workflows and pricing display.
+### Incoming transfers
 
-### Transfer Simulation
+Include `transfer` in a name that does not already exist in Domain Chief:
 
-Include **`transfer`** in your domain name to make it available for transfer testing:
-
-```
-transfer-test.example
-my-transfer-domain.example
-transfer.example
+```text
+transfer-sandbox.example
+portfolio-transfer.example
 ```
 
-These domains appear as already registered and active, enabling you to test the domain transfer process without needing two separate accounts.
+The availability check reports the name as active. Submit it through the normal registration endpoint with an authorization code to create an incoming transfer.
 
-### Failure Testing
+### Generic failures
 
-Include **`fail`** in your domain name to simulate registration and transfer failures:
+Include `fail` to test a failure without a known corrective action:
 
-```
-fail-test.example
+```text
 registration-fail.example
-fail.example
+transfer-fail.example
 ```
 
-When attempting to register or transfer these domains, the operation will fail with a registry error, allowing you to test error handling, user notifications, and retry logic in your applications.
+Use `registration-fail.example` for a failed registration. Because `transfer-fail.example` also contains `transfer`, it starts as a transfer and then fails.
 
-## Use Cases
+## Test an incorrect authorization code
 
-### API Development
+Use the reserved code on a synthetic incoming transfer to test the full failure and recovery flow:
 
-Test API integrations without incurring domain costs:
+1. Start a transfer for `transfer-recovery.example`.
+2. Submit `invalid-auth-code` as the authorization code.
+3. Wait for the transfer to fail. The failure cause is `authorization_code_incorrect`.
+4. Retry from the domain page or call `POST /v1/domains/{domainNameOrId}/transfer/retry` with another authorization code.
 
-```bash
-# Test domain availability check
-curl -X POST https://api.chief.app/v1/domains/check \
-  -d '{"domain": "my-api-test.example"}'
+The retry succeeds and the Mock Registry clears the submitted code from the domain.
 
-# Test domain registration
-curl -X POST https://api.chief.app/v1/domains \
-  -d '{"domain": "my-api-test.example", ...}'
-```
+The incorrect-code rule runs before the generic `fail` rule. If a transfer name contains `fail` and uses `invalid-auth-code`, the first failure reports the incorrect code. A retry with a different code then reaches the generic failure rule.
 
-### Error Handling
+## Transfer an existing domain between teams
 
-Ensure your application handles errors gracefully:
+An existing `.example` domain uses its generated authorization code instead of the reserved test value. This path checks the code before it creates the incoming transfer.
 
-```bash
-# This will trigger a registration failure
-curl -X POST https://api.chief.app/v1/domains \
-  -d '{"domain": "registration-fail.example", ...}'
-```
+1. Unlock the domain in its current team.
+2. Request its authorization code from the domain page.
+3. Switch to the destination team and start a transfer for the same domain.
+4. Submit the generated code.
 
-### UI Testing
+The domain moves to the destination team. A different code returns an incorrect authorization-code response without moving the domain.
 
-Explore Domain Chief's interface and features without commitment. Perfect for:
-- Learning the platform
-- Training team members
-- Creating demos and screenshots
-- Testing DNS configurations
-- Evaluating premium domain features
+## Renewal and expiration
 
-## Transferring Between Teams
-
-You can transfer `.example` domains between your teams or to other Domain Chief accounts using auth codes, just like real domains. This is useful for testing complete transfer workflows.
-
-### How It Works
-
-1. **Get the auth code** - Request the transfer authorization code from your domain's settings
-2. **Initiate transfer** - Use the auth code to transfer the domain to another team or account
-3. **Complete transfer** - The domain moves to the new team instantly
-
-This allows you to test:
-- Multi-account transfer flows
-- Auth code handling in your applications
-- Transfer notifications and confirmations
-- Domain ownership changes
-
-Unlike external registry transfers, internal `.example` transfers complete immediately and are completely free.
+New `.example` registrations receive a renewal date one month in the future. At the next provider sync after that date, the Mock Registry moves the renewal date forward one month when auto-renew is enabled. If auto-renew is disabled, it marks the domain as expired instead.
 
 ## Limitations
 
-While `.example` domains behave like real domains within Domain Chief, they have important limitations:
-
-- **No public DNS resolution** - These domains won't resolve on the internet
-- **Testing only** - Not suitable for production use
-- **No actual registrar connection** - Not registered with any real domain registry
-- **Mock data** - Some registry-specific features may return simulated data
-
-## Combining Keywords
-
-You can combine multiple keywords to test complex scenarios:
-
-```
-premium-transfer.example      # Premium domain available for transfer
-fail-premium.example          # Premium domain that fails to register
-transfer-fail.example         # Transfer attempt that will fail
-```
-
-## Getting Started
-
-1. Log into your Domain Chief account
-2. Search for any domain ending in `.example`
-3. Register it for free
-4. Start testing all available features
-
-No special setup or approval required - just use `.example` and start exploring.
+- `.example` domains do not resolve through public DNS.
+- No object exists at a real registry or registrar.
+- Provider-specific data and responses are simulated.
+- Use these domains for development, automated tests, training, and demos. Do not use them for production traffic.
