@@ -1,15 +1,15 @@
 ---
-title: AI agents
+title: Connect an AI agent
 description: Connect an MCP-compatible AI client to Domain Chief.
 ---
 
 import {Head} from "zudoku/components";
 
 <Head>
-  <title>AI agents | Domain Chief</title>
+  <title>Connect an AI agent | Domain Chief</title>
 </Head>
 
-Domain Chief has a remote MCP server for AI clients. Once connected, an agent can inspect domains, contacts, TLDs, DNS records, and web redirects. Write access depends on the scopes you approve.
+Connect an MCP-compatible AI client to Domain Chief to inspect domains, contacts, TLDs, DNS records, and web redirects. The client can change data only when you approve the corresponding write scopes.
 
 ## Server URL
 
@@ -19,18 +19,18 @@ https://domain.chief.app/mcp
 
 ## Connect a client
 
-MCP clients use different names for their integration settings, but the connection follows the same steps:
+Look for MCP or integrations in your client's settings, then:
 
 1. Open the client's MCP or integrations settings.
 2. Add a remote MCP server with the URL above.
 3. Sign in with your Chief account.
 4. Review and approve the requested scopes.
 
-The authorization screen currently treats requested scopes as one set. You approve the full set or cancel the connection.
+The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
 
 ## Available tools
 
-The server registers only the tools allowed by the approved scopes.
+The scopes you approve determine which tools the server makes available.
 
 ### TLDs and contacts
 
@@ -75,7 +75,7 @@ These tools work only with domains using Domain Chief hosted DNS.
 
 ## Try a request
 
-After connecting, ask the client to perform a specific task:
+After connecting, give the client a specific task. For example:
 
 - Check whether `copper-lantern.com` is available.
 - List the DNS records for one of my domains.
@@ -86,10 +86,10 @@ Review proposed write operations before allowing the agent to continue.
 
 ## Change permissions
 
-Start with read scopes when possible. If a required tool is missing, reconnect and authorize the client with the additional scope. Domain Chief does not add scopes to an existing connection without another authorization step.
+Start with read scopes. If the client needs a tool that is not available, reconnect it and approve the additional scope. Domain Chief cannot add scopes to an existing connection without another authorization step.
 
 See [Domain Chief API scopes](/domainchief/api/scopes) for the full scope hierarchy.
 
-## MCP or REST API
+## Choose MCP or REST
 
 Use MCP when an AI client needs to choose and call Domain Chief tools. Use the [REST API](/domainchief/api/introduction) for application code, fixed workflows, or endpoints that the MCP server does not expose.
