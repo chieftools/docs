@@ -9,9 +9,19 @@ import {Callout, Head} from "zudoku/components";
   <title>Connect an AI agent | Domain Chief</title>
 </Head>
 
-Connect an MCP-compatible AI client to Domain Chief to inspect domains, contacts, TLDs, DNS records, and web redirects. The client can change data only when you approve the corresponding write scopes.
+Use this guide to connect an MCP-compatible AI client to Domain Chief and control what it may read or change.
 
-## Server URL
+## Choose your task
+
+- [Connect an AI client](#connect-a-client)
+- [Try a request](#what-happens-next)
+- [Review the available tools](#available-tools)
+- [Change the connection's permissions](#change-permissions)
+- [Fix a connection or permission problem](#troubleshooting)
+
+## Before you connect
+
+Your AI client must support remote MCP servers and browser-based sign-in. Use this server URL:
 
 ```text
 https://domain.chief.app/mcp
@@ -29,6 +39,17 @@ Look for MCP or integrations in your client's settings, then:
 <Callout type="caution" title="Review the requested access">
   The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
 </Callout>
+
+## What happens next
+
+After connecting, give the client a specific task. For example:
+
+- Check whether `copper-lantern.com` is available.
+- List the DNS records for one of my domains.
+- Change the `tag` metadata on this domain to `staging`.
+- Create a redirect from `www` to the root domain.
+
+Review proposed write operations before allowing the agent to continue.
 
 ## Available tools
 
@@ -75,17 +96,6 @@ These tools work only with domains using Domain Chief hosted DNS.
 | `update-web-redirect` | Update a web redirect | `domainchief:redirects_web:write` |
 | `delete-web-redirect` | Delete a web redirect | `domainchief:redirects_web:write` |
 
-## Try a request
-
-After connecting, give the client a specific task. For example:
-
-- Check whether `copper-lantern.com` is available.
-- List the DNS records for one of my domains.
-- Change the `tag` metadata on this domain to `staging`.
-- Create a redirect from `www` to the root domain.
-
-Review proposed write operations before allowing the agent to continue.
-
 ## Change permissions
 
 Start with read scopes. If the client needs a tool that is not available, reconnect it and approve the additional scope. Domain Chief cannot add scopes to an existing connection without another authorization step.
@@ -95,3 +105,21 @@ See [Domain Chief API scopes](/domainchief/api/scopes) for the full scope hierar
 ## Choose MCP or REST
 
 Use MCP when an AI client needs to choose and call Domain Chief tools. Use the [REST API](/domainchief/api/introduction) for application code, fixed workflows, or endpoints that the MCP server does not expose.
+
+## Troubleshooting
+
+### Why can't the client connect?
+
+Confirm that the client supports remote MCP servers and browser-based authorization. Copy the server URL exactly, then reconnect and complete the Chief sign-in flow.
+
+### Why is a tool missing?
+
+The connection does not have the tool's required scope. Compare the tool with the tables above, then reconnect the client and approve the additional scope.
+
+### Why can't the agent manage DNS records?
+
+DNS tools work only for domains using Domain Chief hosted DNS. The connection also needs the matching `domainchief:dns:read` or `domainchief:dns:write` scope.
+
+### Why does the authorization screen request unexpected access?
+
+Cancel the connection and review which tools or integration the client is trying to enable. Domain Chief approves or rejects the requested scopes as one set.

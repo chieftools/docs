@@ -1,0 +1,21 @@
+screenshots:
+  - id: domain-chief-transfer-form
+    source_images:
+      light: public/domainchief/transfers/domain-chief-transfer-form-light.jpg
+      dark: public/domainchief/transfers/domain-chief-transfer-form-dark.jpg
+    local_url: https://domain.chief.test/team/lqyorkeb/domains/transfer/harbor-transfer.example
+    public_url: https://domain.chief.app/team/current/domains/transfer/harbor-transfer.example
+    viewport: 900x1100
+    state: Immediate transfer selected; authorization code empty; account menu closed
+    interactions: None
+    crop: x=0, y=0, width=900, height=800
+  - id: domain-chief-transfer-authorization-code
+    source_images:
+      light: public/domainchief/transfers/domain-chief-transfer-auth-code-light.jpg
+      dark: public/domainchief/transfers/domain-chief-transfer-auth-code-dark.jpg
+    local_url: https://domain.chief.test/team/lqyorkeb/domains/northstar-studio.example
+    public_url: https://domain.chief.app/team/current/domains/northstar-studio.example
+    viewport: 900x1100
+    state: Authorization code masked; transfer lock disabled; account menu closed
+    interactions: Scroll to the Authorization Code card
+    crop: x=0, y=1086, width=900, height=290

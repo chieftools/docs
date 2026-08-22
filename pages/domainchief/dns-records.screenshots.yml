@@ -1,0 +1,11 @@
+screenshots:
+  - id: manage-dns-records
+    source_images:
+      light: public/domainchief/dns-records/manage-dns-records-light.jpg
+      dark: public/domainchief/dns-records/manage-dns-records-dark.jpg
+    local_url: https://domain.chief.test/team/lqyorkeb/domains/northstar-studio.example/records
+    public_url: https://domain.chief.app/team/current/domains/northstar-studio.example/records
+    viewport: 900x1100
+    state: Seven records visible, including an app A record with address 192.0.2.10 and an example comment; account menu closed
+    interactions: None
+    crop: x=0, y=0, width=900, height=750

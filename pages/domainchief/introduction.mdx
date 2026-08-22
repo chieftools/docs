@@ -3,7 +3,7 @@ title: Introduction
 description: Register domains and manage contacts, DNS records, nameservers, and redirects with Domain Chief.
 ---
 
-import {Head} from "zudoku/components";
+import {Head, Link} from "zudoku/components";
 
 <Head>
   <title>Introduction | Domain Chief</title>
@@ -11,10 +11,86 @@ import {Head} from "zudoku/components";
 
 Domain Chief is a registrar and domain management service. Use it to register or transfer domains, manage contacts and nameservers, edit hosted DNS records, and configure web or mail redirects. Domain registrations use WHOIS privacy by default where the registry supports it.
 
-Choose the interface that fits the job:
+## Guides
 
-- Use the Domain Chief web app for day-to-day domain management.
+Choose the guide that matches what you want to do:
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/domainchief/registration"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Register a domain</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Search availability, compare registration and renewal prices, and choose DNS and contact settings.
+    </p>
+  </Link>
+  <Link
+    to="/domainchief/transfers"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Transfer a domain</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Move a domain into or out of Domain Chief, including .com timing and .uk tag transfers.
+    </p>
+  </Link>
+  <Link
+    to="/domainchief/dns-records"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Manage DNS records</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Add and troubleshoot website, email, verification, and other hosted DNS records.
+    </p>
+  </Link>
+  <Link
+    to="/domainchief/nameservers-dnssec"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Change nameservers and manage DNSSEC</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Move between DNS providers without losing records or breaking DNSSEC.
+    </p>
+  </Link>
+  <Link
+    to="/domainchief/renewals-expiration"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Manage renewals and expiration</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Change auto-renewal, configure reminders, and respond to expiration or deletion.
+    </p>
+  </Link>
+  <Link
+    to="/domainchief/registrant-contacts-privacy"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Manage registrant contacts and WHOIS privacy</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Create registrant contacts, manage privacy, and complete contact verification.
+    </p>
+  </Link>
+  <Link
+    to="/domainchief/web-redirects"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Create web redirects</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Send a domain or subdomain to another URL with Domain Chief hosted DNS.
+    </p>
+  </Link>
+  <Link
+    to="/domainchief/ai"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Connect an AI agent</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Connect an MCP-compatible AI client and control which Domain Chief tools it may use.
+    </p>
+  </Link>
+</div>
+
+## Other ways to use Domain Chief
+
 - Use the [REST API](/domainchief/api/introduction) for application integrations and scripts.
-- Connect an [AI agent through MCP](/domainchief/ai) when you want the agent to inspect or change supported resources.
-
-Developers who provide hosting, email, or another service can also integrate through [Domain Connect](/domainchief/developers/domain-connect). Domain Chief shows the proposed DNS records and asks the domain owner to approve them.
+- Integrate a hosting, email, or other service through [Domain Connect](/domainchief/developers/domain-connect). Domain Chief shows the proposed DNS records and asks the domain owner to approve them.

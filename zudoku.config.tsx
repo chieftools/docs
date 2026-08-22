@@ -182,6 +182,11 @@ const config: ZudokuConfig = {
                             items: [
                                 '/domainchief/registration',
                                 '/domainchief/transfers',
+                                '/domainchief/dns-records',
+                                '/domainchief/nameservers-dnssec',
+                                '/domainchief/renewals-expiration',
+                                '/domainchief/registrant-contacts-privacy',
+                                '/domainchief/web-redirects',
                                 '/domainchief/ai',
                             ],
                         },

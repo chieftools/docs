@@ -1,0 +1,11 @@
+screenshots:
+  - id: domain-chief-registration-form
+    source_images:
+      light: public/domainchief/registration/domain-chief-registration-form-light.jpg
+      dark: public/domainchief/registration/domain-chief-registration-form-dark.jpg
+    local_url: https://domain.chief.test/team/lqyorkeb/domains/register/cedar-grove.example
+    public_url: https://domain.chief.app/team/current/domains/register/cedar-grove.example
+    viewport: 900x1100
+    state: Domain Chief nameservers selected; WHOIS privacy enabled; account menu closed
+    interactions: None
+    crop: x=0, y=0, width=900, height=920

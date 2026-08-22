@@ -9,66 +9,42 @@ import {BrowserWindow, Callout, Head} from "zudoku/components";
   <title>Transfer a domain | Domain Chief</title>
 </Head>
 
-A domain transfer moves a domain registration from one registrar to another. It does not move your website, email, or other hosting. Those services keep working only while the domain's nameservers and DNS records still point to the right place.
+Use this guide to transfer a domain into Domain Chief, move it to another registrar, or resolve a transfer that has not completed.
 
-This guide covers transfers in the Domain Chief web app. Each registry sets its own eligibility rules, price, timing, and renewal-date behavior. Domain Chief shows the details for your domain before you submit the transfer.
+## Choose your task
 
-## Know which change you need
+- [Transfer a domain into Domain Chief](#transfer-a-domain-into-domain-chief)
+- [Transfer a domain out of Domain Chief](#transfer-a-domain-out-of-domain-chief)
+- [Transfer a `.uk` domain](#how-uk-transfers-work-now)
+- [Understand the price and renewal date](#how-a-transfer-affects-the-renewal-date)
+- [Find out why a transfer is still pending](#why-is-the-transfer-still-pending)
+- [Troubleshoot another transfer problem](#troubleshooting)
 
-These requests are easy to confuse:
+## Transfer a domain into Domain Chief
 
-| Change | What it does |
-| --- | --- |
-| Transfer into Domain Chief | Changes the registrar from your current provider to Domain Chief. |
-| Transfer out of Domain Chief | Changes the registrar from Domain Chief to a new provider. |
-| Change of registrant | Changes the person or organization that holds the domain. This is separate from changing registrar. |
-| Move between Domain Chief teams | Changes which Domain Chief team manages the domain. If the app reports that another team already manages the domain, [contact support](/support). |
-
-For generic top-level domains such as `.com`, changing the registrant shortly before a registrar transfer can cause a 60-day transfer lock. If you need to change both, transfer the domain first unless your current registrar confirms that a different order is safe. Country-code domains have their own rules.
-
-## How a transfer affects the renewal date
-
-The registry decides what happens to the current registration term. Domain Chief explains the result in the Price section before you submit.
-
-| Renewal behavior | What it means |
-| --- | --- |
-| Extended | The registry adds the required renewal period to the existing renewal date. Under ICANN's policy, a holder-authorized generic top-level domain transfer adds one year unless that would make the unexpired term longer than ten years. |
-| Restarted | The registry sets a new renewal date based on when the transfer completes. The review page tells you the new registration period. |
-| Unchanged | The current renewal date carries over. A small difference can occur if the old registrar records renewals differently. |
-
-You do not choose this behavior. It belongs to the top-level domain. A free transfer can still leave the renewal date unchanged, while a paid transfer may include a renewal.
-
-## Before you start an incoming transfer
+### Before you start
 
 Prepare the domain at its current registrar:
 
 1. Confirm that you can sign in and receive messages sent to the domain holder.
-2. Check that the domain is eligible to transfer. A new registration, a recent transfer, a recent registrant change, an expired domain, or a dispute can block a transfer.
+2. Check that the domain is eligible. A new registration, recent transfer, recent registrant change, redemption status, registry hold, or dispute can block it.
 3. Remove the transfer lock.
 4. Request the latest authorization code. Registrars may call it an auth code, AuthInfo code, EPP code, transfer code, or transfer authorization code.
-5. Decide whether to keep the current nameservers or move DNS hosting to Domain Chief. Record the current nameservers and DNS records before changing anything.
+5. Record the current nameservers and DNS records. If the nameservers or DNSSEC keys will change, disable DNSSEC at the current registrar and wait at least 24 hours before the transfer runs.
 
 <Callout type="caution" title="Keep the authorization code private">
   Treat it like a password. Give it only to the registrar that you have chosen to receive the domain. Generating a new code may invalidate the old one.
 </Callout>
 
-## Transfer a domain into Domain Chief
+### Start the transfer
 
 1. Open the [Domain Chief dashboard](https://domain.chief.app/dashboard?ref=chiefdocs), select **Domains**, and choose **Register**.
 2. Search for the exact domain name. Because the domain is already registered, Domain Chief offers a transfer instead of a registration.
 3. Review the transfer price, yearly renewal price, and renewal-date explanation.
-4. Choose **Immediate** or **Scheduled** when the timing section appears. Scheduled transfers are available only for supported authorization-code transfers.
+4. Choose **Immediate** or **Scheduled** when the timing section appears. **Scheduled** is available only to teams with an active membership and for transfers that use authorization codes.
 5. Enter the authorization code when the form asks for one. If no code field appears, follow the instructions shown after you submit. `.uk` domains currently work this way.
-6. Choose the nameservers and registrant settings.
+6. Choose the nameservers, DNSSEC, and registrant settings.
 7. Review the registry agreements and select **Transfer**.
-
-{/*
-Screenshot recipe
-Local URL: https://domain.chief.test/team/lqyorkeb/domains/transfer/harbor-transfer.example
-Viewport: 900x1100
-State: Immediate transfer selected, authorization code empty, account menu closed
-Crop: x=0, y=0, width=900, height=800
-*/}
 
 <BrowserWindow
   className="my-6"
@@ -92,32 +68,37 @@ Crop: x=0, y=0, width=900, height=800
   />
 </BrowserWindow>
 
-An immediate transfer starts when you submit the form. A scheduled transfer must start at least 15 minutes in the future and no more than one year ahead. Domain Chief charges the transfer when it runs, so the final price can change before that date. You can cancel until five minutes before it starts.
+### What happens next
+
+An immediate transfer starts when you submit the form. Scheduled transfers require an active team membership and must start at least 15 minutes in the future and no more than one year ahead. Domain Chief charges a scheduled transfer when it runs, so the final price can change before that date. You can cancel until five minutes before it starts.
+
+For `.com`, a valid transfer completes automatically when the five-calendar-day pending period ends unless the current registrar rejects it. The current registrar must notify you of the pending transfer. If that message offers an approval link, approving the transfer can finish it sooner; you do not need to approve it for the automatic completion to occur. Many other generic top-level domains follow the same process.
+
+Open the domain page to follow its status. Complete any **Action Required** notice and watch for confirmation messages from the current registrar and Domain Chief.
 
 ### Keep DNS working during the transfer
 
 A registrar transfer and a DNS change are separate actions, but the transfer form lets you choose both.
 
-To keep the existing DNS provider, choose **Use custom** in the Nameservers section, select **Fill from current**, and verify the result. To move DNS to Domain Chief, keep the Domain Chief nameservers and recreate every required DNS record. Do not forget mail records such as `MX`, SPF, DKIM, and DMARC.
+<Callout type="caution" title="Disable DNSSEC before changing DNS">
+  If the transfer changes the nameservers or DNSSEC keys, disable DNSSEC at the current registrar at least 24 hours before the transfer runs. For an immediate transfer, wait before submitting it. For a scheduled transfer, count back from its execution time. You can leave DNSSEC enabled only when both the nameservers and keys will remain unchanged.
+</Callout>
 
-After submission, open the domain page to follow its status. Complete any **Action Required** notice and watch for confirmation messages from the current registrar. Many generic top-level domain transfers can remain pending for up to five calendar days unless the current registrar approves or rejects them sooner.
+To keep the existing DNS provider, choose **Use custom** in the Nameservers section, select **Fill from current**, and verify the result. If DNSSEC will also stay unchanged, select **Configure** in the DNSSEC section, choose **Fill from current**, and verify the imported key.
+
+To move DNS to Domain Chief, keep the Domain Chief nameservers and recreate every required DNS record. Do not forget mail records such as `MX`, SPF, DKIM, and DMARC. Domain Chief manages the replacement DNSSEC keys. Enabling them can take up to 24 hours.
 
 ## Transfer a domain out of Domain Chief
+
+### Before you start
+
+Ask the new registrar whether it will keep the current nameservers and DNSSEC keys. If either will change, disable DNSSEC in Domain Chief and wait at least 24 hours before starting the transfer. When Domain Chief manages DNSSEC, follow the first steps in [Move from Domain Chief to custom nameservers](/domainchief/nameservers-dnssec#move-from-domain-chief-to-custom-nameservers) to remove the managed keys without changing nameservers. If both will remain unchanged, leave DNSSEC enabled.
 
 1. Open **Domains** and select the domain.
 2. Find the **Authorization Code** section.
 3. If the domain is locked, select **Unlock** and confirm the change.
 4. Select **Generate**, **Sync**, or **Send**, depending on what the registry supports.
 5. Copy the code and start the transfer at the new registrar.
-6. Return to the domain page if Domain Chief shows a **Transfer Pending** notice. Approve a transfer you recognize and deny one you did not request.
-
-{/*
-Screenshot recipe
-Local URL: https://domain.chief.test/team/lqyorkeb/domains/northstar-studio.example
-Viewport: 900x1100
-State: Authorization code masked, transfer lock disabled, account menu closed
-Crop: Full page width around the Authorization Code card, x=0, y=1086, width=900, height=290
-*/}
 
 <BrowserWindow
   className="my-6"
@@ -140,6 +121,10 @@ Crop: Full page width around the Authorization Code card, x=0, y=1086, width=900
     loading="lazy"
   />
 </BrowserWindow>
+
+### What happens next
+
+The new registrar submits the transfer after it accepts the authorization code. If Domain Chief shows a **Transfer Pending** notice, approve a transfer you recognize and deny one you did not request. Approval can shorten a registry waiting period.
 
 Lock the domain again if you decide not to continue.
 
@@ -180,24 +165,46 @@ From that date, the expected flow is:
 
 A `.uk` Transfer Authorisation Code will be valid for 14 days and will stop working after a successful transfer. After the transition, follow the authorization-code prompts in Domain Chief instead of the old tag steps.
 
+## How a transfer affects the renewal date
+
+The registry decides what happens to the current registration term. Domain Chief explains the result in the **Price** section before you submit.
+
+| Renewal behavior | What it means |
+| --- | --- |
+| Extended | The registry adds the required renewal period to the existing renewal date. A holder-authorized generic top-level domain transfer normally adds one year, unless that would make the unexpired term longer than ten years. |
+| Restarted | The registry sets a new renewal date based on when the transfer completes. The review page tells you the new registration period. |
+| Unchanged | The current renewal date carries over. A small difference can occur if the old registrar records renewals differently. |
+
+You do not choose this behavior. It belongs to the top-level domain. A free transfer can leave the renewal date unchanged, while a paid transfer may include a renewal.
+
+## Changes that do not need a registrar transfer
+
+| What you want to change | What to do |
+| --- | --- |
+| The person or organization that holds the domain | Change the registrant details. This does not change the registrar. |
+| The Domain Chief team that manages the domain | Move the domain between teams. If the app reports that another team already manages it, [contact support](/support). |
+| The website, email service, or DNS provider | Update the nameservers or DNS records. This does not change the registrar. |
+
+For generic top-level domains such as `.com`, changing the registrant shortly before a registrar transfer can cause a 60-day transfer lock. If you need to change both, transfer the domain first unless your current registrar confirms that a different order is safe. Country-code domains have their own rules.
+
 ## Troubleshooting
 
-### The authorization code was rejected
+### Why was the authorization code rejected?
 
 Request or generate a fresh code at the current registrar. Copy it exactly, without extra spaces. If you generated a newer code, the previous one may no longer work.
 
-### The domain is locked
+### Why does Domain Chief say the domain is locked?
 
 Remove the transfer lock at the current registrar. For a transfer out of Domain Chief, use **Unlock** on the domain page. A registry-level lock, dispute, or abuse hold may require help from the current registrar or registry.
 
-### The domain is in a 60-day lock
+### Why is the domain in a 60-day lock?
 
 This is common for generic top-level domains during the first 60 days after registration, after a previous registrar transfer, or after some registrant changes. Wait for the lock to end unless the current registrar confirms that the applicable policy allows removal. Country-code rules can differ.
 
-### The transfer is still pending
+### Why is the transfer still pending?
 
-Check the domain page and your email for an approval request or an **Action Required** notice. A standard generic top-level domain transfer can take up to five calendar days. A current-style `.uk` push can expire if a receiving registrar that requires a handshake does not accept it within five days.
+Check the domain page and your email for an approval request or an **Action Required** notice. A `.com` transfer normally remains pending until the current registrar approves it or the five-calendar-day period ends. A current-style `.uk` push can expire if a receiving registrar that requires a handshake does not accept it within five days.
 
-### The website or email stopped working
+### Why did the website or email stop working?
 
-Compare the active nameservers and DNS records with the copy you made before the transfer. Restore the old nameservers or recreate the missing records at the new DNS provider. The registrar transfer itself does not move website files or mailboxes.
+Compare the active nameservers and DNS records with the copy you made before the transfer. Use the [Chief Tools DNS checker](https://dns.chief.tools) to see the nameservers and public answers currently in use. Restore the old nameservers or recreate the missing records at the new DNS provider. The registrar transfer itself does not move website files or mailboxes.

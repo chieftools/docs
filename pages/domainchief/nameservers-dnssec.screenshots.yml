@@ -1,0 +1,11 @@
+screenshots:
+  - id: manage-nameservers
+    source_images:
+      light: public/domainchief/nameservers-dnssec/manage-nameservers-light.jpg
+      dark: public/domainchief/nameservers-dnssec/manage-nameservers-dark.jpg
+    local_url: https://domain.chief.test/team/lqyorkeb/domains/domainchief-lqyorkeb.example
+    public_url: https://domain.chief.app/team/current/domains/domainchief-lqyorkeb.example
+    viewport: 900x1100
+    state: Custom nameservers ns1.docs-dns.example through ns4.docs-dns.example; DNSSEC disabled; account menu closed
+    interactions: Scroll to the DNS card at scrollY 349
+    crop: x=0, y=225, width=900, height=325

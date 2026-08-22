@@ -1,0 +1,11 @@
+screenshots:
+  - id: whois-privacy
+    source_images:
+      light: public/domainchief/registrant-contacts-privacy/whois-privacy-light.jpg
+      dark: public/domainchief/registrant-contacts-privacy/whois-privacy-dark.jpg
+    local_url: https://domain.chief.test/team/lqyorkeb/domains/domainchief-lqyorkeb.example
+    public_url: https://domain.chief.app/team/current/domains/domainchief-lqyorkeb.example
+    viewport: 900x1100
+    state: WHOIS privacy enabled for the .example domain; account menu closed
+    interactions: Scroll to the registrant card at scrollY 349
+    crop: x=0, y=540, width=890, height=190
