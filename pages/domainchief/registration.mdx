@@ -77,24 +77,32 @@ Before you select the final button:
 5. Accept any registry agreements shown on the page.
 6. Select **Register**.
 
+{/*
+Screenshot recipe
+Local URL: https://domain.chief.test/team/lqyorkeb/domains/register/cedar-grove.example
+Viewport: 900x1100
+State: Domain Chief nameservers selected, WHOIS privacy enabled, account menu closed
+Crop: x=0, y=0, width=900, height=920
+*/}
+
 <BrowserWindow
   className="my-6"
   url="https://domain.chief.app/team/current/domains/register/cedar-grove.example"
 >
   <img
-    className="block w-full dark:hidden"
+    className="block w-full rounded-t-none dark:hidden"
     src="/domainchief/registration/domain-chief-registration-form-light.jpg"
     alt="Domain Chief registration form in light mode for cedar-grove.example, showing price, nameserver, privacy, and final confirmation sections"
-    width="1407"
-    height="900"
+    width="900"
+    height="920"
     loading="lazy"
   />
   <img
-    className="hidden w-full dark:block"
+    className="hidden w-full rounded-t-none dark:block"
     src="/domainchief/registration/domain-chief-registration-form-dark.jpg"
     alt="Domain Chief registration form in dark mode for cedar-grove.example, showing price, nameserver, privacy, and final confirmation sections"
-    width="1407"
-    height="900"
+    width="900"
+    height="920"
     loading="lazy"
   />
 </BrowserWindow>
