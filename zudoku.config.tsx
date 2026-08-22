@@ -175,7 +175,16 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/domainchief/introduction',
-                        '/domainchief/ai',
+                        {
+                            type: 'category',
+                            label: 'Guides',
+                            collapsible: false,
+                            items: [
+                                '/domainchief/registration',
+                                '/domainchief/transfers',
+                                '/domainchief/ai',
+                            ],
+                        },
                         {
                             type: 'category',
                             label: 'API',
