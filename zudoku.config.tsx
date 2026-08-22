@@ -1,4 +1,5 @@
 import {ExternalLink} from './src/ExternalLink.js';
+import {chiefOgImagePlugin} from './src/og-images/plugin.js';
 import {graphqlPlugin} from '@zudoku/plugin-graphql';
 import {createApiIdentityPlugin} from 'zudoku/plugins';
 import {defaultLanguages, type ZudokuConfig} from 'zudoku';
@@ -57,6 +58,7 @@ const config: ZudokuConfig = {
         type: 'pagefind',
     },
     plugins: [
+        chiefOgImagePlugin(),
         createApiIdentityPlugin({
             getIdentities: async (context) => [
                 {
@@ -345,6 +347,7 @@ const config: ZudokuConfig = {
     syntaxHighlighting: {
         languages: [...defaultLanguages, 'nginx', 'regex'],
     },
+    canonicalUrlOrigin: 'https://docs.chief.tools',
 };
 
 export default config;

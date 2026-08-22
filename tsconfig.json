@@ -4,6 +4,8 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "useDefineForClassFields": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
@@ -12,5 +14,5 @@
     "useUnknownInCatchVariables": false,
     "jsx": "react-jsx"
   },
-  "include": ["src", "zudoku.config.tsx"]
+  "include": ["src", "test", "vite.config.ts", "zudoku.config.tsx"]
 }

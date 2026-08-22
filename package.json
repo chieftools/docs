@@ -8,6 +8,7 @@
     "build": "./bin/update-schemas.sh && zudoku build",
     "start": "serve dist --listen 3000 --no-clipboard",
     "preview": "zudoku preview",
+    "test": "node --test test/*.test.mts",
     "lint": "eslint",
     "postinstall": "patch-package",
     "typecheck": "tsc --noEmit"
