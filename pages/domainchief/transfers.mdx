@@ -3,7 +3,7 @@ title: Transfer a domain
 description: Move a domain into or out of Domain Chief, including current and future .uk transfer steps.
 ---
 
-import {Head} from "zudoku/components";
+import {BrowserWindow, Callout, Head} from "zudoku/components";
 
 <Head>
   <title>Transfer a domain | Domain Chief</title>
@@ -48,7 +48,9 @@ Prepare the domain at its current registrar:
 4. Request the latest authorization code. Registrars may call it an auth code, AuthInfo code, EPP code, transfer code, or transfer authorization code.
 5. Decide whether to keep the current nameservers or move DNS hosting to Domain Chief. Record the current nameservers and DNS records before changing anything.
 
-Treat an authorization code like a password. Give it only to the registrar that you have chosen to receive the domain. Generating a new code may invalidate the old one.
+<Callout type="caution" title="Keep the authorization code private">
+  Treat it like a password. Give it only to the registrar that you have chosen to receive the domain. Generating a new code may invalidate the old one.
+</Callout>
 
 ## Transfer a domain into Domain Chief
 
@@ -60,24 +62,27 @@ Treat an authorization code like a password. Give it only to the registrar that 
 6. Choose the nameservers and registrant settings.
 7. Review the registry agreements and select **Transfer**.
 
-<div className="my-6">
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/domains/transfer/harbor-transfer.example"
+>
   <img
-    className="block w-full rounded-lg border border-zinc-200 dark:hidden"
+    className="block w-full dark:hidden"
     src="/domainchief/transfers/domain-chief-transfer-form-light.jpg"
-    alt="Domain Chief incoming transfer form in light mode, showing the price, transfer timing, and authorization code field for northstar-transfer.example"
+    alt="Domain Chief incoming transfer form in light mode, showing the price, transfer timing, and authorization code field for harbor-transfer.example"
     width="1407"
-    height="750"
+    height="738"
     loading="lazy"
   />
   <img
-    className="hidden w-full rounded-lg border border-zinc-800 dark:block"
+    className="hidden w-full dark:block"
     src="/domainchief/transfers/domain-chief-transfer-form-dark.jpg"
-    alt="Domain Chief incoming transfer form in dark mode, showing the price, transfer timing, and authorization code field for northstar-transfer.example"
+    alt="Domain Chief incoming transfer form in dark mode, showing the price, transfer timing, and authorization code field for harbor-transfer.example"
     width="1407"
-    height="750"
+    height="738"
     loading="lazy"
   />
-</div>
+</BrowserWindow>
 
 An immediate transfer starts when you submit the form. A scheduled transfer must start at least 15 minutes in the future and no more than one year ahead. Domain Chief charges the transfer when it runs, so the final price can change before that date. You can cancel until five minutes before it starts.
 
@@ -98,9 +103,12 @@ After submission, open the domain page to follow its status. Complete any **Acti
 5. Copy the code and start the transfer at the new registrar.
 6. Return to the domain page if Domain Chief shows a **Transfer Pending** notice. Approve a transfer you recognize and deny one you did not request.
 
-<div className="my-6">
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/domains/northstar-studio.example"
+>
   <img
-    className="block w-full rounded-lg border border-zinc-200 dark:hidden"
+    className="block w-full dark:hidden"
     src="/domainchief/transfers/domain-chief-transfer-auth-code-light.jpg"
     alt="Authorization Code section for northstar-studio.example in light mode, with the transfer code masked and the domain unlocked"
     width="1247"
@@ -108,20 +116,22 @@ After submission, open the domain page to follow its status. Complete any **Acti
     loading="lazy"
   />
   <img
-    className="hidden w-full rounded-lg border border-zinc-800 dark:block"
+    className="hidden w-full dark:block"
     src="/domainchief/transfers/domain-chief-transfer-auth-code-dark.jpg"
     alt="Authorization Code section for northstar-studio.example in dark mode, with the transfer code masked and the domain unlocked"
     width="1247"
     height="268"
     loading="lazy"
   />
-</div>
+</BrowserWindow>
 
 Lock the domain again if you decide not to continue.
 
 ## How `.uk` transfers work now
 
-Until 9 February 2027, Nominet uses a push-style transfer for `.uk`, `.co.uk`, `.org.uk`, and the other domains in the `.uk` family. Instead of the new registrar pulling the domain with an authorization code, the current registrar pushes it to the receiving registrar's tag. You may see this called a registrar tag or IPS tag.
+<Callout type="info" title="This process changes on 9 February 2027">
+  Until that date, Nominet uses a push-style transfer for `.uk`, `.co.uk`, `.org.uk`, and the other domains in the `.uk` family. Instead of the new registrar pulling the domain with an authorization code, the current registrar pushes it to the receiving registrar's tag. You may see this called a registrar tag or IPS tag.
+</Callout>
 
 ### Transfer a `.uk` domain into Domain Chief
 

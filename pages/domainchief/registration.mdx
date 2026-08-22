@@ -3,7 +3,7 @@ title: Register a domain
 description: Search for an available domain and register it with Domain Chief.
 ---
 
-import {Head} from "zudoku/components";
+import {BrowserWindow, Callout, Head} from "zudoku/components";
 
 <Head>
   <title>Register a domain | Domain Chief</title>
@@ -23,7 +23,9 @@ It also helps to prepare these details:
 - The nameservers supplied by your DNS or hosting provider, if you will not use Domain Chief hosted DNS.
 - Accurate registrant contact details. Some registries ask for extra information or an intended-use statement.
 
-Check the spelling carefully. Domain registrations are non-refundable, including registrations made with a typo.
+<Callout type="caution" title="Check the spelling before you pay">
+  Domain registrations are non-refundable, including registrations made with a typo.
+</Callout>
 
 ## Search for a domain
 
@@ -75,9 +77,12 @@ Before you select the final button:
 5. Accept any registry agreements shown on the page.
 6. Select **Register**.
 
-<div className="my-6">
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/domains/register/cedar-grove.example"
+>
   <img
-    className="block w-full rounded-lg border border-zinc-200 dark:hidden"
+    className="block w-full dark:hidden"
     src="/domainchief/registration/domain-chief-registration-form-light.jpg"
     alt="Domain Chief registration form in light mode for cedar-grove.example, showing price, nameserver, privacy, and final confirmation sections"
     width="1407"
@@ -85,14 +90,14 @@ Before you select the final button:
     loading="lazy"
   />
   <img
-    className="hidden w-full rounded-lg border border-zinc-800 dark:block"
+    className="hidden w-full dark:block"
     src="/domainchief/registration/domain-chief-registration-form-dark.jpg"
     alt="Domain Chief registration form in dark mode for cedar-grove.example, showing price, nameserver, privacy, and final confirmation sections"
     width="1407"
     height="900"
     loading="lazy"
   />
-</div>
+</BrowserWindow>
 
 `cedar-grove.example` is a reserved test name. Its displayed price and registry behavior are demonstration data. Use the values shown for your domain when registering a real name.
 
