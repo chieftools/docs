@@ -1,0 +1,109 @@
+---
+title: Set up email forwarding
+description: Forward addresses on your domain to an existing inbox and understand the DNS and billing changes.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Set up email forwarding | Domain Chief</title>
+</Head>
+
+Use this guide to forward email sent to your domain to one or more existing inboxes.
+
+## Choose your task
+
+- [Enable mail forwarding](#enable-mail-forwarding)
+- [Create a forwarding address](#create-a-forwarding-address)
+- [Understand the activation charge](#understand-the-activation-charge)
+- [Edit, remove, or disable forwarding](#edit-remove-or-disable-forwarding)
+- [Fix a forwarding problem](#troubleshooting)
+
+## Before you enable forwarding
+
+Mail forwarding is a paid feature and requires Domain Chief hosted DNS. It receives mail for the domain and sends it to another email address. It does not provide a mailbox for reading or sending messages.
+
+<Callout type="caution" title="Check existing email before enabling">
+  Enabling forwarding changes the domain's mail DNS records. Existing mailboxes or another forwarding service may stop receiving messages. Open **Review changes** when Domain Chief reports a DNS conflict, and do not continue until you understand which records will be replaced.
+</Callout>
+
+## Enable mail forwarding
+
+1. Open **Domains** and select the domain.
+2. Open **Redirects**.
+3. In **Mail Forwarding**, select **Click to enable e-mail forwarding**.
+4. Read the activation price, covered period, renewal date, and tax notice.
+5. If **DNS conflicts detected** appears, select **Review changes** and check the records that Domain Chief needs to replace.
+6. Select **Enable forwarding**.
+
+### What happens next
+
+The status changes to **Setting up** while Domain Chief publishes and verifies the required DNS records. The page checks for completion while it remains open. Forwarding is ready when the status changes to **Active**.
+
+When no forwarding setup already exists, Domain Chief creates a wildcard alias. Mail sent to otherwise undefined addresses is forwarded to the domain's registrant email when WHOIS privacy is disabled, or to the team's default contact email when privacy is enabled. Review that alias and change its target when needed.
+
+DNS changes may take time to become visible. Use the [Chief Tools DNS checker](https://dns.chief.tools) to inspect the domain's `MX`, SPF, DKIM, and DMARC records.
+
+## Create a forwarding address
+
+1. In **Mail Forwarding**, select **create forward**.
+2. Enter the **Alias**, such as `support` for `support@your-domain.example`.
+3. Enter the destination under **Target**. It must be a valid email address.
+4. Select **Save forward**.
+
+Aliases must be unique within the domain. Use `*` as a wildcard for addresses that do not have a more specific alias. You can create several named aliases and send them to different targets.
+
+Forwarding affects incoming messages only. Sending a message from the destination inbox does not automatically use the forwarded domain as the sender.
+
+## Understand the activation charge
+
+The enable dialog shows the exact charge before you continue. Domain Chief calculates it from the remaining covered months, up to one year.
+
+- When the domain renews within the next year, forwarding is normally charged through that renewal date and then renews with the domain.
+- When the next domain renewal is more than a year away, forwarding is charged for up to 12 months and renews on its own schedule until it can align with the domain.
+- When less than one full month remains in the current period, the activation charge may be zero.
+- When forwarding is already paid through a future date, enabling it again does not create another charge for that covered period.
+
+The annual price and any charge due today appear in the dialog. Prices exclude applicable taxes.
+
+See [Understand billing and pending payments](/domainchief/billing-payments) for invoice previews and the annual portfolio estimate.
+
+## Edit, remove, or disable forwarding
+
+Use the pencil button beside an alias to change its name or target. Use the delete button to remove one forwarding address.
+
+Select **disable** beside the status to turn the feature off for the domain. Confirming this action removes every configured forwarding address and stops forwarding messages to their targets.
+
+If you only need to stop one address, delete that alias instead of disabling the entire feature.
+
+## How forwarding changes DNS
+
+Domain Chief manages the mail records needed for forwarding, including `MX`, SPF, DKIM, and DMARC records. This is why the feature is available only with hosted DNS.
+
+Do not replace these managed records manually while forwarding is active. A DNS import also cannot remove them until you disable the forwarding setup. See [Import and migrate DNS records](/domainchief/dns-import-migration) when you need to replace the rest of the zone.
+
+## Troubleshooting
+
+### Why is mail forwarding unavailable?
+
+The domain must use Domain Chief hosted DNS. If it uses custom nameservers, either configure forwarding at that DNS or email provider, or move the domain back to Domain Chief nameservers first.
+
+### Why does the status stay on Setting up?
+
+The required DNS records are still being published or verified. Check the public records with the [Chief Tools DNS checker](https://dns.chief.tools). If the status changes to **Needs attention**, use **Retry verification**.
+
+### What does Retry verification change?
+
+It restores the required forwarding DNS records and checks them again. Confirm the prompt carefully because conflicting mail records will be replaced.
+
+### Why did existing email stop arriving?
+
+Enabling forwarding may have replaced the `MX` records used by the previous mail provider. Decide which service should receive mail. Restore the previous provider's complete DNS setup if you do not want Domain Chief forwarding.
+
+### Why does one address not forward?
+
+Check the spelling of its alias and target. A named alias takes precedence over the wildcard. Also confirm that the status is **Active**, then send a new test message rather than relying on a message submitted before activation.
+
+### Why did an import fail while forwarding is active?
+
+Domain Chief blocks imports that would remove managed forwarding records. Keep those records in the import, or disable forwarding before replacing the full zone.
