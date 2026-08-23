@@ -10,16 +10,19 @@ test('reads plain and quoted page metadata', () => {
     readPageFrontmatter(`---
 title: Manage example records
 description: "Choose where an example should point"
+ogTitle: Build sample workflows
 ---
 `),
     {
       title: 'Manage example records',
       description: 'Choose where an example should point',
+      ogTitle: 'Build sample workflows',
     },
   );
 });
 
 test('selects product branding and API labels from the route', () => {
+  assert.equal(findOgImageBrand('/developers/accountchief').styleId, 'accountchief');
   assert.equal(findOgImageBrand('/domainchief/example').styleId, 'domainchief');
   assert.equal(findOgImageBrand('/domainchief/example').label, 'Documentation');
   assert.equal(findOgImageBrand('/developers/domainchief').styleId, 'domainchief');
@@ -38,9 +41,10 @@ test('creates a stable signed image URL', () => {
       slug: 'manage-example-records',
       params: {
         title: 'Manage example records',
+        description: 'Choose where a synthetic example should point.',
         label: 'Documentation',
       },
     }),
-    'https://static.assets.chief.tools/og/exampledocs:exampleapp/eyJ0aXRsZSI6Ik1hbmFnZSBleGFtcGxlIHJlY29yZHMiLCJsYWJlbCI6IkRvY3VtZW50YXRpb24ifQ/manage-example-records.png?signature=0rBLxVU6VZbvO82JSKfK3xZ92yZEjk-v1ydnF3YIr48&v=2',
+    'https://static.assets.chief.tools/og/exampledocs:exampleapp/eyJ0aXRsZSI6Ik1hbmFnZSBleGFtcGxlIHJlY29yZHMiLCJkZXNjcmlwdGlvbiI6IkNob29zZSB3aGVyZSBhIHN5bnRoZXRpYyBleGFtcGxlIHNob3VsZCBwb2ludC4iLCJsYWJlbCI6IkRvY3VtZW50YXRpb24ifQ/manage-example-records.png?signature=9K6mMuZ-tSzVEM0ctTnSsK3BM9OkTfqg7ujdRhNkCfw&v=3',
   );
 });

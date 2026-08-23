@@ -2,6 +2,7 @@ import { createHmac } from 'node:crypto';
 
 export type OgImageParams = {
   title: string;
+  description?: string;
   label?: string;
 };
 
@@ -13,7 +14,7 @@ export type SignOgImageUrlOptions = {
   params: OgImageParams;
 };
 
-const ogImageVersion = '2';
+const ogImageVersion = '3';
 
 const base64UrlEncode = (value: string | Buffer): string =>
   Buffer.from(value).toString('base64url');

@@ -1,6 +1,7 @@
 export type PageFrontmatter = {
   title?: string;
   description?: string;
+  ogTitle?: string;
 };
 
 const parseScalar = (value: string): string => {
@@ -27,7 +28,7 @@ export const readPageFrontmatter = (source: string): PageFrontmatter => {
   const frontmatter: PageFrontmatter = {};
 
   for (const line of block.split(/\r?\n/)) {
-    const match = line.match(/^(title|description):\s*(.*)$/);
+    const match = line.match(/^(title|description|ogTitle):\s*(.*)$/);
 
     if (!match) {
       continue;

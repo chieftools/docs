@@ -9,6 +9,14 @@ export type OgImageBrand = {
 
 export const ogImageBrands: OgImageBrand[] = [
   {
+    prefix: '/developers/accountchief',
+    styleId: 'accountchief',
+    productName: 'Account Chief',
+    label: 'Documentation',
+    fallbackTitle: 'Account Chief developer documentation',
+    fallbackDescription: 'Authenticate users and work with their profiles, email addresses, and teams.',
+  },
+  {
     prefix: '/developers/domainchief',
     styleId: 'domainchief',
     productName: 'Domain Chief',

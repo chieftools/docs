@@ -70,11 +70,12 @@ const createMetadata = (
   route: string,
   title: string,
   description: string,
+  ogTitle: string = title,
 ): OgImageMetadata => {
   const brand = findOgImageBrand(route);
-  const socialTitle = title.toLocaleLowerCase().startsWith(brand.productName.toLocaleLowerCase())
-    ? title
-    : `${title} | ${brand.productName}`;
+  const socialTitle = ogTitle.toLocaleLowerCase().startsWith(brand.productName.toLocaleLowerCase())
+    ? ogTitle
+    : `${ogTitle} | ${brand.productName}`;
 
   return {
     title: socialTitle,
@@ -85,7 +86,8 @@ const createMetadata = (
       styleId: brand.styleId,
       slug: slugFromRoute(route),
       params: {
-        title,
+        title: ogTitle,
+        description: description || undefined,
         label: brand.label,
       },
     }),
@@ -114,6 +116,7 @@ const buildManifest = async (rootDirectory: string): Promise<OgImageManifest> =>
       route,
       frontmatter.title,
       frontmatter.description ?? '',
+      frontmatter.ogTitle ?? frontmatter.title,
     );
   }
 
