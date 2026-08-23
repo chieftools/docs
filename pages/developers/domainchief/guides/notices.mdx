@@ -1,0 +1,234 @@
+---
+title: Handle domain notices
+description: Use domain notices to present current state, offer valid next steps, and follow asynchronous operations.
+---
+
+import {BrowserWindow, Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Handle domain notices | Domain Chief</title>
+</Head>
+
+Domain notices tell your application what currently needs attention and which resolutions are available. Read them whenever you display a domain, after a request that changes one, and when the team event feed reports that its state changed.
+
+## Integration flow
+
+1. Fetch the domain and read its `notices` array.
+2. Replace your stored or displayed notice snapshot with the returned array.
+3. Use `type` and `severity` to decide how prominently to present each notice.
+4. Use `code` for specialized behavior and `message` as display fallback copy.
+5. Offer only the `actions` your application recognizes and can complete.
+6. After an action, use the notices in the returned domain resource immediately.
+7. Listen for `domain.changed` through the team event feed and retrieve the affected domain when its state changes later.
+
+A domain can have several notices at the same time. Handle the array instead of selecting the first item.
+
+### Read current notices
+
+[Show a single domain](/api/domainchief/domains#show-domain) to receive notices automatically:
+
+```http
+GET /api/v1/domains/route-showcase.example HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+The relevant part of a processing response looks like this:
+
+```json
+{
+  "data": {
+    "domain": "route-showcase.example",
+    "status": "requested",
+    "notices": [
+      {
+        "code": "domain.registration.processing",
+        "type": "notice",
+        "severity": "info",
+        "message": "The registration is being processed and the domain is not active yet. No action is normally required while the registry completes the request.",
+        "actions": [],
+        "data": {}
+      }
+    ]
+  }
+}
+```
+
+The same condition appears to the customer as a notice on the domain page:
+
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/domains/route-showcase.example"
+>
+  <img
+    className="block w-full rounded-t-none dark:hidden"
+    src="/developers/domainchief/guides/notices/domain-notice-processing-light.jpg"
+    alt="A processing notice for route-showcase.example in Domain Chief light mode"
+    width="876"
+    height="125"
+    loading="lazy"
+  />
+  <img
+    className="hidden w-full rounded-t-none dark:block"
+    src="/developers/domainchief/guides/notices/domain-notice-processing-dark.jpg"
+    alt="A processing notice for route-showcase.example in Domain Chief dark mode"
+    width="876"
+    height="125"
+    loading="lazy"
+  />
+</BrowserWindow>
+
+Domain collections omit notices by default. Request them explicitly when a list needs badges, warnings, or actions:
+
+```http
+GET /api/v1/domains?expand[]=notices HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+Leave the expansion out when the list does not show notice state. Resolving notices adds work to every returned domain.
+
+### Watch for notice changes
+
+Do not repeatedly fetch a domain to discover whether its notices changed. Poll [List team events](/api/domainchief/team#list-team-events), then retrieve a domain when the feed reports `domain.changed`. The event is an invalidation signal. It does not describe which field or notice changed.
+
+Use the notices returned by a mutation immediately. For later changes, collect the event feed's unique domain IDs and retrieve their current state with the `notices` expansion.
+
+The [event synchronization guide](/developers/domainchief/guides/events) covers checkpoints, cursors, batch retrieval, deduplication, and recovery.
+
+### Interpret the fields
+
+- `code` is the stable branching key. Use it for custom copy, analytics, and code-specific flows.
+- `type` distinguishes a condition that requires intervention from an operational update.
+- `severity` controls presentation urgency. It is not a domain lifecycle status.
+- `message` is fallback display copy. It may change or be localized, so do not branch on it or persist it as state.
+- `actions` lists resolutions available for the current domain and actor. Let these values drive the next steps instead of inferring actions from `code` alone.
+- `data` contains code-specific context such as a failure cause, affected attributes, a deadline, or an identifier required by an action.
+
+See the [`DomainNotice`](/api/domainchief/~schemas#domainnotice), [`DomainNoticeAction`](/api/domainchief/~schemas#domainnoticeaction), and [`DomainNoticeData`](/api/domainchief/~schemas#domainnoticedata) schemas for the current complete contract.
+
+<Callout type="caution" title="Actions do not grant API access">
+  An action means the resolution is valid for the domain and actor. It is not filtered by the token's scopes. Check that the token has the scope required by the linked endpoint before showing an API-backed control, and handle `403 Forbidden` if its access changes.
+</Callout>
+
+Some actions are instructions rather than Domain Chief API calls. For example, payment belongs in your billing flow, contacting support belongs in your support flow, and unlocking at another registrar requires a customer handoff.
+
+### Remain compatible with new notices
+
+Notice codes, actions, and data fields are extensible. A new value must not break domain rendering or block unrelated actions.
+
+For each notice:
+
+1. Apply specialized behavior when you recognize its `code`.
+2. Otherwise, show `message` using the presentation indicated by `type` and `severity`.
+3. Render only actions you recognize. Do not guess an endpoint for an unknown action.
+4. Read only the data fields needed for the selected code or action and ignore the rest.
+
+Do not implement an exhaustive switch that rejects the whole response when a new value appears.
+
+## Examples
+
+These examples show how the same notice contract drives API calls, customer handoffs, and asynchronous updates.
+
+### Recover a failed transfer
+
+An incoming transfer can fail because the authorization code was rejected. The relevant response fields can look like this:
+
+```json
+{
+  "code": "domain.transfer.incoming.failed",
+  "type": "action_required",
+  "severity": "error",
+  "message": "The registry rejected the authorization code as incorrect. Verify the authorization code with your current registrar. Then retry the transfer.",
+  "actions": [
+    "domain.transfer.retry",
+    "domain.transfer.cancel"
+  ],
+  "data": {
+    "cause": "authorization_code_incorrect",
+    "requires_intended_use": false
+  }
+}
+```
+
+When `domain.transfer.retry` is present, ask the customer for a corrected code and call [Retry a failed transfer](/api/domainchief/domains#retry-a-failed-transfer):
+
+```http
+POST /api/v1/domains/customer-transfer.example/transfer/retry HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+Content-Type: application/json
+
+{
+  "auth_code": "$AUTH_CODE"
+}
+```
+
+A `202 Accepted` response means the retry started, not that the transfer completed. Replace the current notice snapshot with the notices in that response. If the endpoint returns `429 Too Many Requests`, wait for the number of seconds in `Retry-After`. If it returns `409 Conflict`, fetch the domain again because its state changed before the retry was accepted.
+
+Offer cancellation only while `domain.transfer.cancel` remains present. A later response may remove one action while leaving the other.
+
+### Hand off contact verification
+
+Contact verification may require the customer to open a registry-hosted page:
+
+```json
+{
+  "code": "domain.contact_verification.required",
+  "type": "action_required",
+  "severity": "warning",
+  "actions": ["domain.contact_verification.open"],
+  "data": {
+    "contact_verification_context": "active_domain",
+    "operation": "transfer",
+    "contact_verification_url": "https://verify.registry.example/session/example-token"
+  }
+}
+```
+
+Show a **Verify contact** control only when `domain.contact_verification.open` and `data.contact_verification_url` are both present. Open the URL in the customer's browser. It may contain a time-limited token, so do not fetch it from your server, log it, cache it, or modify it.
+
+Another provider may offer `domain.contact_verification.resend` instead. In that case, call [Resend contact verification](/api/domainchief/domains#resend-contact-verification) and replace the current notices with those in the response. Respect `Retry-After` when the endpoint returns `429 Too Many Requests`.
+
+### Follow a domain update
+
+A successful [Update a domain](/api/domainchief/domains#update-a-domain) response may still contain `domain.operation.processing`. This means Domain Chief accepted the requested settings, while the registry-facing operation is still running.
+
+Use `data.attribute` when one setting is involved and `data.attributes` when several changes are being processed together. Keep showing the last confirmed domain values and the pending notice. When the event feed reports `domain.changed` for that domain, retrieve its current state. Continue until the processing notice disappears or is replaced by `domain.operation.failed`.
+
+A failed update can include `domain.operation.failure.dismiss` and `data.operation_id`. After the customer has corrected the setting or has chosen not to retry it, call [Dismiss a failed-update notice](/api/domainchief/domains#dismiss-a-failed-update-notice):
+
+```http
+POST /api/v1/domains/customer-site.example/operations/$OPERATION_ID/dismiss HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+Dismissal hides that notice for the whole team. It does not remove the failed attempt from domain activity.
+
+## Refresh and retry safely
+
+- Treat `notices` as a current snapshot, not as an event stream or audit log.
+- When a mutation returns a domain resource, use its notices immediately. Do not wait for a second request before updating the interface.
+- Poll the team event feed, not individual domain endpoints. Retrieve a domain after `domain.changed` reports that its current state may have changed.
+- After a user completes an external action, such as contact verification or unlocking a domain at another registrar, wait for `domain.changed` before retrieving the resulting state.
+- Honor endpoint-specific status codes and `Retry-After` headers. Do not retry a state-changing request only because a notice still exists.
+
+Use [domain activity](/api/domainchief/domains#list-domain-activity-2) when you need history. Notices answer what is true now and what can happen next.
+
+## API reference
+
+- [Show a domain](/api/domainchief/domains#show-domain)
+- [List domains](/api/domainchief/domains#list-domains)
+- [List specific domains](/api/domainchief/domains#list-specific-domains)
+- [List team events](/api/domainchief/team#list-team-events)
+- [`DomainNotice` schema](/api/domainchief/~schemas#domainnotice)
+- [`DomainNoticeCode` schema](/api/domainchief/~schemas#domainnoticecode)
+- [`DomainNoticeAction` schema](/api/domainchief/~schemas#domainnoticeaction)
+- [`DomainNoticeData` schema](/api/domainchief/~schemas#domainnoticedata)
+
+For the complete cursor workflow, read [Keep local data in sync with events](/developers/domainchief/guides/events).

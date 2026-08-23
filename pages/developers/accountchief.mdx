@@ -1,0 +1,62 @@
+---
+title: Introduction
+description: Use Account Chief authentication, OAuth, identity scopes, and team context in a Chief Tools integration.
+---
+
+import {Head, Link} from "zudoku/components";
+
+<Head>
+  <title>Introduction | Account Chief developers</title>
+</Head>
+
+Account Chief provides authentication and account context across Chief Tools. It issues API tokens, runs the OAuth 2.0 and OpenID Connect flows, and identifies the user or team an integration acts for.
+
+## Start with authentication
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/authentication"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Tokens</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Choose between personal, team, and OAuth access tokens, then store and rotate them safely.
+    </p>
+  </Link>
+  <Link
+    to="/developers/discovery"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">OAuth and OpenID Connect</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Request a client, discover the provider, and implement authorization and token refresh.
+    </p>
+  </Link>
+  <Link
+    to="/developers/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">How scopes work</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Understand parent permissions, read and write inheritance, and partial OAuth grants.
+    </p>
+  </Link>
+  <Link
+    to="/developers/accountchief/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Request the profile, email, and team information your application uses.
+    </p>
+  </Link>
+</div>
+
+## Continue to a product API
+
+Authentication establishes who the integration acts for. The product API controls what it can do next.
+
+- [Domain Chief](/developers/domainchief) for domains, contacts, DNS records, redirects, registrations, and transfers.
+- [Cert Chief](/developers/certchief) for certificate monitoring and TLS server tests.
+- [Deploy Chief](/developers/deploychief) for applications, servers, environments, and deployments.
+- [Tny](/developers/tny) for shortened links, custom domains, and URL utilities.

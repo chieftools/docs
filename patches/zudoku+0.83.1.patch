@@ -31,3 +31,16 @@ index afe6ae0..0bc565a 100644
      const claims = response.id_token
        ? oauth.getValidatedIdTokenClaims(response)
        : undefined;
+diff --git a/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts b/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
+index a3706347..d62d330b 100644
+--- a/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
++++ b/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
+@@ -59,2 +59,2 @@ const resolveBack = (item: NavigationItem): BackLink => {
+-// Cross-section stack: derive the back link from the ancestor that owns the `stack` link.
++// Cross-section stack: derive the back link from the nearest ancestor that owns the `stack` link.
+ export const resolveStackOwner = (
+@@ -67,3 +67,3 @@ export const resolveStackOwner = (
+     if (pathname !== base && !pathname.startsWith(`${base}/`)) return;
+-    return resolveBack(parents.at(0) ?? item);
++    return resolveBack(parents.at(-1) ?? item);
+   });

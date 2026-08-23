@@ -15,6 +15,8 @@ Domain Chief is a registrar and domain management service. Use it to register or
 
 Choose the guide that matches what you want to do:
 
+### Domain management
+
 <div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
   <Link
     to="/domainchief/registration"
@@ -43,6 +45,29 @@ Choose the guide that matches what you want to do:
       Find, group, export, and safely update domains from one overview.
     </p>
   </Link>
+  <Link
+    to="/domainchief/renewals-expiration"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Manage renewals and expiration</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Change auto-renewal, configure reminders, and respond to expiration or deletion.
+    </p>
+  </Link>
+  <Link
+    to="/domainchief/registrant-contacts-privacy"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Manage registrant contacts and WHOIS privacy</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Create registrant contacts, manage privacy, and complete contact verification.
+    </p>
+  </Link>
+</div>
+
+### DNS and services
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
   <Link
     to="/domainchief/dns-records"
     className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
@@ -80,24 +105,6 @@ Choose the guide that matches what you want to do:
     </p>
   </Link>
   <Link
-    to="/domainchief/renewals-expiration"
-    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
-  >
-    <div className="font-semibold">Manage renewals and expiration</div>
-    <p className="mt-1.5 text-sm text-muted-foreground">
-      Change auto-renewal, configure reminders, and respond to expiration or deletion.
-    </p>
-  </Link>
-  <Link
-    to="/domainchief/registrant-contacts-privacy"
-    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
-  >
-    <div className="font-semibold">Manage registrant contacts and WHOIS privacy</div>
-    <p className="mt-1.5 text-sm text-muted-foreground">
-      Create registrant contacts, manage privacy, and complete contact verification.
-    </p>
-  </Link>
-  <Link
     to="/domainchief/web-redirects"
     className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
   >
@@ -115,6 +122,11 @@ Choose the guide that matches what you want to do:
       Forward addresses to existing inboxes and understand the DNS and billing changes.
     </p>
   </Link>
+</div>
+
+### Tools and billing
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
   <Link
     to="/domainchief/billing-payments"
     className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
@@ -133,9 +145,27 @@ Choose the guide that matches what you want to do:
       Connect an MCP-compatible AI client and control which Domain Chief tools it may use.
     </p>
   </Link>
+  <Link
+    to="/domainchief/example-tld"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Test with .example domains</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Try registration, transfers, DNS, contacts, and failure cases without using a public domain.
+    </p>
+  </Link>
 </div>
 
-## Other ways to use Domain Chief
+## Developers
 
-- Use the [REST API](/domainchief/api/introduction) for application integrations and scripts.
-- Integrate a hosting, email, or other service through [Domain Connect](/domainchief/developers/domain-connect). Domain Chief shows the proposed DNS records and asks the domain owner to approve them.
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/domainchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Build with Domain Chief</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Find integration guides, API concepts, and the API reference in one place.
+    </p>
+  </Link>
+</div>

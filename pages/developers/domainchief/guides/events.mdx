@@ -1,0 +1,207 @@
+---
+title: Keep local data in sync with events
+description: Use the team event feed to keep local domains and contacts current without repeatedly retrieving full collections.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Keep local data in sync with events | Domain Chief</title>
+</Head>
+
+The team event feed tells your application which domains and contacts may have changed. Build one initial snapshot, keep its cursor, then retrieve only the resources referenced by later events.
+
+This feed is the right polling target for a long-running integration. Do not repeatedly list every domain or contact to look for changes.
+
+## Integration flow
+
+1. Call `GET /events` without a cursor to create a checkpoint.
+2. Retrieve the team's current domains and contacts once to establish a baseline.
+3. Poll `GET /events` with the saved cursor.
+4. Collect each page's unique resource IDs and retrieve their current state in batches.
+5. Process any related activity data your application needs.
+6. Save the returned cursor only after the page and its resource updates have been applied.
+7. Continue immediately while `meta.has_more` is `true`. Otherwise, wait before polling again.
+
+Use a token with `domainchief:events:read`. It also needs the read scopes for every resource your integration retrieves, such as domains and contacts.
+
+## Establish a baseline
+
+### Create a checkpoint
+
+Call [List team events](/api/domainchief/team#list-team-events) without `cursor` before reading the initial dataset:
+
+```http
+GET /api/v1/events HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+The response contains no historical events. Its cursor marks the current position in this team's stream:
+
+```json
+{
+  "data": [],
+  "meta": {
+    "cursor": "$CURSOR",
+    "has_more": false
+  }
+}
+```
+
+Store this cursor before starting the baseline read. If a resource changes while that read is running, the later event remains visible after the checkpoint.
+
+### Load current resources once
+
+Retrieve the complete baseline with [List domains](/api/domainchief/domains#list-domains) and [List contacts](/api/domainchief/contacts#list-contacts). Follow their pagination links until each collection is complete.
+
+This is the only full collection read required during normal setup. Afterward, the event feed identifies the smaller set of resources to retrieve again.
+
+If you only synchronize domains or contacts, load and request scopes for that resource type alone. Keep the event cursor even when the other resource type is outside your integration.
+
+## Process event pages
+
+### Read the next page
+
+Pass the last saved cursor back unchanged. `per_page` accepts values from 1 through 100 and defaults to 50:
+
+```http
+GET /api/v1/events?cursor=$CURSOR&per_page=100 HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+A page can contain state invalidations and domain activity events:
+
+```json
+{
+  "data": [
+    {
+      "id": "$EVENT_ID",
+      "type": "domain.changed",
+      "resource": {
+        "type": "domain",
+        "id": "$DOMAIN_ID"
+      },
+      "activity": null,
+      "occurred_at": "2026-08-23T12:07:12Z"
+    }
+  ],
+  "meta": {
+    "cursor": "$NEXT_CURSOR",
+    "has_more": false
+  }
+}
+```
+
+Events are notifications, not resource snapshots. Do not update domain or contact fields from an event alone. Changes made by the same integration also appear in the feed, so process them like any other event.
+
+Event types are extensible. Do not reject a page because it contains a type your application does not recognize. The [`TeamEvent`](/api/domainchief/~schemas#teamevent) schema documents the current fields and values.
+
+### Retrieve current state in batches
+
+Collect unique IDs by `resource.type` across the page. Retrieve each domain or contact once, even when several events reference it.
+
+Use [List specific domains](/api/domainchief/domains#list-specific-domains) for up to 100 domain names or IDs. Request the `notices` expansion when your application presents [domain notices](/developers/domainchief/guides/notices):
+
+```http
+POST /api/v1/domains/list HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "domains": ["$DOMAIN_ID"],
+  "expand": ["notices"]
+}
+```
+
+Use [List specific contacts](/api/domainchief/contacts#list-specific-contacts) for up to 100 contact handles:
+
+```http
+POST /api/v1/contacts/list HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "contacts": ["$CONTACT_HANDLE"]
+}
+```
+
+These batch endpoints preserve the requested order but omit resources that no longer exist or no longer belong to the selected team. Remove any requested resource that is absent from the response from your local copy.
+
+Several `*.changed` notifications for the same resource may be combined into one event. Treat them as invalidations. They tell you to retrieve the latest state, not how many changes occurred.
+
+### Include related activity when needed
+
+An event's `activity` field is `null` when no domain activity relates to it. Otherwise, the default value is the activity ID. Add `expand[]=activity` to the event request when your application needs the full activity in the same response:
+
+```http
+GET /api/v1/events?cursor=$CURSOR&expand[]=activity HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Process every activity event your application uses. Unlike repeated change notifications, Domain Chief does not combine these events.
+
+### Commit the cursor
+
+Apply a page in this order:
+
+1. Deduplicate events by their stable `id`.
+2. Process recognized activity events.
+3. Retrieve and store current resources for the unique IDs in the page.
+4. Remove requested resources omitted from the batch responses.
+5. Save `meta.cursor`.
+
+If `meta.has_more` is `true`, request the next page with the newly saved cursor without waiting for the next polling interval.
+
+<Callout type="info" title="Expect safe redelivery">
+  A failed worker can request the same cursor again and receive events it already handled. Make event handling idempotent and deduplicate by event ID. This is safer than saving a cursor before downstream writes finish.
+</Callout>
+
+## Recover synchronization
+
+### Retry an interrupted page
+
+Keep the previous cursor when the event request, a batch read, or a local write fails. Retry from that cursor after the failure clears. Do not advance the cursor merely because the event request succeeded.
+
+When an event response is empty and `meta.has_more` is `false`, keep the returned cursor and wait before the next request. Avoid a loop that sends another empty request immediately.
+
+### Replace a lost or invalid cursor
+
+Domain Chief returns `422 Unprocessable Content` for an invalid cursor. Do not construct or alter cursor values.
+
+If the saved cursor is missing or invalid, start over safely:
+
+1. Request a new checkpoint without a cursor.
+2. Rebuild the current domain and contact baseline.
+3. Resume event polling from the new checkpoint.
+
+The new baseline is required because a fresh checkpoint does not replay changes that occurred before it.
+
+### Keep one cursor per team
+
+The feed belongs to the team selected for the request. Store its cursor with that team and use the same team for the event request and every related resource request.
+
+A team access token selects its team automatically. With a personal or other non-team-scoped token, pin the team using `X-Chief-Team`. The [API introduction](/developers/domainchief/api/introduction#select-a-team) explains the fallback to the user's default team.
+
+## API reference
+
+- [List team events](/api/domainchief/team#list-team-events)
+- [List specific domains](/api/domainchief/domains#list-specific-domains)
+- [List specific contacts](/api/domainchief/contacts#list-specific-contacts)
+- [`TeamEvent` schema](/api/domainchief/~schemas#teamevent)
+
+For the customer-facing conditions returned with a domain, continue with [Handle domain notices](/developers/domainchief/guides/notices).

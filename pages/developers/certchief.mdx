@@ -1,0 +1,28 @@
+---
+title: Cert Chief
+description: Query and manage Cert Chief through its GraphQL API.
+---
+
+import {Head, Link} from "zudoku/components";
+
+<Head>
+  <title>Developer documentation | Cert Chief</title>
+</Head>
+
+Use the Cert Chief GraphQL API to query domains, monitors, certificate checks, and TLS server tests.
+
+Looking for help using Cert Chief in the browser? Go to the [Cert Chief documentation](/certchief/introduction).
+
+## API documentation
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/api/certchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">GraphQL API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Explore the schema and send requests from the playground.
+    </p>
+  </Link>
+</div>

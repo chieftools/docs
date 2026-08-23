@@ -1,44 +1,56 @@
 ---
 title: Security
-description: Found a security issue? Here's how to report it and what to expect from us.
+description: Report a Chief Tools security vulnerability and read our responsible disclosure policy.
 ---
 
-## Security Disclosure Policy
+import {Callout, Head} from "zudoku/components";
 
-We take the security of our applications seriously. If you believe you have discovered a security vulnerability, we encourage you to report it to us responsibly.
+<Head>
+  <title>Security | Chief Tools</title>
+</Head>
 
-### How to Report
+Report suspected security vulnerabilities privately so we can investigate before details become public.
 
-Please send your findings to **security@chief.app** and include:
+## Security disclosure policy
 
-- A description of the vulnerability
-- The affected applications or components
-- Steps to reproduce the issue
-- Any relevant screenshots or proof-of-concept code
-- Your contact information (optional, but helpful for follow-up questions)
+### Report a vulnerability
 
-If you prefer to use PGP for secure communication, our public key is available from our [security.txt](https://chief.app/.well-known/security.txt).
+Email your findings to **security@chief.app**. If you want to encrypt the message, use the PGP key linked from our <ExternalLink href="https://chief.app/.well-known/security.txt">security.txt</ExternalLink> file.
 
-### What to Expect
+### What to include
 
-- We will acknowledge receipt of your report within 5 business days
-- We will investigate and work to address confirmed vulnerabilities promptly
-- We will keep you informed of our progress where possible
-- We ask that you give us reasonable time to address the issue before any public disclosure
+Give us enough information to reproduce and assess the issue:
 
-### Guidelines
+- a clear description of the vulnerability;
+- the affected Chief Tools application, page, or component;
+- the steps needed to reproduce it;
+- relevant screenshots or proof-of-concept code;
+- contact details if you want us to follow up with questions.
 
-We ask that security researchers:
+Remove personal data and secrets that are not needed to demonstrate the problem.
 
-- Do not access, modify, or delete data belonging to others
-- Do not disrupt or degrade our services
-- Do not use automated scanning tools excessively
-- Act in good faith and avoid privacy violations
+### What happens after you report it
 
-### No Bug Bounty Program
+We will acknowledge your report within five business days. We will investigate the report and work to fix confirmed vulnerabilities. When possible, we will keep you informed about our progress.
 
-**We do not operate a bug bounty or reward program.** We are grateful for responsible disclosure but are unable to offer financial compensation or other rewards for vulnerability reports. By submitting a report, you acknowledge that you do so voluntarily with no expectation of payment.
+Please allow reasonable time for us to investigate and address the issue before publishing details.
 
-### Safe Harbour
+## Rules for security research
 
-We will not pursue legal action against researchers who discover and report vulnerabilities in good faith, following the guidelines above.
+You may investigate Chief Tools systems in good faith, provided that you:
+
+- access only accounts, teams, and data that belong to you or that you have permission to test;
+- avoid changing or deleting anyone else's data;
+- do not disrupt or degrade our services;
+- keep automated scanning at a reasonable rate;
+- stop and contact us if your research exposes private data or could affect other users.
+
+### Safe harbour
+
+We will not pursue legal action against researchers who discover and report vulnerabilities in good faith while following this policy.
+
+### No bug bounty
+
+<Callout type="info" title="We do not offer rewards">
+  Chief Tools does not operate a bug bounty or reward program. Reports are voluntary, and we cannot offer payment or other compensation.
+</Callout>

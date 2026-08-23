@@ -107,7 +107,9 @@ Enabling or disabling DNSSEC can take up to 24 hours. If the provider gives you 
 
 If the domain uses Cloudflare nameservers, see [Connect Cloudflare for DNSSEC](/domainchief/cloudflare-dnssec) to retrieve its key instead of entering it manually.
 
-## Where DNS settings are managed
+## Nameserver reference
+
+### Where DNS settings are managed
 
 | Setup | Where you manage records | Where you manage DNSSEC |
 | --- | --- | --- |
@@ -116,7 +118,7 @@ If the domain uses Cloudflare nameservers, see [Connect Cloudflare for DNSSEC](/
 
 Use custom nameservers when another provider hosts the DNS zone. Changing nameservers does not copy records from one provider to the other.
 
-## Use nameserver templates
+### Use nameserver templates
 
 Templates save sets of nameservers that your team uses regularly.
 
@@ -129,7 +131,7 @@ You can then select **From template** while editing a domain's nameservers or ch
 
 The separate **Nameservers** setting controls the team's default for new registrations and transfers. It also does not rewrite existing domains.
 
-## When glue records are required
+### When glue records are required
 
 Glue records are IP addresses registered for nameservers that are children of the same domain. For example, `ns1.example.com` needs glue when it is used as a nameserver for `example.com`.
 

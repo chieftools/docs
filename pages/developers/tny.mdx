@@ -1,0 +1,37 @@
+---
+title: Tny
+description: Integrate shortened links, custom domains, and URL utilities through the Tny GraphQL API.
+---
+
+import {Head, Link} from "zudoku/components";
+
+<Head>
+  <title>Developer documentation | Tny</title>
+</Head>
+
+Use the Tny GraphQL API to manage shortened links, custom domains, and URL utilities.
+
+Looking for help using Tny in the browser? Go to the [Tny documentation](/tny/introduction).
+
+## API documentation
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/tny/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Give a token only the Tny permissions the integration needs.
+    </p>
+  </Link>
+  <Link
+    to="/api/tny"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">GraphQL API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Explore the schema and send requests from the playground.
+    </p>
+  </Link>
+</div>

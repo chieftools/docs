@@ -22,6 +22,10 @@ description: "Choose where an example should point"
 test('selects product branding and API labels from the route', () => {
   assert.equal(findOgImageBrand('/domainchief/example').styleId, 'domainchief');
   assert.equal(findOgImageBrand('/domainchief/example').label, 'Documentation');
+  assert.equal(findOgImageBrand('/developers/domainchief').styleId, 'domainchief');
+  assert.equal(findOgImageBrand('/developers/certchief').styleId, 'certchief');
+  assert.equal(findOgImageBrand('/developers/deploychief').styleId, 'deploychief');
+  assert.equal(findOgImageBrand('/developers/tny').styleId, 'tny');
   assert.equal(findOgImageBrand('/api/domainchief/example').label, 'API reference');
 });
 

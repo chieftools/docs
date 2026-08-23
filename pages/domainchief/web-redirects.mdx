@@ -62,7 +62,9 @@ Domain Chief creates the DNS records needed to send the selected hostname to its
 
 Open the source address in a browser after its DNS records have propagated. Check both the root domain and `www` when the redirect covers them. If it does not work, review the managed records under **Manage DNS records**.
 
-## Redirect the root, www, or a subdomain
+## Configure redirect behavior
+
+### Redirect the root, www, or a subdomain
 
 Leave **Subdomain** empty to cover both the root domain and `www`. Entering `www` has the same result.
 
@@ -70,7 +72,7 @@ Enter another relative name to redirect only that subdomain. For example, enteri
 
 Each source can have only one redirect. The list shows root redirects as covering both the bare domain and `www`.
 
-## Choose a status code
+### Choose a status code
 
 | Code | Use it when | Important behavior |
 | --- | --- | --- |
@@ -81,7 +83,7 @@ Each source can have only one redirect. The list shows root redirects as coverin
 
 For an ordinary browser address, use `302` while testing and change it to `301` only after the target is final. Permanent redirects can remain cached after you edit or remove them.
 
-## Decide what happens to paths
+### Decide what happens to paths
 
 Turn on **Append path** when pages below the source should keep their relative paths.
 
@@ -97,7 +99,7 @@ For a redirect with target `https://destination.example/archive`:
 
 The incoming path is added after any path already present in the target. Leave the option off when every request should land on one page.
 
-## Decide what happens to query parameters
+### Decide what happens to query parameters
 
 **Merge query parameters** carries values after `?` into the destination. It is enabled by default.
 

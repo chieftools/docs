@@ -1,0 +1,24 @@
+version: 1
+guide: pages/developers/domainchief/guides/notices.mdx
+source_url: https://domain.chief.test/team/lqyorkeb/domains/route-showcase.example
+public_url: https://domain.chief.app/team/current/domains/route-showcase.example
+viewport:
+  width: 900
+  height: 1000
+capture:
+  kind: clipped
+  clip:
+    x: 12
+    y: 305
+    width: 876
+    height: 125
+  target: Processing notice
+themes:
+  light: public/developers/domainchief/guides/notices/domain-notice-processing-light.jpg
+  dark: public/developers/domainchief/guides/notices/domain-notice-processing-dark.jpg
+notes:
+  - Select the matching Light or Dark appearance from the account menu, then close the menu before capture.
+  - Keep route-showcase.example in requested registration state so the Processing notice is visible.
+  - The focused crop intentionally excludes the browser extension cursor, Laravel Debugbar, and adjacent cards.
+  - Restore the browser appearance to System and reset the viewport after capture.
+optimize: /Applications/ImageOptim.app/Contents/MacOS/ImageOptim public/developers/domainchief/guides/notices/

@@ -9,7 +9,7 @@ import {Head} from "zudoku/components";
   <title>API scopes | Domain Chief</title>
 </Head>
 
-Scopes limit what an access token can do. Choose them when you create an [access token](/api/tokens#access-tokens). The general [scopes guide](/api/scopes) explains how Chief Tools applies scopes across its APIs.
+Scopes limit what an access token can do. Choose them when you create an [access token](/developers/authentication#access-tokens). The general [scopes guide](/developers/scopes) explains how Chief Tools applies scopes across its APIs.
 
 Each endpoint in the [API playground](/api/domainchief) lists its required scope under security.
 
@@ -50,6 +50,12 @@ Registration, transfer, and immediate deletion use separate scopes because they 
 |---|---|
 | `domainchief:contacts:read` | List and view contacts |
 | `domainchief:contacts:write` | Create, update, and delete contacts |
+
+### Events
+
+| Scope | Access |
+|---|---|
+| `domainchief:events:read` | Read the team's event feed |
 
 ### DNS records
 
@@ -92,7 +98,15 @@ The token can read and change DNS records. It cannot list domains, manage contac
 domainchief:read
 ```
 
-The token can read domains, contacts, DNS records, TLDs, and activity. It cannot change them.
+The token can read domains, contacts, events, DNS records, TLDs, and activity. It cannot change them.
+
+### Keep a local copy in sync
+
+```text
+domainchief:events:read, domainchief:domains:read, domainchief:contacts:read
+```
+
+The token can read the team event feed and retrieve current domain and contact state. It cannot change those resources. The [event synchronization guide](/developers/domainchief/guides/events) explains the cursor workflow.
 
 ### Check domain availability
 

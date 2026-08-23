@@ -1,0 +1,98 @@
+---
+title: Domain Chief
+description: Find Domain Chief integration guides, API concepts, and the API reference.
+---
+
+import {Head, Link} from "zudoku/components";
+
+<Head>
+  <title>Developer documentation | Domain Chief</title>
+</Head>
+
+Integrate Domain Chief into your application with the REST API, or use Domain Connect to configure DNS through a customer-approved flow. Start with a practical guide for complete workflows, then use the API documentation for individual requests and responses.
+
+Looking for help using Domain Chief in the browser? Go to the [Domain Chief documentation](/domainchief/introduction).
+
+## Choose an integration
+
+- Use the **REST API** when your application needs to read or manage domains, contacts, DNS records, redirects, or related data directly.
+- Use the **team event feed** to keep a local copy of domains and contacts current without repeatedly retrieving complete collections.
+- Use **domain notices** with the REST API to show current problems, available resolutions, and operation progress.
+- Use **Domain Connect** when your service needs to propose a known set of DNS records for the customer to approve without giving your application API access.
+
+## Developer guides
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/domainchief/guides/events"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Keep local data in sync with events</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Track changes with a cursor and retrieve only the domains and contacts that need refreshing.
+    </p>
+  </Link>
+  <Link
+    to="/developers/domainchief/guides/notices"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Handle domain notices</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Present current domain state, offer valid next steps, and follow asynchronous operations.
+    </p>
+  </Link>
+  <Link
+    to="/developers/domainchief/guides/domain-connect"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Integrate with Domain Connect</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Publish a DNS template and send customers through Domain Chief's approval flow.
+    </p>
+  </Link>
+</div>
+
+## API documentation
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/domainchief/api/introduction"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API introduction</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Learn the authentication and request basics before making your first call.
+    </p>
+  </Link>
+  <Link
+    to="/developers/domainchief/api/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Give an integration only the Domain Chief permissions it needs.
+    </p>
+  </Link>
+  <Link
+    to="/developers/domainchief/api/metadata"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Metadata</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Attach application-specific context to supported Domain Chief resources.
+    </p>
+  </Link>
+  <Link
+    to="/api/domainchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Inspect the current endpoints, schemas, request fields, and responses.
+    </p>
+  </Link>
+</div>
+
+## Test safely
+
+Use [`.example` domains](/domainchief/example-tld) when you want to exercise domain workflows without registering or changing a public domain.

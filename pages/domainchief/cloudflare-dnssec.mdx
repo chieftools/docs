@@ -19,7 +19,9 @@ Use this guide when a domain uses Cloudflare nameservers and you want Domain Chi
 - [Test or remove a connection](#test-or-remove-a-connection)
 - [Fix a Cloudflare DNSSEC problem](#troubleshooting)
 
-## Before you connect Cloudflare
+## Connect Cloudflare
+
+### Before you connect Cloudflare
 
 The Cloudflare zone must belong to an account that you can connect, and the domain must use Cloudflare nameservers. Domain Chief uses the connection to find the zone, enable DNSSEC at Cloudflare when necessary, retrieve its key, and register that key for the domain.
 
@@ -31,7 +33,7 @@ This integration does not move DNS records to Cloudflare or change a domain to C
 
 See [Change nameservers and manage DNSSEC](/domainchief/nameservers-dnssec) for the complete migration sequence.
 
-## Connect a Cloudflare account
+### Connect a Cloudflare account
 
 1. Open **Settings** in Domain Chief.
 2. Find **Cloudflare Connections** and select **Connect account**.
@@ -76,7 +78,15 @@ Allow access to every zone that Domain Chief should manage. The token can be res
 
 After connecting, Domain Chief shows the Cloudflare account name and whether it uses an account or user token. A token that covers more than one account is shown as a connection to multiple accounts.
 
-## Enable DNSSEC for one domain
+### Test or remove a connection
+
+In **Settings**, find **Cloudflare Connections** and use the plug button beside an account to test its token. A successful test also refreshes the account names shown in Domain Chief.
+
+Use the delete button to disconnect an account. This removes Domain Chief's access but does not disable DNSSEC in Cloudflare or remove keys already registered for domains. Plan any DNSSEC or nameserver changes separately before disconnecting a connection that is still in use.
+
+## Enable DNSSEC
+
+### Enable DNSSEC for one domain
 
 1. Confirm that the Cloudflare zone resolves correctly and that DNSSEC is currently disabled at the registrar.
 2. Open **Domains** and select the domain.
@@ -88,7 +98,7 @@ If DNSSEC is disabled in Cloudflare, Domain Chief tries to enable it before retr
 
 Afterwards, use the [Chief Tools DNS checker](https://dns.chief.tools) to confirm that the domain publishes a `DS` record and that its signed DNS answers validate. Allow up to 24 hours for the complete chain to update.
 
-## Enable DNSSEC for several domains
+### Enable DNSSEC for several domains
 
 Use the bulk action only after the Cloudflare zones are working and all selected domains are ready.
 
@@ -101,12 +111,6 @@ Use the bulk action only after the Cloudflare zones are working and all selected
 Domain Chief retrieves each available Cloudflare key and schedules the registry update. Domains that do not use Cloudflare nameservers or already have DNSSEC enabled are left unchanged. If a connected token cannot access a zone or return a usable key, that domain is also left unchanged; review the results individually.
 
 Bulk Cloudflare DNSSEC enablement is unavailable when the selection contains a `.de` domain. Nothing is changed in that case. Enable each `.de` domain separately so its configuration can be validated.
-
-## Test or remove a connection
-
-In **Settings**, find **Cloudflare Connections** and use the plug button beside an account to test its token. A successful test also refreshes the account names shown in Domain Chief.
-
-Use the delete button to disconnect an account. This removes Domain Chief's access but does not disable DNSSEC in Cloudflare or remove keys already registered for domains. Plan any DNSSEC or nameserver changes separately before disconnecting a connection that is still in use.
 
 ## Troubleshooting
 

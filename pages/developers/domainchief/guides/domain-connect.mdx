@@ -1,12 +1,12 @@
 ---
-title: Domain Connect
+title: Integrate with Domain Connect
 description: Connect a service to Domain Chief and configure DNS records through the Domain Connect protocol.
 ---
 
-import {Head} from "zudoku/components";
+import {Callout, Head} from "zudoku/components";
 
 <Head>
-  <title>Domain Connect | Domain Chief</title>
+  <title>Integrate with Domain Connect | Domain Chief</title>
 </Head>
 
 Domain Connect is an open protocol for applying a known set of DNS records to a domain. A service publishes a JSON template, sends the user to their DNS provider, and passes the values required by that template. Domain Chief shows the proposed changes before writing any records.
@@ -17,7 +17,9 @@ This replaces instructions that ask users to copy DNS records by hand. It also g
 Transactional email services such as <ExternalLink href="https://lettermint.co/">Lettermint</ExternalLink> and workspace hosting services such as <ExternalLink href="https://cirrux.co/">Cirrux</ExternalLink> often need MX, CNAME, TXT, or verification records. Domain Connect lets them describe those records once and send the user through an approval screen.
 </Callout>
 
-## How a connection works
+## Integration flow
+
+### How a connection works
 
 1. Your service reads the domain's `_domainconnect` TXT record to find its DNS provider.
 2. Your service checks whether the provider has indexed your `providerId` and `serviceId` template.
@@ -26,13 +28,15 @@ Transactional email services such as <ExternalLink href="https://lettermint.co/"
 5. The user approves or cancels the changes.
 6. After approval, Domain Chief writes the records and returns the user to your service.
 
-## Supported flow
+### Supported flow
 
 Domain Chief supports the synchronous interactive flow from Domain Connect v2. The domain owner must review and approve each request.
 
 The asynchronous OAuth flow is not supported.
 
-## Publish a template
+## Publish and test a template
+
+### Publish a template
 
 Domain Chief imports compatible templates from the official <ExternalLink href="https://github.com/Domain-Connect/Templates">Domain Connect template repository</ExternalLink> each day. Publish your template there using the repository's standard file format. You do not need to ask Domain Chief to enable it.
 
@@ -47,7 +51,7 @@ Your template must:
 
 If you need to test a template before publishing it, email [domainconnect@chief.app](mailto:domainconnect@chief.app).
 
-## Test the integration
+### Test the integration
 
 Use `domainchief.app` as the domain while testing your service's redirect and apply flow. It uses Domain Chief hosted DNS and can confirm whether an indexed template resolves correctly.
 
@@ -59,7 +63,9 @@ Test these outcomes before shipping:
 - The approval screen shows the expected additions, updates, and conflicts.
 - The success and cancellation redirects return to the allowed domain from your template.
 
-## Domain requirements
+## Application requirements and limits
+
+### Domain requirements
 
 Domain Chief can apply a template only when:
 
@@ -71,7 +77,7 @@ Domain Chief can apply a template only when:
 
 If one of these conditions fails, Domain Chief reports the template or domain as unsupported instead of changing DNS.
 
-## Limits
+### Limits
 
 - Domain Connect cannot apply records to domains using external nameservers.
 - The protocol applies indexed templates. It does not expose an API for arbitrary DNS record changes.

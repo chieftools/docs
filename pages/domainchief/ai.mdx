@@ -19,7 +19,9 @@ Use this guide to connect an MCP-compatible AI client to Domain Chief and contro
 - [Change the connection's permissions](#change-permissions)
 - [Fix a connection or permission problem](#troubleshooting)
 
-## Before you connect
+## Connect an AI client
+
+### Before you connect
 
 Your AI client must support remote MCP servers and browser-based sign-in. Use this server URL:
 
@@ -27,7 +29,7 @@ Your AI client must support remote MCP servers and browser-based sign-in. Use th
 https://domain.chief.app/mcp
 ```
 
-## Connect a client
+### Connect a client
 
 Look for MCP or integrations in your client's settings, then:
 
@@ -40,7 +42,7 @@ Look for MCP or integrations in your client's settings, then:
   The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
 </Callout>
 
-## What happens next
+### What happens next
 
 After connecting, give the client a specific task. For example:
 
@@ -96,15 +98,17 @@ These tools work only with domains using Domain Chief hosted DNS.
 | `update-web-redirect` | Update a web redirect | `domainchief:redirects_web:write` |
 | `delete-web-redirect` | Delete a web redirect | `domainchief:redirects_web:write` |
 
-## Change permissions
+## Manage the connection
+
+### Change permissions
 
 Start with read scopes. If the client needs a tool that is not available, reconnect it and approve the additional scope. Domain Chief cannot add scopes to an existing connection without another authorization step.
 
-See [Domain Chief API scopes](/domainchief/api/scopes) for the full scope hierarchy.
+See [Domain Chief API scopes](/developers/domainchief/api/scopes) for the full scope hierarchy.
 
-## Choose MCP or REST
+### Choose MCP or REST
 
-Use MCP when an AI client needs to choose and call Domain Chief tools. Use the [REST API](/domainchief/api/introduction) for application code, fixed workflows, or endpoints that the MCP server does not expose.
+Use MCP when an AI client needs to choose and call Domain Chief tools. Use the [REST API](/developers/domainchief/api/introduction) for application code, fixed workflows, or endpoints that the MCP server does not expose.
 
 ## Troubleshooting
 

@@ -27,7 +27,9 @@ Mail forwarding is a paid feature and requires Domain Chief hosted DNS. It recei
   Enabling forwarding changes the domain's mail DNS records. Existing mailboxes or another forwarding service may stop receiving messages. Open **Review changes** when Domain Chief reports a DNS conflict, and do not continue until you understand which records will be replaced.
 </Callout>
 
-## Enable mail forwarding
+## Set up mail forwarding
+
+### Enable mail forwarding
 
 1. Open **Domains** and select the domain.
 2. Open **Redirects**.
@@ -44,7 +46,7 @@ When no forwarding setup already exists, Domain Chief creates a wildcard alias. 
 
 DNS changes may take time to become visible. Use the [Chief Tools DNS checker](https://dns.chief.tools) to inspect the domain's `MX`, SPF, DKIM, and DMARC records.
 
-## Create a forwarding address
+### Create a forwarding address
 
 1. In **Mail Forwarding**, select **create forward**.
 2. Enter the **Alias**, such as `support` for `support@your-domain.example`.
@@ -55,7 +57,17 @@ Aliases must be unique within the domain. Use `*` as a wildcard for addresses th
 
 Forwarding affects incoming messages only. Sending a message from the destination inbox does not automatically use the forwarded domain as the sender.
 
-## Understand the activation charge
+### Edit, remove, or disable forwarding
+
+Use the pencil button beside an alias to change its name or target. Use the delete button to remove one forwarding address.
+
+Select **disable** beside the status to turn the feature off for the domain. Confirming this action removes every configured forwarding address and stops forwarding messages to their targets.
+
+If you only need to stop one address, delete that alias instead of disabling the entire feature.
+
+## Understand pricing and DNS
+
+### Activation charge
 
 The enable dialog shows the exact charge before you continue. Domain Chief calculates it from the remaining covered months, up to one year.
 
@@ -68,15 +80,7 @@ The annual price and any charge due today appear in the dialog. Prices exclude a
 
 See [Understand billing and pending payments](/domainchief/billing-payments) for invoice previews and the annual portfolio estimate.
 
-## Edit, remove, or disable forwarding
-
-Use the pencil button beside an alias to change its name or target. Use the delete button to remove one forwarding address.
-
-Select **disable** beside the status to turn the feature off for the domain. Confirming this action removes every configured forwarding address and stops forwarding messages to their targets.
-
-If you only need to stop one address, delete that alias instead of disabling the entire feature.
-
-## How forwarding changes DNS
+### How forwarding changes DNS
 
 Domain Chief manages the mail records needed for forwarding, including `MX`, SPF, DKIM, and DMARC records. This is why the feature is available only with hosted DNS.
 

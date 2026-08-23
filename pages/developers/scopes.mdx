@@ -1,0 +1,98 @@
+---
+title: How scopes work
+description: Choose Chief Tools scopes and understand how broader and narrower permissions interact.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>How scopes work | Chief Tools</title>
+</Head>
+
+Scopes limit what an API token or OAuth client can access. Start with the operations your integration calls, then grant only the scopes listed for those operations.
+
+## Choose scopes
+
+Each product's API reference shows the scope required by an operation. Use those requirements as the source of truth because products can add operations and finer permissions over time.
+
+Product scope guides explain the permissions that need more context:
+
+- [Domain Chief scopes](/developers/domainchief/api/scopes)
+- [Tny scopes](/developers/tny/scopes)
+- [Account Chief scopes](/developers/accountchief/scopes)
+
+Account Chief lists every supported OAuth scope in the `scopes_supported` field of its discovery documents. The [OAuth and OpenID Connect guide](/developers/discovery#discover-the-provider) links both documents.
+
+## Read an app scope
+
+Fine-grained app scopes use colon-separated parts:
+
+```text
+{app}:{resource}:{action}
+```
+
+For example, `domainchief:dns:read` allows an integration to read Domain Chief DNS records. A shorter parent scope grants the permissions below it:
+
+- `domainchief` grants every Domain Chief permission.
+- `domainchief:domains` grants every domain permission, including special operations such as registration and transfer.
+- `domainchief:domains:read` grants read permissions below that branch, such as availability checks.
+
+Choose the most specific scope that still covers the workflow. Parent scopes are useful for an integration that genuinely manages an entire resource, but they also give future child operations access automatically.
+
+## Understand read and write inheritance
+
+A `write` scope also satisfies `read` on the same branch. For example, `domainchief:dns:write` grants `domainchief:dns:read` as well.
+
+App-level action scopes apply across resources:
+
+- `domainchief:read` grants the ordinary read scopes in Domain Chief.
+- `domainchief:write` grants the ordinary write scopes and their corresponding reads.
+
+<Callout type="info" title="Special actions stay separate">
+  An app-level `write` scope does not grant sensitive action scopes such as domain registration, transfer, or immediate deletion. Request the specific action scope, or a parent resource scope that intentionally includes it.
+</Callout>
+
+## Handle scopes in OAuth
+
+Send requested scopes as a space-separated `scope` value. Your OAuth client's configuration may limit which scopes it can request.
+
+The authorization screen may let a user decline optional app permissions. After the token exchange, read the returned `scope` value and store it with the token. Do not assume the token received every permission your application requested.
+
+If a required scope is missing, disable the affected feature or send the user through authorization again with a clear explanation. Do not keep retrying a request that returns `403 Forbidden` with the same token.
+
+The shared OAuth scopes have protocol-level effects:
+
+- `openid` asks Account Chief to perform OpenID Connect authentication and return an ID token.
+- `offline_access` asks for a refresh token so the integration can continue after the user leaves.
+
+These scopes do not grant access to a Chief Tools product by themselves.
+
+## Examples
+
+### Read and update DNS records
+
+An integration that lists and edits DNS records can request:
+
+```text
+domainchief:dns:write
+```
+
+It does not need a separate `domainchief:dns:read` scope because write implies read on the same branch.
+
+### Check availability and register domains
+
+An integration that checks availability and registers domains can request the two narrow permissions:
+
+```text
+domainchief:domains:read:availability domainchief:domains:register
+```
+
+Using `domainchief:domains` would also work, but it would grant unrelated domain operations.
+
+## Keep access narrow
+
+- Issue a separate token for each integration and environment.
+- Add a scope only when a request needs it.
+- Prefer a team access token when an integration always acts for one team.
+- Request `offline_access` only when the OAuth integration needs background access.
+- Review long-lived tokens and revoke ones that no longer have an owner or workload.

@@ -1,0 +1,56 @@
+---
+title: Scopes
+description: Request identity and team information from Account Chief with API tokens or OpenID Connect.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes | Account Chief</title>
+</Head>
+
+Account Chief scopes control which identity and team fields a token can read. They do not grant access to product resources such as Domain Chief domains or Tny links.
+
+## Choose identity scopes
+
+### Profile
+
+Request `profile` when the integration needs the user's name, profile picture, or timezone. OpenID Connect returns these as standard claims such as `name`, `picture`, and `zoneinfo`.
+
+### Email
+
+Request `email` when the integration needs the user's primary email address and verification state. Do not use an email address as the stable account identifier. OpenID Connect's `sub` claim identifies the user.
+
+### Teams
+
+Request `teams` when the user needs to choose which team the integration should use. A team-scoped token limits the returned team information to its selected team.
+
+Keep the selected team ID with the connection. Product APIs may also accept that ID in a request header. For example, Domain Chief documents its behavior under [Select a team](/developers/domainchief/api/introduction#select-a-team).
+
+## Add OpenID Connect behavior
+
+Add `openid` when you need an ID token or the OpenID Connect UserInfo endpoint. Add `offline_access` only when the application needs a refresh token for background access.
+
+These protocol scopes change how authorization works, but they do not expose identity fields on their own. Combine `openid` with `profile`, `email`, or `teams` for the claims your application needs.
+
+Use the [OpenID Connect discovery document](/developers/discovery#discover-the-provider) to find the current UserInfo and signing-key endpoints.
+
+## Personal access token defaults
+
+Personal access tokens always include:
+
+```text
+profile email teams
+```
+
+Account Chief adds these defaults automatically, so they do not appear as optional checkboxes when you create a personal token. Team access tokens and OAuth access tokens only receive the scopes allowed by their own configuration and grant.
+
+<Callout type="info">
+  The OAuth token response contains the scopes actually granted. Store that value with the connection instead of assuming every requested scope was approved.
+</Callout>
+
+## Continue from here
+
+- Read [How scopes work](/developers/scopes) for parent scopes, read and write inheritance, and least-privilege examples.
+- Follow [OAuth and OpenID Connect](/developers/discovery) to request a client and run the authorization code flow.
+- Use [Tokens](/developers/authentication) for personal and team token creation, storage, rotation, and revocation.

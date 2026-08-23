@@ -49,7 +49,9 @@ Domain Chief returns to the records page and sends the new zone to its hosted DN
 
 Use the [Chief Tools DNS checker](https://dns.chief.tools) to check the public records. Test the website and both incoming and outgoing email before removing the old DNS zone.
 
-## Upload an export
+## Choose an import source
+
+### Upload an export
 
 Choose **Upload a file** for a BIND zone, CSV, XLSX, or ODS export up to 1 MB.
 
@@ -60,7 +62,7 @@ Choose **Upload a file** for a BIND zone, CSV, XLSX, or ODS export up to 1 MB.
 
 CSV and spreadsheet imports need columns for the record name, type, and value or data. TTL and priority columns are optional. Domain Chief shows an error before changing the zone when it cannot read the file or a record is invalid.
 
-## Enter BIND zone contents
+### Enter BIND zone contents
 
 Choose **BIND zone contents** when you have the text of a BIND zone file rather than a saved file.
 
@@ -71,7 +73,7 @@ Choose **BIND zone contents** when you have the text of a BIND zone file rather 
 
 The text field accepts BIND syntax. CSV and spreadsheet data must be uploaded as files instead.
 
-## Import from TransIP
+### Import from TransIP
 
 The TransIP option retrieves records with a read-only access token and always replaces the full destination zone.
 
@@ -82,7 +84,7 @@ The TransIP option retrieves records with a read-only access token and always re
 
 Domain Chief uses the token once and does not save it. The token field is cleared after the records have been retrieved.
 
-## Copy another hosted zone
+### Copy another hosted zone
 
 Choose **Copy a hosted zone** to use another Domain Chief hosted zone in the same team as a template. This option appears only when another hosted zone is available.
 
@@ -93,7 +95,9 @@ Copying replaces the full destination zone. Domain Chief copies the record type,
 
 Web redirects and mail-forwarding settings are not copied. Configure those features separately after the records are in place.
 
-## Choose between replace and merge
+## Review and apply the import
+
+### Choose between replace and merge
 
 | Import behavior | Existing records | Conflicting records |
 | --- | --- | --- |
@@ -104,7 +108,7 @@ Use replace for a complete and current export. Use merge when the import contain
 
 TransIP imports and hosted-zone copies use replace. File uploads and BIND zone contents let you choose.
 
-## Review the import
+### Review the import
 
 The review separates the plan into:
 

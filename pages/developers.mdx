@@ -1,0 +1,92 @@
+---
+title: Introduction
+description: Find authentication guidance, integration guides, and API references for Chief Tools.
+---
+
+import {Head, Link} from "zudoku/components";
+
+<Head>
+  <title>Introduction | Chief Tools developers</title>
+</Head>
+
+Build integrations with Chief Tools APIs and supported protocols. Start with the shared authentication documentation, then choose the product your application needs to work with.
+
+If you want help using a Chief Tools product in the browser, go to the [product documentation](/introduction) instead.
+
+## Start here
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/authentication"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Authentication and tokens</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Choose between personal access tokens, team access tokens, and OAuth access tokens.
+    </p>
+  </Link>
+  <Link
+    to="/developers/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">How scopes work</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Limit a token to the Chief Tools products and operations an integration needs.
+    </p>
+  </Link>
+</div>
+
+## Choose a product
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/accountchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">OAuth 2.0 and OpenID Connect</div>
+    <div className="mt-1 font-semibold">Account Chief</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Authenticate users and work with their profile, email address, and teams.
+    </p>
+  </Link>
+  <Link
+    to="/developers/domainchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">REST API</div>
+    <div className="mt-1 font-semibold">Domain Chief</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Manage domains, contacts, DNS records, redirects, registrations, and transfers.
+    </p>
+  </Link>
+  <Link
+    to="/developers/certchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">GraphQL API</div>
+    <div className="mt-1 font-semibold">Cert Chief</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Query domains, monitors, certificate checks, and TLS server tests.
+    </p>
+  </Link>
+  <Link
+    to="/developers/deploychief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">GraphQL API</div>
+    <div className="mt-1 font-semibold">Deploy Chief</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Work with applications, servers, environments, and deployments.
+    </p>
+  </Link>
+  <Link
+    to="/developers/tny"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">GraphQL API</div>
+    <div className="mt-1 font-semibold">Tny</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Manage shortened links, custom domains, and URL utilities.
+    </p>
+  </Link>
+</div>

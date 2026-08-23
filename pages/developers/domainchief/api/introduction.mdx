@@ -1,0 +1,125 @@
+---
+title: Introduction
+description: Authenticate, select a team, make your first request, and handle Domain Chief API responses.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>API introduction | Domain Chief</title>
+</Head>
+
+Use the Domain Chief REST API to check availability and manage domains, contacts, DNS records, redirects, and related data from your application.
+
+<Callout type="caution" title="The API has no test mode">
+  Requests for public domains can create real registrations, transfers, DNS changes, and charges. Use [`.example` domains](/domainchief/example-tld) while developing. They run through Domain Chief's application workflows without creating a public registration or registration fee.
+</Callout>
+
+## Make your first request
+
+### Choose authentication
+
+Every request needs a bearer access token. Choose the token type based on who the integration acts for:
+
+- Use **OAuth 2.0 and OpenID Connect** for an application that connects Domain Chief accounts belonging to different users. [Contact Domain Chief](https://domain.chief.app/contact) for client credentials.
+- Use a **team access token** for a service that always acts for one team. The token selects that team automatically.
+- Use a **personal access token** for a script or private tool that acts as your user account.
+
+The [access token guide](/developers/authentication#access-tokens) explains how to create and protect personal and team tokens. Give each token only the [Domain Chief scopes](/developers/domainchief/api/scopes) its integration needs.
+
+### Select a team
+
+Most Domain Chief resources belong to a team. A team access token already identifies its team.
+
+With a personal access token or another token that is not scoped to one team, `X-Chief-Team` is optional. If neither the request nor the token selects a team, Domain Chief uses the user's default team.
+
+For a long-running integration, pin the intended team on every request or switch to a team access token. This prevents the integration from changing teams if the user's default changes:
+
+```http
+X-Chief-Team: $TEAM_ID
+```
+
+Keep the same team ID across every request in a workflow unless the user deliberately switches teams.
+
+### Send a safe request
+
+The production API base URL is:
+
+```text
+https://domain.chief.app/api/v1
+```
+
+Start by checking a synthetic `.example` domain. This request needs the `domainchief:domains:read:availability` scope and does not register the name:
+
+```http
+GET /api/v1/domains/availability/first-api-check.example HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+This example pins the team explicitly. Omit `X-Chief-Team` when you use a team access token. Send `Content-Type: application/json` as well when a request has a JSON body.
+
+A successful response contains the result in `data`:
+
+```json
+{
+  "data": {
+    "tld": "example",
+    "name": "first-api-check",
+    "domain": "first-api-check.example",
+    "is_premium": false,
+    "availability": "free",
+    "price": null,
+    "renewal_price": null,
+    "is_converted_currency": null,
+    "renewal_date": null
+  }
+}
+```
+
+The [availability operation](/api/domainchief/domain-registration#check-domain-availability) documents optional expansions and every response field. You can also use the [API playground](/api/domainchief) to inspect requests and send them while signed in.
+
+## Handle responses
+
+### Read resources and collections
+
+A response for one resource normally wraps it in a `data` object. Collection endpoints return a `data` array and add:
+
+- `links` with URLs for the first, last, previous, and next pages.
+- `meta` with the current page, last page, page size, and total results.
+
+Follow the returned pagination links instead of constructing the next URL yourself. Some endpoints support an `expand[]` query parameter for related data. Request only the expansions your application uses.
+
+### Respond to status codes
+
+The operation reference lists the responses supported by each endpoint. These are the cases an integration most often needs to distinguish:
+
+- `200 OK` returns a successful read or update.
+- `201 Created` returns a newly created resource.
+- `202 Accepted` means Domain Chief accepted work that may still be processing.
+- `204 No Content` means the request completed without a response body.
+- `401 Unauthorized` means the token is missing, invalid, expired, or revoked.
+- `403 Forbidden` means the token or authenticated actor cannot perform that operation.
+- `404 Not Found` means the requested resource does not exist in the selected team context.
+- `409 Conflict` means the requested change conflicts with the domain's current state. Fetch the resource again before deciding what to do next.
+- `422 Unprocessable Content` returns a `message` and field-specific errors in `errors`.
+- `429 Too Many Requests` means the caller must wait. Use the returned `Retry-After` value when the endpoint provides one.
+
+Do not treat every non-`2xx` response as safe to retry. Read the endpoint documentation and preserve its returned message and validation errors for troubleshooting.
+
+### Follow asynchronous work
+
+Domain registration, transfers, and some updates continue after a `202 Accepted` response. Use the domain resource returned by the request when one is present, including its current notices. Poll the team event feed for later changes, then retrieve the domain when it reports `domain.changed`.
+
+The [event synchronization guide](/developers/domainchief/guides/events) explains the cursor workflow and targeted resource refreshes. The [domain notices guide](/developers/domainchief/guides/notices) covers pending work, available resolutions, customer handoffs, and failures without hard-coding every notice value.
+
+## Continue from here
+
+- Use the [API reference](/api/domainchief) for current operations, request fields, response schemas, and required scopes.
+- Read [API scopes](/developers/domainchief/api/scopes) before issuing a token for an integration.
+- Use [metadata](/developers/domainchief/api/metadata) to attach identifiers and links from your own application to supported resources.
+- Use the [team event feed](/developers/domainchief/guides/events) to keep local domains and contacts current.
+- Follow [domain notices](/developers/domainchief/guides/notices) when an operation can continue asynchronously or require customer action.
+- Test domain workflows with [`.example` domains](/domainchief/example-tld) before working with a public domain.

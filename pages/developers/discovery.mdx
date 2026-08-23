@@ -1,0 +1,110 @@
+---
+title: OAuth and OpenID Connect
+description: Connect Chief Tools accounts with OAuth 2.0 or OpenID Connect.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>OAuth and OpenID Connect | Chief Tools</title>
+</Head>
+
+Use Account Chief as the authorization server when your application connects Chief Tools accounts belonging to other users. For a private script or a service owned by one team, a [personal or team access token](/developers/authentication#choose-a-token-type) is simpler.
+
+## Request an OAuth client
+
+Contact <ExternalLink href="https://chief.app/contact">Chief Tools</ExternalLink> to request an OAuth client. Include:
+
+- The application's name and a short description.
+- The exact HTTPS redirect URIs for each environment.
+- Whether the application can keep a client secret.
+- The authorization grants and Chief Tools products it needs.
+- The narrowest [scopes](/developers/scopes) that cover its workflows.
+
+Keep the client secret on a server. Browser, mobile, desktop, and command-line software cannot protect a distributed secret, so tell us when you need a public client.
+
+## Discover the provider
+
+Configure your OAuth or OpenID Connect library with the matching discovery URL:
+
+- OAuth 2.0 authorization server metadata: <ExternalLink href="https://account.chief.app/.well-known/oauth-authorization-server">`https://account.chief.app/.well-known/oauth-authorization-server`</ExternalLink>
+- OpenID Connect discovery: <ExternalLink href="https://account.chief.app/.well-known/openid-configuration">`https://account.chief.app/.well-known/openid-configuration`</ExternalLink>
+
+The documents publish the current endpoints, supported grants, client authentication methods, signing algorithms, claims, and scopes. Let your OAuth library read them instead of hard-coding that metadata.
+
+<Callout type="info" title="Choose the matching discovery document">
+  The two documents do not have identical UserInfo metadata. The OpenID Connect document points to the standards-compliant UserInfo endpoint. The OAuth metadata points to the Chief Tools account-information endpoint. Use OpenID Connect discovery when you request `openid` or validate ID tokens.
+</Callout>
+
+## Run the authorization code flow
+
+### Send the user to Account Chief
+
+Create a fresh `state` value and PKCE verifier for each attempt. Store them with the user's browser session, then redirect the browser to the discovered `authorization_endpoint`:
+
+```http
+GET /login/oauth/authorize?client_id=$CLIENT_ID&redirect_uri=https%3A%2F%2Fdomains.example%2Foauth%2Fcallback&response_type=code&scope=openid%20profile%20email%20offline_access%20domainchief%3Adomains%3Aread&state=$STATE&code_challenge=$CODE_CHALLENGE&code_challenge_method=S256 HTTP/1.1
+Host: account.chief.app
+```
+
+Use an exact redirect URI configured for the client. Keep `state` unpredictable and verify it on the callback before exchanging the code. When you use OpenID Connect, send a `nonce` as well and verify it in the ID token.
+
+The authorization screen may let the user decline optional product permissions. Your application must still handle a successful callback that grants fewer app scopes than requested.
+
+### Exchange the code
+
+Send the authorization code to the discovered `token_endpoint`. This confidential-client example uses HTTP Basic authentication:
+
+```http
+POST /api/oauth/token HTTP/1.1
+Host: account.chief.app
+Authorization: Basic $BASE64_CLIENT_CREDENTIALS
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&code=$CODE&redirect_uri=https%3A%2F%2Fdomains.example%2Foauth%2Fcallback&code_verifier=$CODE_VERIFIER
+```
+
+A public client sends its `client_id` in the form body and does not send a secret. The response includes `access_token`, `token_type`, `expires_in`, and the scopes actually granted. It also includes an ID token when the grant has `openid`, and a refresh token when it has `offline_access`.
+
+Validate ID tokens against the discovered issuer, audience, signing algorithm, and `jwks_uri`. Use `expires_in` to schedule renewal. Do not decode an ID token without verifying its signature and claims.
+
+### Call a product API
+
+Send the OAuth access token as a bearer token:
+
+```http
+Authorization: Bearer $ACCESS_TOKEN
+```
+
+Follow the product's API introduction for base URLs and team selection. Store the granted `scope` value with the connection so your application can hide or disable operations the user did not approve.
+
+### Refresh access
+
+When the access token expires, exchange the refresh token at the discovered token endpoint:
+
+```http
+POST /api/oauth/token HTTP/1.1
+Host: account.chief.app
+Authorization: Basic $BASE64_CLIENT_CREDENTIALS
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token&refresh_token=$REFRESH_TOKEN
+```
+
+Account Chief rotates refresh tokens. Replace the stored refresh token with the new value from every successful response. Serialize refreshes for one connection so two workers do not keep using an older token.
+
+If refresh returns `invalid_grant`, stop retrying and ask the user to authorize again. The user may have revoked access, left the selected team, or presented an expired or already replaced refresh token.
+
+## Use the device flow
+
+Account Chief supports the OAuth 2.0 Device Authorization Grant for command-line and input-constrained clients that cannot receive a browser callback.
+
+Start the flow at the `device_authorization_endpoint`. Show the returned verification URL and user code, then poll the token endpoint at the returned interval. Your OAuth client must be configured for the device grant before it can use this flow.
+
+## Handle scopes and teams
+
+Request only the [scopes](/developers/scopes) your integration needs. Treat the token response's `scope` value as authoritative because a user can grant a subset of optional app permissions.
+
+An OAuth grant may also select a team. Keep that team context attached to the connection and follow the product's rules for team-scoped and non-team-scoped tokens. For Domain Chief, see [Select a team](/developers/domainchief/api/introduction#select-a-team).

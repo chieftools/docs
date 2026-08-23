@@ -1,0 +1,77 @@
+---
+title: Tokens
+description: Choose, create, use, and protect a Chief Tools API token.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Tokens | Chief Tools</title>
+</Head>
+
+Authenticated Chief Tools API requests use bearer tokens. Use a team access token for a service owned by one team, a personal access token for your own scripts, or OAuth when your application connects other users' accounts.
+
+## Choose a token type
+
+### Team access tokens
+
+A team access token always acts for one team. It is the best fit for a server, scheduled job, or shared integration that should keep working for that team without relying on one person's default team.
+
+Create one from the team's settings in <ExternalLink href="https://account.chief.app/teams">Account Chief</ExternalLink>. Select the team, then find **Team API access tokens**.
+
+### Personal access tokens
+
+A personal access token acts as your user account. Use one for a private script, local development, or a tool that only you operate.
+
+Create one on the <ExternalLink href="https://account.chief.app/api/tokens">API tokens</ExternalLink> page in Account Chief. A personal token is not fixed to one team. Product APIs that use team-owned resources may use your default team or let you select a team on each request. Follow that product's API introduction for its team-selection rules.
+
+### OAuth access tokens
+
+Use OAuth when your application connects accounts belonging to other Chief Tools users. The user signs in to Account Chief and chooses which product permissions to grant. Your application receives a short-lived access token and, when it requests `offline_access`, a refresh token.
+
+The [OAuth and OpenID Connect guide](/developers/discovery) covers client setup, authorization, token exchange, and refresh-token rotation.
+
+## Create a personal or team token
+
+1. Give the token a name that identifies the integration and environment.
+2. Set an expiration date when the integration has a known end date. Leave it empty only when the token needs to remain valid until you revoke it.
+3. Select the narrowest [scopes](/developers/scopes) that cover the integration's requests.
+4. Create the token and copy its value when Account Chief shows it. You cannot retrieve the value later.
+5. Store it in a secret manager or protected environment variable. Do not commit it to source control.
+
+Personal access tokens always include the Account Chief `profile`, `email`, and `teams` scopes. You cannot remove those defaults. Product scopes remain under your control.
+
+## Send the token
+
+Pass the token in the `Authorization` header on every API request:
+
+```http
+Authorization: Bearer $TOKEN
+```
+
+Do not place a token in a URL or query parameter. URLs commonly appear in browser history, proxy logs, and monitoring tools.
+
+A missing, expired, revoked, or invalid token normally produces `401 Unauthorized`. A valid token without the required permission normally produces `403 Forbidden`. Check the operation's API reference before adding broader scopes.
+
+## Rotate and revoke tokens
+
+Create a replacement before revoking a token that is still in use. Update the integration, verify requests with the new value, then revoke the old token in Account Chief.
+
+Revocation takes effect immediately. Expiration also stops a token without requiring a separate cleanup step.
+
+<Callout type="caution" title="If a token is exposed">
+  Revoke it immediately, issue a replacement, and check the affected account or team for unexpected activity. Removing the token from the latest commit is not enough because it may still exist in repository history, logs, or caches.
+</Callout>
+
+## Recognize Chief Tools tokens
+
+Token prefixes help secret scanners and support tools identify the credential type:
+
+- `ctp_` identifies a personal access token.
+- `ctt_` identifies a team access token.
+- `cto_` identifies an OAuth access token.
+- `ctr_` identifies an OAuth refresh token.
+
+Treat the whole value as opaque. Do not infer permissions from its prefix or build authentication logic around its current length.
+
+Chief Tools participates in <ExternalLink href="https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning">GitHub secret scanning</ExternalLink>. When GitHub reports a valid Chief Tools token from a public repository, Chief Tools revokes it. <ExternalLink href="https://docs.gitguardian.com/secrets-detection/detectors/specifics/chief_app_key?ref=chieftools">GitGuardian can also detect Chief Tools token patterns</ExternalLink>, but its alert does not replace revocation and investigation.

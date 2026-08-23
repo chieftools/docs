@@ -1,12 +1,12 @@
 ---
-title: Testing with .example
+title: Test with .example domains
 description: Use the .example TLD to test Domain Chief's API and UI without registering a public domain.
 ---
 
 import {Head} from "zudoku/components";
 
 <Head>
-  <title>Testing with .example | Domain Chief</title>
+  <title>Test with .example domains | Domain Chief</title>
 </Head>
 
 Use `.example` domains to test registration, transfers, DNS, contacts, nameservers, and lock settings without registering a public domain. They exist only inside Domain Chief and have no registration or renewal cost.
@@ -21,11 +21,11 @@ api-client.example
 training-site.example
 ```
 
-Domain Chief runs its normal application workflows for these domains. The Mock Registry supplies the provider response, so no request reaches a real registry and the domain will not resolve on the public internet.
+Domain Chief runs its normal application workflows for these domains. Its test registry supplies simulated responses, so no request reaches a public registry and the domain will not resolve on the public internet.
 
 ## Scenario inputs
 
-The Mock Registry recognizes these reserved inputs:
+The `.example` test registry recognizes these reserved inputs:
 
 | Input | Where to use it | Result |
 | --- | --- | --- |
@@ -54,7 +54,7 @@ transfer-sandbox.example
 portfolio-transfer.example
 ```
 
-The availability check reports the name as active. Submit it through the normal registration endpoint with an authorization code to create an incoming transfer.
+The availability check reports the name as active. Start the transfer through the normal Domain Chief form and provide an authorization code.
 
 ### Generic failures
 
@@ -67,20 +67,20 @@ transfer-fail.example
 
 Use `registration-fail.example` for a failed registration. Because `transfer-fail.example` also contains `transfer`, it starts as a transfer and then fails.
 
-## Test an incorrect authorization code
+### Test an incorrect authorization code
 
 Use the reserved code on a synthetic incoming transfer to test the full failure and recovery flow:
 
 1. Start a transfer for `transfer-recovery.example`.
 2. Submit `invalid-auth-code` as the authorization code.
-3. Wait for the transfer to fail. The failure cause is `authorization_code_incorrect`.
-4. Retry from the domain page or call `POST /v1/domains/{domainNameOrId}/transfer/retry` with another authorization code.
+3. Wait for the domain page to report that the authorization code is incorrect.
+4. Retry from the domain page with another authorization code.
 
-The retry succeeds and the Mock Registry clears the submitted code from the domain.
+The retry then succeeds and Domain Chief clears the submitted code from the domain.
 
 The incorrect-code rule runs before the generic `fail` rule. If a transfer name contains `fail` and uses `invalid-auth-code`, the first failure reports the incorrect code. A retry with a different code then reaches the generic failure rule.
 
-## Transfer an existing domain between teams
+### Transfer an existing domain between teams
 
 An existing `.example` domain uses its generated authorization code instead of the reserved test value. This path checks the code before it creates the incoming transfer.
 
@@ -91,9 +91,9 @@ An existing `.example` domain uses its generated authorization code instead of t
 
 The domain moves to the destination team. A different code returns an incorrect authorization-code response without moving the domain.
 
-## Renewal and expiration
+### Renewal and expiration
 
-New `.example` registrations receive a renewal date one month in the future. At the next provider sync after that date, the Mock Registry moves the renewal date forward one month when auto-renew is enabled. If auto-renew is disabled, it marks the domain as expired instead.
+New `.example` registrations receive a renewal date one month in the future. The next update from the test registry after that date moves the renewal date forward one month when auto-renew is enabled. If auto-renew is disabled, it marks the domain as expired instead.
 
 ## Limitations
 

@@ -9,6 +9,38 @@ export type OgImageBrand = {
 
 export const ogImageBrands: OgImageBrand[] = [
   {
+    prefix: '/developers/domainchief',
+    styleId: 'domainchief',
+    productName: 'Domain Chief',
+    label: 'Documentation',
+    fallbackTitle: 'Domain Chief developer documentation',
+    fallbackDescription: 'Integrate applications and scripts with the Domain Chief API.',
+  },
+  {
+    prefix: '/developers/certchief',
+    styleId: 'certchief',
+    productName: 'Cert Chief',
+    label: 'Documentation',
+    fallbackTitle: 'Cert Chief developer documentation',
+    fallbackDescription: 'Query Cert Chief domains, monitors, and TLS server tests.',
+  },
+  {
+    prefix: '/developers/deploychief',
+    styleId: 'deploychief',
+    productName: 'Deploy Chief',
+    label: 'Documentation',
+    fallbackTitle: 'Deploy Chief developer documentation',
+    fallbackDescription: 'Manage applications, servers, environments, and deployments.',
+  },
+  {
+    prefix: '/developers/tny',
+    styleId: 'tny',
+    productName: 'Tny',
+    label: 'Documentation',
+    fallbackTitle: 'Tny developer documentation',
+    fallbackDescription: 'Manage Tny links, custom domains, and URL utilities.',
+  },
+  {
     prefix: '/domainchief/api',
     styleId: 'domainchief',
     productName: 'Domain Chief',
