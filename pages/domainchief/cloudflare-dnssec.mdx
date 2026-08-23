@@ -3,7 +3,7 @@ title: Connect Cloudflare for DNSSEC
 description: Connect a Cloudflare account and use it to retrieve DNSSEC keys for domains managed in Domain Chief.
 ---
 
-import {Callout, Head} from "zudoku/components";
+import {BrowserWindow, Callout, Head} from "zudoku/components";
 
 <Head>
   <title>Connect Cloudflare for DNSSEC | Domain Chief</title>
@@ -45,6 +45,28 @@ The token needs these permissions:
 - **DNS: Edit**
 - **Zone: Read**
 - **Account Settings: Read**
+
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/settings"
+>
+  <img
+    className="block w-full rounded-t-none dark:hidden"
+    src="/domainchief/cloudflare-dnssec/cloudflare-connect-light.png"
+    alt="Cloudflare connection dialog in light mode showing the required token permissions and an empty API token field"
+    width="900"
+    height="900"
+    loading="lazy"
+  />
+  <img
+    className="hidden w-full rounded-t-none dark:block"
+    src="/domainchief/cloudflare-dnssec/cloudflare-connect-dark.png"
+    alt="Cloudflare connection dialog in dark mode showing the required token permissions and an empty API token field"
+    width="900"
+    height="900"
+    loading="lazy"
+  />
+</BrowserWindow>
 
 Allow access to every zone that Domain Chief should manage. The token can be restricted to selected zones, but domains outside that selection cannot use the connection.
 

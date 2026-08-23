@@ -3,7 +3,7 @@ title: Understand billing and pending payments
 description: Pay waiting domain operations, preview an upcoming invoice, and estimate portfolio renewal costs.
 ---
 
-import {Callout, Head} from "zudoku/components";
+import {BrowserWindow, Callout, Head} from "zudoku/components";
 
 <Head>
   <title>Understand billing and pending payments | Domain Chief</title>
@@ -62,6 +62,30 @@ This page combines:
 Future items are marked as estimates because the charge has not happened yet. A renewal may disappear if you disable auto-renew, a scheduled transfer may be cancelled, or a price may change before the operation runs.
 
 The page shows the expected invoice date and a total before VAT or other sales tax. When nothing is billable in the current month, Domain Chief may show the next future invoice as a projection instead.
+
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/settings/upcoming-invoice"
+>
+  <img
+    className="block w-full rounded-t-none dark:hidden"
+    src="/domainchief/billing-payments/upcoming-invoice-light.png"
+    alt="Upcoming invoice projection in light mode with two estimated domain renewals"
+    width="900"
+    height="850"
+    loading="lazy"
+  />
+  <img
+    className="hidden w-full rounded-t-none dark:block"
+    src="/domainchief/billing-payments/upcoming-invoice-dark.png"
+    alt="Upcoming invoice projection in dark mode with two estimated domain renewals"
+    width="900"
+    height="850"
+    loading="lazy"
+  />
+</BrowserWindow>
+
+The `.example` domains and zero-value prices above are demonstration data. Your preview uses the domains, prices, and expected invoice date for your team.
 
 ## Estimate annual portfolio costs
 

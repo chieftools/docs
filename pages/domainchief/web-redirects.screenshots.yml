@@ -1,0 +1,11 @@
+screenshots:
+  - id: create-web-redirect
+    source_images:
+      light: public/domainchief/web-redirects/web-redirect-light.png
+      dark: public/domainchief/web-redirects/web-redirect-dark.png
+    local_url: https://domain.chief.test/team/lqyorkeb/domains/route-showcase.example/redirects
+    public_url: https://domain.chief.app/team/current/domains/route-showcase.example/redirects
+    viewport: 900x1200
+    state: Create redirect dialog open for www; target is https://route-showcase.example/welcome; status 301; append path and merge query parameters enabled; redirect not saved
+    interactions: Open the empty redirect area and complete the form without submitting it
+    crop: x=0, y=0, width=900, height=1050

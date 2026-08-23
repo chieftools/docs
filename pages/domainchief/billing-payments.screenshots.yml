@@ -1,0 +1,11 @@
+screenshots:
+  - id: upcoming-invoice-projection
+    source_images:
+      light: public/domainchief/billing-payments/upcoming-invoice-light.png
+      dark: public/domainchief/billing-payments/upcoming-invoice-dark.png
+    local_url: https://domain.chief.test/team/lqyorkeb/settings/upcoming-invoice
+    public_url: https://domain.chief.app/team/current/settings/upcoming-invoice
+    viewport: 900x1200
+    state: Future invoice projection with two zero-value .example renewals; account menu closed
+    interactions: None
+    crop: x=0, y=0, width=900, height=850

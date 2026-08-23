@@ -1,0 +1,11 @@
+screenshots:
+  - id: domain-portfolio-bulk-selection
+    source_images:
+      light: public/domainchief/domain-portfolio/domain-portfolio-light.png
+      dark: public/domainchief/domain-portfolio/domain-portfolio-dark.png
+    local_url: https://domain.chief.test/team/lqyorkeb/domains
+    public_url: https://domain.chief.app/team/current/domains
+    viewport: 900x1200
+    state: Six synthetic domains visible; domainchief-lqyorkeb.example and northstar-studio.example selected; bulk actions menu closed; account menu closed
+    interactions: Select the first and second eligible active domains
+    crop: x=0, y=0, width=900, height=800

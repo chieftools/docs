@@ -3,7 +3,7 @@ title: Import and migrate DNS records
 description: Import an existing DNS zone, review every change, and move records safely into Domain Chief.
 ---
 
-import {Callout, Head} from "zudoku/components";
+import {BrowserWindow, Callout, Head} from "zudoku/components";
 
 <Head>
   <title>Import and migrate DNS records | Domain Chief</title>
@@ -111,6 +111,28 @@ The review separates the plan into:
 - **Added** records that will be created.
 - **Removed** records that will no longer exist after the import.
 - **Unchanged** records that already match.
+
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/domains/migration-lab.example/records/import"
+>
+  <img
+    className="block w-full rounded-t-none dark:hidden"
+    src="/domainchief/dns-import-migration/import-preview-light.png"
+    alt="DNS import preview in light mode showing five records to add and none to remove"
+    width="900"
+    height="1155"
+    loading="lazy"
+  />
+  <img
+    className="hidden w-full rounded-t-none dark:block"
+    src="/domainchief/dns-import-migration/import-preview-dark.png"
+    alt="DNS import preview in dark mode showing five records to add and none to remove"
+    width="900"
+    height="1155"
+    loading="lazy"
+  />
+</BrowserWindow>
 
 Pay closest attention to removed website, `MX`, SPF, DKIM, DMARC, verification, redirect, and mail-forwarding records. Expand **Unchanged** when you need to compare the complete zone.
 

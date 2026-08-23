@@ -1,0 +1,11 @@
+screenshots:
+  - id: dns-import-preview
+    source_images:
+      light: public/domainchief/dns-import-migration/import-preview-light.png
+      dark: public/domainchief/dns-import-migration/import-preview-dark.png
+    local_url: https://domain.chief.test/team/lqyorkeb/domains/migration-lab.example/records/import
+    public_url: https://domain.chief.app/team/current/domains/migration-lab.example/records/import
+    viewport: 900x1200
+    state: BIND zone contents selected; replace full zone; preview shows five added records, no removals, and no unchanged records; account menu closed
+    interactions: Enter the synthetic migration-lab.example zone, select Review import, and scroll to the maximum page position
+    crop: x=0, y=0, width=900, height=1155

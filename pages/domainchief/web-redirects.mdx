@@ -3,7 +3,7 @@ title: Create web redirects
 description: Send a domain or subdomain to another URL with Domain Chief hosted DNS.
 ---
 
-import {Callout, Head} from "zudoku/components";
+import {BrowserWindow, Callout, Head} from "zudoku/components";
 
 <Head>
   <title>Create web redirects | Domain Chief</title>
@@ -35,6 +35,28 @@ Web redirects require Domain Chief nameservers. If the domain uses custom namese
 8. Select **Save redirect**.
 
 Domain Chief creates the DNS records needed to send the selected hostname to its redirect service. DNS propagation can delay the first successful request.
+
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/domains/route-showcase.example/redirects"
+>
+  <img
+    className="block w-full rounded-t-none dark:hidden"
+    src="/domainchief/web-redirects/web-redirect-light.png"
+    alt="Create redirect dialog in light mode with a permanent redirect and path and query options enabled"
+    width="900"
+    height="1050"
+    loading="lazy"
+  />
+  <img
+    className="hidden w-full rounded-t-none dark:block"
+    src="/domainchief/web-redirects/web-redirect-dark.png"
+    alt="Create redirect dialog in dark mode with a permanent redirect and path and query options enabled"
+    width="900"
+    height="1050"
+    loading="lazy"
+  />
+</BrowserWindow>
 
 ### What happens next
 

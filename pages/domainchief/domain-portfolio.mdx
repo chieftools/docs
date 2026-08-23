@@ -3,7 +3,7 @@ title: Organize and manage a domain portfolio
 description: Find, group, export, and safely update multiple domains from the Domain Chief domain list.
 ---
 
-import {Callout, Head} from "zudoku/components";
+import {BrowserWindow, Callout, Head} from "zudoku/components";
 
 <Head>
   <title>Organize and manage a domain portfolio | Domain Chief</title>
@@ -65,6 +65,28 @@ Select a column heading to sort when sorting is available. The renewal column so
 2. Select the checkbox beside each domain. The header checkbox selects eligible domains on the current page only.
 3. Open the bulk actions menu.
 4. Choose the action and review its confirmation or settings.
+
+<BrowserWindow
+  className="my-6"
+  url="https://domain.chief.app/team/current/domains"
+>
+  <img
+    className="block w-full rounded-t-none dark:hidden"
+    src="/domainchief/domain-portfolio/domain-portfolio-light.png"
+    alt="Domain portfolio in light mode with two active domains selected for a bulk action"
+    width="900"
+    height="800"
+    loading="lazy"
+  />
+  <img
+    className="hidden w-full rounded-t-none dark:block"
+    src="/domainchief/domain-portfolio/domain-portfolio-dark.png"
+    alt="Domain portfolio in dark mode with two active domains selected for a bulk action"
+    width="900"
+    height="800"
+    loading="lazy"
+  />
+</BrowserWindow>
 
 Only active domains can be selected. Available actions depend on your permissions and the selected domains:
 

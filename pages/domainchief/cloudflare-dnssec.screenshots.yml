@@ -1,0 +1,11 @@
+screenshots:
+  - id: cloudflare-connect-permissions
+    source_images:
+      light: public/domainchief/cloudflare-dnssec/cloudflare-connect-light.png
+      dark: public/domainchief/cloudflare-dnssec/cloudflare-connect-dark.png
+    local_url: https://domain.chief.test/team/lqyorkeb/settings
+    public_url: https://domain.chief.app/team/current/settings
+    viewport: 900x1200
+    state: Connect Cloudflare account dialog open; API token field empty; account menu closed
+    interactions: Scroll to Cloudflare Connections and select Connect account
+    crop: x=0, y=665, width=900, height=900
