@@ -1,0 +1,147 @@
+---
+title: Resolve action-required notices
+description: Respond to payment, verification, registration, transfer, restoration, and failed-update notices on a domain.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Resolve action-required notices | Domain Chief</title>
+</Head>
+
+Use this guide to identify a domain notice, take the action it offers, and confirm that the operation continues.
+
+## Choose the notice you see
+
+- [Payment Required](#complete-or-cancel-a-pending-payment)
+- [Contact Verification Required](#complete-contact-verification)
+- [Registration Failed](#recover-a-failed-registration)
+- [Transfer Failed](#recover-or-cancel-a-failed-transfer)
+- [Action Required with a registrar tag](#complete-a-registrar-tag-transfer)
+- [Transfer Pending](#approve-or-deny-an-outgoing-transfer)
+- [Transfer Scheduled](#change-or-cancel-a-scheduled-transfer)
+- [Domain Updates Need Attention or an update failed](#resolve-a-failed-domain-update)
+- [Domain Can Be Restored](#ask-to-restore-a-domain)
+- [A notice that does not clear](#troubleshooting)
+
+## Find the domain that needs attention
+
+Open **Domains** and select the affected domain. A notice near the top of the domain page explains the current condition and shows only the actions available to you.
+
+The dashboard also marks failed requested domains. Select **Review domain** or **Review domains** in the red callout to open the filtered domain list, then select a domain to see its notice.
+
+Blue **Processing** and update-pending notices normally describe work that is still underway. Leave the page open or return later unless the message asks you to act. Red and amber notices need closer attention.
+
+<Callout type="caution" title="Read the notice before repeating an action">
+  A registry may still be processing the first request. Submit a retry only when the domain page offers it, and do not start a second registration, transfer, or payment for the same domain.
+</Callout>
+
+## Resolve registration and payment notices
+
+### Complete or cancel a pending payment
+
+When you see **Payment Required**, select **Review and pay**. Domain Chief opens **Settings → Pending payments**, where you can review all waiting operations and pay them together.
+
+Select **Cancel operation** instead when you no longer want this registration or transfer. Cancelling removes the pending domain from your account. If checkout has already started, cancel the checkout before trying to remove one operation.
+
+The domain operation starts after Domain Chief confirms the payment. Follow [Understand billing and pending payments](/domainchief/billing-payments) for the complete checkout flow.
+
+### Complete contact verification
+
+When you see **Contact Verification Required**:
+
+1. Read which registration, transfer, active domain, or contact change is waiting.
+2. Ask the registrant contact to open the verification email that Domain Chief already sent and complete its instructions. If the notice shows **Verify Contact** instead, select it to open the registry's verification page.
+3. Return to the domain page and confirm that the notice has cleared.
+
+The waiting registration, transfer, or contact update continues automatically after verification. For an active domain, complete verification promptly because the registry may temporarily replace its nameservers and stop the domain from resolving.
+
+If the email does not arrive, check the registrant contact address and its spam folder, then select **Resend Email**. If Domain Chief says to wait, allow a few minutes before trying again. See [Manage registrant contacts and WHOIS privacy](/domainchief/registrant-contacts-privacy) when the address itself is wrong.
+
+### Recover a failed registration
+
+The **Registration Failed** notice explains the known cause and shows the available correction:
+
+- Select **Update registrant** when the contact is invalid or does not meet the TLD's requirements.
+- Select **Update nameservers** when the registry rejected the DNS configuration.
+- Select **Retry registration** after correcting the reported issue.
+- Select **Contact support** when Domain Chief cannot offer a safe self-service retry.
+
+Review the latest item under **Activity** when the notice refers to registry details. After a retry, the notice changes to **Processing** while Domain Chief submits the registration again. The domain is registered only when its status becomes active.
+
+## Resolve transfer notices
+
+### Recover or cancel a failed transfer
+
+The **Transfer Failed** notice identifies the known problem and presents the actions supported by that TLD.
+
+For an incorrect authorization code, request a current code from the existing registrar, enter it in **Authorization code**, and select **Retry**. If the domain is transfer-locked, unlock it at the current registrar first. Update nameservers or the **Intended Use** field when the notice asks for those corrections.
+
+Select **Cancel transfer** if you do not want to retry. This removes the failed transfer placeholder from Domain Chief; it does not cancel or delete the registration at the current registrar.
+
+If no retry is available, use **Contact support**. See [Transfer a domain](/domainchief/transfers) for transfer eligibility, DNS preparation, and TLD-specific transfer methods.
+
+### Complete a registrar-tag transfer
+
+An **Action Required** notice with a registrar tag belongs to an incoming push transfer, such as the current `.uk` process.
+
+1. Copy the exact tag shown in the notice.
+2. Ask the current registrar to change the domain's registrar or IPS tag to that value.
+3. Return to Domain Chief and wait for the domain page to update.
+
+Do not reuse a tag from an older transfer or guide. Domain Chief continues the transfer automatically after the current registrar makes the change.
+
+### Approve or deny an outgoing transfer
+
+**Transfer Pending** means another registrar has requested to move the domain away from Domain Chief.
+
+- Select **Approve** when you recognize the request and want it to complete sooner.
+- Select **Deny** when you did not request it or no longer want it to proceed.
+
+The notice shows the automatic completion date when one is available. If you take no action, the transfer can complete automatically. Secure the registrant and team accounts immediately if the request is unexpected.
+
+### Change or cancel a scheduled transfer
+
+The **Transfer Scheduled** notice shows when an incoming transfer will start.
+
+Select **Edit** to change the **Execution time**. Enter a new **Authorization code** only when the existing code also needs to change, then select **Save**. Select **Cancel** on the notice to remove the scheduled transfer from Domain Chief.
+
+Changes and cancellation are available only before the schedule locks, normally five minutes before execution. A scheduled transfer cannot run until any required payment and contact verification have also been completed.
+
+## Resolve failed updates and restoration
+
+### Resolve a failed domain update
+
+A failed nameserver, DNSSEC, hosted DNS, auto-renewal, transfer-lock, contact, privacy, or authorization-code update appears as **Domain Updates Need Attention** or a more specific `... Update Failed` notice.
+
+The previously confirmed setting remains active after a failed update. Use the correction offered by the notice, such as **Update nameservers**, **Update DNSSEC keys**, **Enable auto-renew**, **Disable auto-renew**, **Lock domain**, or **Unlock domain**. If the app offers only **Contact support**, Domain Chief cannot safely complete that update through self-service.
+
+Select **Dismiss** after you have resolved the problem or no longer need the warning. Dismissing hides the notice but does not retry the update, change the domain, or remove the failed attempt from **Activity**.
+
+### Ask to restore a domain
+
+**Domain Can Be Restored** means the registry has deleted the domain but may still allow restoration for a limited time. Select **Contact support** as soon as possible and include the domain name.
+
+The date in the notice is the registry's final known restoration date, not a safe deadline. Restoration may have an extra cost and is not guaranteed. See [Manage renewals and expiration](/domainchief/renewals-expiration) for the domain lifecycle and deletion choices.
+
+## Troubleshooting
+
+### Why is the notice still visible after I acted?
+
+Registration, transfer, and update requests can take time to reach and return from the registry. Reload the domain page and check **Activity** for a newer result. Wait while the notice says **Processing** or `... Update Pending`.
+
+### Why is the action button missing?
+
+Actions depend on the domain state, the TLD, the schedule cutoff, and your team permissions. Ask a team member with domain-management access to open the same page. Use **Contact support** when the notice offers no self-service action.
+
+### Why can I not retry yet?
+
+Domain Chief limits repeated retries. Wait at least a minute, confirm that the reported problem is fixed, and try the button again. Do not create another domain request to work around the limit.
+
+### Why did a notice return after I dismissed it?
+
+**Dismiss** records that you closed one failed-update notice. A later failed attempt creates a new notice. Open **Activity** to distinguish the attempts and correct the setting before trying it again.
+
+### What should I send to support?
+
+Include the domain name, the notice heading, what you last attempted, and when you attempted it. Do not send an authorization code, password, or payment details.

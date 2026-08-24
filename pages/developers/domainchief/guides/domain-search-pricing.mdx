@@ -1,0 +1,206 @@
+---
+title: Build a domain search and pricing workflow
+description: Use the TLD catalog for fast indicative pricing and request an exact quote only when a domain needs one.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Build a domain search and pricing workflow | Domain Chief</title>
+</Head>
+
+Build a responsive domain search by separating availability from exact pricing. Use the TLD catalog to display standard prices, check candidate availability without the `price` expansion, and request an exact quote only for a premium name or the domain the customer chooses.
+
+## Recommended request flow
+
+1. Load the registerable TLD catalog and store the entries your search interface needs.
+2. Build candidate names from that catalog and show its indicative registration, transfer, and renewal prices.
+3. Check complete candidates as independent requests without expansions, with no more than four requests active at once.
+4. Branch on `availability` and `is_premium`.
+5. Keep using the TLD catalog price for an ordinary result.
+6. If a result is premium and needs a displayed price, repeat that one check with `expand[]=price`.
+7. When the customer chooses a domain, check that one name with `expand[]=price` before registration or transfer.
+8. Require confirmation again if the exact availability, operation, or price differs from the search result.
+
+Use a token with both `domainchief:tlds:read` and `domainchief:domains:read:availability`. The [API introduction](/developers/domainchief/api/introduction) covers authentication and team selection, and the [scope reference](/developers/domainchief/api/scopes) explains how to grant these permissions.
+
+## Load indicative TLD prices
+
+Call [List TLDs](/api/domainchief/tlds#list-tlds) to retrieve the TLDs currently registerable for the selected team. The endpoint returns 50 entries by default and accepts up to 100 per page:
+
+```http
+GET /api/v1/tlds?sort=name&per_page=100 HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Follow `links.next` until it is `null` when your interface needs the complete catalog. Use `query` to load only matching TLDs for a narrower picker.
+
+Each TLD includes three indicative prices:
+
+- `registration_price` for a new registration.
+- `transfer_price` for moving an existing domain into Domain Chief.
+- `renewal_price` for a later renewal.
+
+Prices are integer EUR cents and already reflect pricing for the selected team. Treat them as source amounts for your integration, then apply your own retail pricing, markup, currency, and tax rules before presenting them. When `is_converted_currency` is `true`, the EUR amount was converted from the registry's native currency and can change with the exchange rate.
+
+Store or cache the catalog so a search can render prices without making another TLD request for every candidate. Refresh the complete catalog once a day. This is a practical default for indicative search prices. Use [Show TLD](/api/domainchief/tlds#show-tld) when you need to refresh one entry before the next full update.
+
+A newly refreshed catalog price is still indicative. Continue to request exact pricing for premium names and the customer's final selection.
+
+The TLD resource also reports capabilities and requirements that can affect later forms, including supported contact roles, DNSSEC, IDNs, WHOIS privacy, transfer behavior, and whether an intended-use description is required.
+
+## Check candidate availability
+
+Treat availability checking as a queue of independent domain requests. Keep the normal search pass lightweight, limit its concurrency, and show each result as soon as its request finishes.
+
+### Request availability without exact pricing
+
+Call [Check domain availability](/api/domainchief/domain-registration#check-domain-availability) once for each candidate. Do not request the `price` expansion during the normal search pass:
+
+```http
+GET /api/v1/domains/availability/search-workflow.example HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+The response contains the fields needed to choose the next action. Price fields remain `null` because this request asks only for availability:
+
+```json
+{
+  "data": {
+    "tld": "example",
+    "name": "search-workflow",
+    "domain": "search-workflow.example",
+    "is_premium": false,
+    "availability": "free",
+    "price": null,
+    "renewal_price": null,
+    "is_converted_currency": null,
+    "renewal_date": null
+  }
+}
+```
+
+Use the returned `domain` as the canonical name. When supported Unicode input is supplied, Domain Chief can return its ASCII Punycode form here. Reject or correct a candidate when the endpoint reports that its TLD, characters, or label length are not eligible.
+
+Add `expand[]=tld` when the availability response also needs the full TLD capabilities. Otherwise, keep the string in `tld` and use the catalog entry you already loaded.
+
+<Callout type="caution" title="Do not expand prices for every search result">
+  Exact pricing can require additional registry lookups and may be much slower than an availability check. A search across many TLDs should use catalog prices and reserve `expand[]=price` for premium names or the customer's final selection.
+</Callout>
+
+### Run lookups in parallel
+
+Start no more than four availability requests at once for each search operation. Four is the limit used by Domain Chief's own search interface and is a good default for balancing result speed against load. It is implementation guidance, not an API requirement or a promise that every registry supports the same throughput.
+
+Send one request per candidate and process each response as soon as it arrives. When a request finishes, start the next queued candidate. Avoid collecting several candidates into a batch that updates only after every lookup finishes, because one slow registry response would then hold back the faster results. The public API accepts one complete domain per availability request and does not provide a batch availability endpoint.
+
+### Interpret availability results
+
+Handle the current values as follows:
+
+| Result | Customer action | Indicative amount to display |
+| --- | --- | --- |
+| `free` | Offer registration. | The TLD's `registration_price`, unless the name is premium. |
+| `active` | Offer transfer only when the customer owns the domain elsewhere. | The TLD's `transfer_price`, unless the name is premium. |
+| `owned` | Open or identify the domain already held by the selected team. | Do not present it as a new registration or external transfer. |
+| `error` | Offer no domain operation and let the customer retry later. | Do not present a quote. |
+
+Show the TLD's `renewal_price` separately for ordinary `free` and `active` results. Label these amounts as indicative until the selected-domain check returns an exact quote.
+
+Availability values are extensible. For an unrecognized value, show no registration or transfer action, preserve the result for diagnostics, and allow a later availability check. Do not treat every value other than `active` as available. The [`DomainAvailability`](/api/domainchief/~schemas#domainavailability) schema documents the current contract.
+
+The optional `auth_code` query parameter is not part of a normal search. Use it only when the customer has an authorization code and the registry supports an authenticated check, such as retrieving a renewal date before a transfer. Do not log or place authorization codes in analytics.
+
+## Request exact pricing when needed
+
+The `price` expansion returns the current operation price, renewal price, and conversion state for one complete domain. Use it selectively.
+
+### Quote a premium result
+
+The lightweight availability response still sets `is_premium`. When it is `true`, do not use the standard catalog prices for that name.
+
+If your results page needs to show the premium amount, repeat only that domain's request with pricing:
+
+```http
+GET /api/v1/domains/availability/premium-search.example?expand[]=price HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+You can also defer this request until the customer selects the premium result. Do not start priced checks for unrelated non-premium candidates.
+
+### Validate the selected domain
+
+When the customer continues with a registration or transfer, check that one complete name again with `expand[]=price`:
+
+```http
+GET /api/v1/domains/availability/search-workflow.example?expand[]=price HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+A free `.example` quote looks like this:
+
+```json
+{
+  "data": {
+    "tld": "example",
+    "name": "search-workflow",
+    "domain": "search-workflow.example",
+    "is_premium": false,
+    "availability": "free",
+    "price": 0,
+    "renewal_price": 0,
+    "is_converted_currency": false,
+    "renewal_date": null
+  }
+}
+```
+
+For `free`, `price` is the exact registration price. For `active`, it is the exact transfer price. `renewal_price` is the subsequent renewal amount in both cases. An `owned` result returns `0` as its operation price because the selected team already holds the domain.
+
+If the new response changes the action from registration to transfer, or the price differs from the amount shown during search, update the confirmation page and ask the customer to confirm the new result.
+
+### Present the exact quote
+
+For every selected-domain or premium quote:
+
+1. Format `price` and `renewal_price` from EUR cents without using binary floating-point arithmetic.
+2. Label `price` as registration or transfer according to `availability`.
+3. Show the renewal amount separately. It can differ from the first operation price.
+4. Show a premium warning when `is_premium` is `true`.
+5. Apply your own retail pricing, markup, currency, and tax rules.
+6. Warn that a converted amount can fluctuate when `is_converted_currency` is `true`.
+
+Do not replace a non-null exact-domain price with the TLD catalog price. Premium registration and renewal prices can differ from the standard TLD amounts.
+
+## Handle failures and retries
+
+- `400 Bad Request` means the TLD is unsupported or an optional authenticated check cannot be completed. Do not offer registration based on a catalog entry retained from an older response.
+- `422 Unprocessable Content` means the domain input or TLD eligibility rules rejected the candidate. Show the validation message and let the customer correct the name.
+- `504 Gateway Timeout` means the registry availability service is unavailable. Honor `Retry-After` when present and retry the read later.
+- `401 Unauthorized` and `403 Forbidden` require corrected authentication, team access, or scopes. They are not availability results.
+
+Keep failed candidates separate from `active` domains. A failed lookup does not prove that a name is registered. Do not fall back to an indicative catalog price after an exact quote fails.
+
+Retain the association between each request and its returned canonical `domain`, especially when responses complete in a different order from the requests.
+
+## API reference
+
+- [List TLDs](/api/domainchief/tlds#list-tlds)
+- [Show TLD](/api/domainchief/tlds#show-tld)
+- [Check domain availability](/api/domainchief/domain-registration#check-domain-availability)
+- [`TLD` schema](/api/domainchief/~schemas#tld)
+- [`DomainAvailabilityResult` schema](/api/domainchief/~schemas#domainavailabilityresult)
+
+Use [`.example` domains](/domainchief/example-tld) to exercise free, premium, active, and failed search results without using public names.

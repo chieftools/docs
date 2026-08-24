@@ -1,0 +1,99 @@
+---
+title: Getting started
+ogTitle: Get started with Domain Chief
+description: Set up your team, verify its default contact, review the defaults, and register a free test domain.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Getting started</title>
+</Head>
+
+Use this guide the first time you open Domain Chief. You will prepare the selected team for domain operations, review the settings applied to new domains, and register a reserved `.example` domain without buying a public name.
+
+## Complete the team setup
+
+Domain Chief requires each team to have a valid default contact with a verified email address. If the selected team is not ready, Domain Chief opens **Onboarding** before allowing you to continue to the dashboard or a domain action.
+
+### Enter the contact details
+
+1. Use the team selector to choose the team that will own and pay for its domains.
+2. In **Contact Details**, enter the real name, address, email address, and phone number for the person or organization responsible for the domains.
+3. If the registrant is a company, enter its legal company details and VAT number when the form asks for them.
+4. Select **Save**.
+
+The first saved contact becomes the team's default contact. Domain Chief starts new registrations and transfers with this contact, but you can create and select other contacts later.
+
+<Callout type="caution" title="Use current contact information">
+  Registries can verify these details. An incorrect name, address, phone number, or email address can delay a registration or transfer and may cause a domain to be suspended.
+</Callout>
+
+### Verify the contact email
+
+1. In **Verify Contact E-mail**, check the address shown under **Contact Information**.
+2. Open the verification email and follow its link.
+3. Return to Domain Chief. The page checks the verification status automatically.
+4. When the page shows **Verified**, select **Continue**.
+
+Allow at least five minutes for the message to arrive and check the spam folder. Select **Restart verification** only when the first message has not arrived.
+
+If onboarding interrupted a domain search or another page, **Continue** returns you to that task. Otherwise, it opens the dashboard.
+
+For later contact changes and registry verification, see [Manage registrant contacts and WHOIS privacy](/domainchief/registrant-contacts-privacy).
+
+## Review the defaults for new domains
+
+Open **Settings** and check these sections before registering a public domain:
+
+- **Nameservers** controls whether new registrations and transfers start with Domain Chief nameservers or custom nameservers. Domain Chief nameservers are the default.
+- **WHOIS Privacy** controls whether privacy is enabled by default for new domains when the TLD supports it.
+- **Nameserver Templates** stores sets of custom nameservers that you use regularly.
+
+These settings apply to future registrations and transfers. Changing them does not rewrite existing domains. You can still choose different supported settings on an individual registration or transfer.
+
+If another provider will host your DNS, prepare its nameserver hostnames before registering. The [nameserver and DNSSEC guide](/domainchief/nameservers-dnssec) explains the difference between Domain Chief and custom nameservers.
+
+## Register a free test domain
+
+Use the reserved `.example` TLD to learn the registration flow without paying for or publishing a real domain.
+
+1. Open **Dashboard** and select **Register**.
+2. In **Domain name**, enter a synthetic name such as `first-workspace.example`.
+3. Select **Search domains**.
+4. Find the exact `.example` result and select **Register**.
+5. Review the domain, free registration and renewal prices, nameservers, contact, and WHOIS privacy choice.
+6. Accept any agreement shown on the page and select **Register**.
+
+Domain Chief opens the domain page after accepting the request. Treat the registration as complete when the domain becomes active.
+
+<Callout type="info" title=".example domains are for testing">
+  `.example` registrations are free and work inside Domain Chief, but `.example` is reserved and does not resolve on the public internet. It cannot host a public website or receive public email.
+</Callout>
+
+You can safely use this domain to try contacts, hosted DNS records, nameservers, redirects, and transfer scenarios. See [Test with .example domains](/domainchief/example-tld) for the supported test cases.
+
+## Choose your next task
+
+- [Register a public domain](/domainchief/registration) when you are ready to review real availability, prices, DNS, and contact settings.
+- [Transfer a domain](/domainchief/transfers) when you already own a domain at another registrar.
+- [Manage DNS records](/domainchief/dns-records) when a domain uses Domain Chief nameservers.
+- [Understand billing and pending payments](/domainchief/billing-payments) before starting a paid registration, transfer, or renewal.
+
+## Troubleshooting
+
+### Why does Domain Chief keep opening Onboarding?
+
+The selected team does not yet have a valid and verified default contact. Complete **Contact Details**, verify the displayed email address, and select **Continue**.
+
+### Why did the verification email go to the wrong address?
+
+Correct the email address in **Contact Details**, save it, and restart verification. Check the address shown under **Contact Information** before opening the new message.
+
+### Why does the .example website not open?
+
+This is expected. `.example` domains are reserved test names and do not use public DNS. Use one to learn Domain Chief, then register or transfer a public domain when you need a working website or email service.
+
+### Why did Domain Chief return to a registration page after setup?
+
+Domain Chief remembers the page that required a verified contact. Completing onboarding resumes that intended task instead of always sending you to the dashboard.

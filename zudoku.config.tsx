@@ -219,12 +219,18 @@ const config: ZudokuConfig = {
                     items: [
                         '/domainchief/introduction',
                         {
+                            type: 'doc',
+                            file: '/domainchief/getting-started',
+                            label: 'Getting started',
+                        },
+                        {
                             type: 'category',
                             label: 'Domains',
                             collapsible: true,
                             items: [
                                 '/domainchief/registration',
                                 '/domainchief/transfers',
+                                '/domainchief/action-required',
                                 '/domainchief/domain-portfolio',
                                 '/domainchief/renewals-expiration',
                                 '/domainchief/registrant-contacts-privacy',
@@ -248,6 +254,7 @@ const config: ZudokuConfig = {
                             label: 'Tools and billing',
                             collapsible: true,
                             items: [
+                                '/domainchief/tlds-pricing',
                                 '/domainchief/billing-payments',
                                 '/domainchief/ai',
                                 '/domainchief/example-tld',
@@ -420,6 +427,7 @@ const config: ZudokuConfig = {
                             label: 'Guides',
                             collapsible: true,
                             items: [
+                                '/developers/domainchief/guides/domain-search-pricing',
                                 '/developers/domainchief/guides/events',
                                 '/developers/domainchief/guides/notices',
                                 '/developers/domainchief/guides/domain-connect',

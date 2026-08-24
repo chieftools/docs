@@ -1,0 +1,119 @@
+---
+title: Browse supported TLDs and compare prices
+description: Search Domain Chief's supported extensions, compare team pricing, and find the final registration, transfer, or renewal price.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Browse supported TLDs and compare prices | Domain Chief</title>
+</Head>
+
+Use this guide to find a supported top-level domain, understand the **Pricing** table, and know where to confirm the final price for an operation.
+
+## Choose your task
+
+- [Find a supported TLD](#find-a-supported-tld)
+- [Read the price and billing period](#read-the-price)
+- [Compare regular and member prices](#compare-regular-and-member-prices)
+- [Check transfer, renewal, or premium pricing](#confirm-the-price-for-an-operation)
+- [Understand tags and capability icons](#read-tags-and-capability-indicators)
+- [Fix an unexpected result or price](#troubleshooting)
+
+## Browse the Pricing table
+
+### Find a supported TLD
+
+Open **Pricing** in the Domain Chief navigation. The table contains the extensions that the current team can register through Domain Chief.
+
+Use **Search** to enter all or part of an extension, such as `com`, `uk`, or `shop`. Select **Filter**, choose one or more **Category** values, and select **Apply filters** to narrow the list. When you select several categories, the table includes TLDs that match any of them.
+
+Select **Name** or **Price** in the table heading to change the sort order. **Reset** in the filter panel removes the selected categories. The table remembers its search, filters, and sort for your signed-in session.
+
+Categories describe the type, region, or common subject of an extension. They help with discovery but do not replace registry eligibility rules. Domain Chief checks those rules when you search and prepare a registration.
+
+### Read the price
+
+The **Price** column shows the current team's indicative price for registering a standard, non-premium domain under that TLD. The period is part of the price:
+
+- `/year` means a one-year registration period.
+- `/2 years` or another period means the TLD requires that minimum term and the displayed amount covers the complete period.
+
+The callout above the table states whether your team is seeing **regular** or discounted **member** prices. A `custom` badge beside a TLD means a special price is active for your team.
+
+Prices on this screen exclude VAT and other sales tax. Domain Chief calculates the applicable tax through the team's billing setup when it charges or invoices the operation.
+
+<Callout type="info" title="Use the review page for the final price">
+  The Pricing table is for comparison. Domain Chief checks the domain and price again before a registration or transfer, and the review page shows the amount you are about to submit.
+</Callout>
+
+### Compare regular and member prices
+
+Select **Compare** in the pricing callout to open the public pricing page. It shows **Regular Price** and **Member Price** side by side, explains the available membership plans, and includes a calculator for estimating savings across a portfolio.
+
+Select **Manage membership** to review or change the current team's membership. A membership belongs to the team, so switching teams can change which price the signed-in Pricing table shows.
+
+## Confirm operation-specific prices
+
+### Confirm the price for an operation
+
+The Pricing table does not show separate registration, transfer, and renewal columns. Use the screen for the operation you intend to perform:
+
+| Price you need | Where to find it |
+| --- | --- |
+| Registration and yearly renewal | Search the full domain, select **Register**, and review the **Price** section before submitting. |
+| Incoming transfer and its renewal effect | Search the registered domain, select **Transfer**, and review the transfer price, renewal price, and renewal-date explanation. |
+| Renewal for a domain you already manage | Open **Domains**, select the domain, and read the **Price** value on its **Renewal Date** or **Expiration Date** card. |
+| Estimated renewals across the team | Open **Settings → Portfolio overview**. |
+
+A green **free transfer** tag means the current transfer price for that TLD is zero. It does not mean registration or renewal is free. The transfer review page remains the source of truth for the exact domain and operation.
+
+### Understand premium and converted prices
+
+Premium pricing belongs to an individual domain name, not every name under its TLD. The table therefore shows the standard TLD price. Search the full name and open its registration or transfer review page to see whether Domain Chief identifies it as premium and to review its registration, transfer, and renewal prices.
+
+Some registries charge Domain Chief in a currency other than euros. A currency-conversion icon appears at the right of the row in that case. Hover over it to see the source currency. The euro price can change when the exchange rate changes.
+
+Availability, premium status, registry pricing, team discounts, custom prices, and currency conversion can all affect the final amount. Review the price again before submitting the operation.
+
+## Understand TLD details
+
+### Read tags and capability indicators
+
+The **Tags** column can include:
+
+- `gTLD` for a generic top-level domain.
+- `ccTLD` for a country-code top-level domain.
+- Regional or subject categories such as `Europe`, `Internet`, or `Financial`.
+- **free transfer** when the current transfer price is zero.
+
+The icons at the right of each row describe two capabilities. Hover over an icon for its exact label.
+
+| Icon | Green | Gray |
+| --- | --- | --- |
+| Shield with a keyhole | The TLD supports DNSSEC. | The TLD does not support DNSSEC. |
+| Person with a hat | The TLD allows Domain Chief WHOIS privacy. | Domain Chief cannot enable WHOIS privacy for the TLD. The registry generally redacts personal data, but its rules can differ for organizations and companies. |
+
+The Pricing table does not show IDN support or a general transfer-support indicator. To check an internationalized name, search the complete name and read the availability result. To check a transfer, search the exact registered domain and follow the action offered by Domain Chief.
+
+## Troubleshooting
+
+### Why are there no results?
+
+Clear **Search**, open **Filter**, and select **Reset**. If the TLD still does not appear, the current team cannot register it through Domain Chief. The public pricing page also provides a link for requesting a missing TLD.
+
+### Why is my price different from the table?
+
+Check whether the domain is premium, whether the operation is a registration, transfer, or renewal, and whether you switched teams or membership status. Also check for a `custom` badge or currency-conversion icon. The operation review page is the final price to use.
+
+### Why does the price cover more than one year?
+
+Some registries require a multi-year minimum. The table writes the period next to the amount, and the registration or transfer review page explains the period before you submit.
+
+### Why did the price change after I searched?
+
+Domain Chief checks availability and pricing again before submitting the operation. A registry price, exchange rate, premium classification, or team-specific price may have changed. Review the new amount and continue only when it is acceptable.
+
+### Why is an icon gray?
+
+Gray means the TLD does not support that capability through Domain Chief. Hover over the icon for the exact explanation, then choose another TLD if DNSSEC or Domain Chief WHOIS privacy is required.
