@@ -114,13 +114,13 @@ Do not treat every non-`2xx` response as safe to retry. Read the endpoint docume
 
 Domain registration, transfers, and some updates continue after a `202 Accepted` response. Use the domain resource returned by the request when one is present, including its current notices. Poll the team event feed for later changes, then retrieve the domain when it reports `domain.changed`.
 
-The [event synchronization guide](/developers/domainchief/guides/events) explains the cursor workflow and targeted resource refreshes. The [domain notices guide](/developers/domainchief/guides/notices) covers pending work, available resolutions, customer handoffs, and failures without hard-coding every notice value.
+The [data synchronization guide](/developers/domainchief/guides/sync-data) explains initial snapshots, cursors, and targeted resource refreshes. The [domain notices guide](/developers/domainchief/guides/notices) covers pending work, available resolutions, customer handoffs, and failures without hard-coding every notice value.
 
 ## Continue from here
 
 - Use the [API reference](/api/domainchief) for current operations, request fields, response schemas, and required scopes.
 - Read [API scopes](/developers/domainchief/api/scopes) before issuing a token for an integration.
 - Use [metadata](/developers/domainchief/api/metadata) to attach identifiers and links from your own application to supported resources.
-- Use the [team event feed](/developers/domainchief/guides/events) to keep local domains and contacts current.
+- Use the [data synchronization workflow](/developers/domainchief/guides/sync-data) to build and maintain a local copy of domains and contacts.
 - Follow [domain notices](/developers/domainchief/guides/notices) when an operation can continue asynchronously or require customer action.
 - Test domain workflows with [`.example` domains](/domainchief/example-tld) before working with a public domain.

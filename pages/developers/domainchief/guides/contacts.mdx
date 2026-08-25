@@ -1,0 +1,258 @@
+---
+title: Manage contacts
+description: Create, reuse, assign, update, verify, and retire contacts used for domains.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Manage contacts | Domain Chief</title>
+</Head>
+
+Domain Chief stores registrant and other domain contacts as team-scoped resources. Create or reuse a contact for the person or organization it represents, store the returned handle, and pass that handle when registering, transferring, or updating a domain. Do not send the full contact details with every domain request.
+
+## Recommended request flow
+
+1. [Collect the current contact details](#collect-registry-compatible-details).
+2. [Create or reuse the contact](#create-or-reuse-a-contact) and store the returned handle with the corresponding record in your system.
+3. [Read the TLD's supported contact roles](#read-the-supported-contact-roles).
+4. [Assign explicit contact handles](#assign-contacts-during-registration-or-transfer) during registration or transfer.
+5. [Update a shared contact carefully](#update-a-contact-safely), or create a replacement when an immutable identity field changes.
+6. [Apply contact events](/developers/domainchief/guides/sync-data#apply-event-pages) to your local copy.
+7. [Hand registrant verification to the registrant](#handle-registrant-verification) when a domain notice requires it.
+
+Reading contacts needs `domainchief:contacts:read`; creating, updating, or deleting them needs `domainchief:contacts:write`. Reading TLD capabilities and affected domains needs `domainchief:tlds:read` and `domainchief:domains:read`. Assigning a contact during registration or transfer needs `domainchief:domains:register`, while changing an existing domain needs `domainchief:domains:write`. Event-driven synchronization also needs `domainchief:events:read`. The [scope reference](/developers/domainchief/api/scopes) lists all Domain Chief permissions.
+
+Before creating contacts, the Domain Chief team must have a valid, verified default contact. An authorized team member can complete that prerequisite through [Domain Chief's team setup](/domainchief/getting-started#complete-the-team-setup).
+
+## Model contacts in your integration
+
+### Keep authorization in your application
+
+Treat `handle` as the stable Domain Chief identifier and store it beside your own contact or account ID. A handle belongs to the selected Domain Chief team. It is not proof that the signed-in user may manage the corresponding record in your application, so enforce that authorization yourself.
+
+Contact creation deduplicates identical details by default. This means two local records can receive the same Domain Chief handle when they represent the same person or organization. Model the association accordingly instead of assuming one handle belongs to one local record.
+
+You can attach your own string identifiers as `metadata`. Use them for reconciliation, not authorization. If one Domain Chief contact can map to several local records, keep those associations in your database rather than overwriting one metadata value.
+
+`parent_handle` can group contacts under another contact in Domain Chief. It is organizational only and does not affect registration, transfer, authorization, or domain ownership. Do not use it as an account or authorization boundary.
+
+### Separate team defaults from explicit contacts
+
+`is_default` is team-wide. Mark a contact as the default only when it should be the fallback for every domain managed by the team. When different domains need different registrants, send the intended handle explicitly for the `owner` role.
+
+When a registration or transfer omits a supported role, Domain Chief uses the team's default contact for that role. Decide which contact should fill each administrative, technical, and billing role. Never let the fallback select an unintended registrant.
+
+## Create or reuse a contact
+
+### Collect registry-compatible details
+
+Collect current details from the person or organization the contact represents over an authenticated connection. [Create a new contact](/api/domainchief/contacts#create-a-new-contact) requires a first and last name, street and house number, postal code, city, two-letter country code, email address, and international phone number.
+
+Keep the street name and house number in separate fields. Send the country as an uppercase ISO 3166-1 alpha-2 code. Domain Chief accepts a full state or province name or its abbreviation and returns the stored abbreviation.
+
+Set `company_name` when the registrant is a company. The first and last name are still required for its representative. Some registries also require a company registration number, trading name, website, VAT number, or fields in `extension_data`.
+
+Fields such as passport numbers, national identity codes, and birth dates are sensitive. Collect TLD-specific data only when the selected registry requires it. Do not put it in logs, analytics, support transcripts, URLs, or contact metadata. See the [contact creation contract](/api/domainchief/contacts#create-a-new-contact) for the current field formats and the [`Contact` schema](/api/domainchief/~schemas#contact) for returned fields.
+
+### Send the create request
+
+Omit `allow_duplicate` for the normal flow:
+
+```http
+POST /api/v1/contacts HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "company_name": "Northstar Studio BV",
+  "company_registration_number": "99887766",
+  "first_name": "Amina",
+  "last_name": "Koenders",
+  "address_street": "Examplelaan",
+  "address_house_number": "42",
+  "address_postal_code": "1234 AB",
+  "address_city": "Amsterdam",
+  "address_country_code": "NL",
+  "email": "domains@northstar.example",
+  "phone": "+31 20 555 0142"
+}
+```
+
+Domain Chief returns `201 Created` for a new contact and `200 OK` when it finds an identical team contact. Treat both as success and store `data.handle` from the response:
+
+```json
+{
+  "data": {
+    "handle": "contact-example-handle",
+    "company_name": "Northstar Studio BV",
+    "first_name": "Amina",
+    "last_name": "Koenders",
+    "email": "domains@northstar.example"
+  }
+}
+```
+
+Use `allow_duplicate: true` only when your separation or retention rules require distinct Domain Chief resources for identical details. It disables the built-in reuse behavior and can leave several handles representing the same person or organization.
+
+Treat the returned contact as authoritative. A `200 OK` response can reuse a handle that another local record already references. Confirm that its mutable and TLD-specific fields fit the new domain before assigning it. Update the shared contact only when the change should affect every domain that uses it; otherwise create a separate contact with `allow_duplicate: true`.
+
+## Assign contacts to domains
+
+### Read the supported contact roles
+
+Call [Show TLD](/api/domainchief/tlds#show-tld) and inspect `handle_types` before building the domain's `contacts` object:
+
+```http
+GET /api/v1/tlds/example HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+The response can include `owner`, `admin`, `tech`, `billing`, and `reseller`. Build your form and request from the returned values. Ignore contact-role values your integration does not yet recognize, and do not reject the TLD merely because Domain Chief adds a role.
+
+The `owner` contact is the registrant. Assign the person or organization that should legally hold the domain. Choose the other supported roles according to the integration's operating model and the registry's rules.
+
+### Assign contacts during registration or transfer
+
+Pass handles in the `contacts` object used by [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain):
+
+```json
+{
+  "domain": "northstar-studio.example",
+  "contacts": {
+    "owner": "$OWNER_CONTACT_HANDLE",
+    "admin": "$ADMIN_CONTACT_HANDLE",
+    "tech": "$TECH_CONTACT_HANDLE",
+    "billing": "$BILLING_CONTACT_HANDLE"
+  }
+}
+```
+
+Send only roles listed in the TLD's `handle_types`. During registration or transfer, an omitted supported role falls back to the team's default contact. An unsupported role is ignored.
+
+`contacts` and `is_whois_privacy_enabled` cannot appear in the same request. Supplying explicit contacts disables WHOIS privacy for that request. Handle this conflict in your interface rather than silently dropping the selected privacy setting.
+
+Continue with [Register a domain](/developers/domainchief/guides/registration#prepare-the-registration) or [Transfer a domain into Domain Chief](/developers/domainchief/guides/incoming-transfers#preserve-or-replace-dns-deliberately) for the rest of each request.
+
+### Change contacts on an existing domain
+
+Call [Update a domain](/api/domainchief/domains#update-a-domain) to replace one or more roles:
+
+```http
+PATCH /api/v1/domains/$DOMAIN_ID HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "contacts": {
+    "owner": "$NEW_OWNER_CONTACT_HANDLE"
+  }
+}
+```
+
+Only the supplied roles change. Send an empty `contacts` object to reset all roles to team defaults. Supplying contacts disables WHOIS privacy and cannot be combined with `is_whois_privacy_enabled`.
+
+The returned domain may contain a processing or verification notice because registry-facing changes finish asynchronously. Apply the returned notices immediately, then use the [team event feed](/developers/domainchief/guides/sync-data#apply-event-pages) to retrieve the domain after `domain.changed`.
+
+## Update or retire a contact
+
+### Update a contact safely
+
+A contact handle can be assigned to several domains. Before calling [Update a contact](/api/domainchief/contacts#update-a-contact), find every local record and domain that references it and confirm that the change applies to all of them.
+
+The update request is partial. Omitted fields keep their current values:
+
+```http
+PATCH /api/v1/contacts/$CONTACT_HANDLE HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "address_street": "Nieuwe Voorbeeldstraat",
+  "address_house_number": "18",
+  "address_postal_code": "5678 CD",
+  "address_city": "Utrecht",
+  "email": "registry@northstar.example"
+}
+```
+
+Changing the email of a contact already in use can require the registrant to verify the new address. A TLD can also reject updated details that no longer meet its requirements. Preserve the form and show the field or TLD errors from `422 Unprocessable Content`.
+
+The update operation does not accept `first_name`, `last_name`, `company_name`, or `address_country_code`. When one of those values changes, create a replacement contact, update every affected domain role to its new handle, and follow the returned domain notices. Retire the old contact only after no domain uses it.
+
+### Delete an unused contact
+
+A contact cannot be deleted while a domain uses it, while it is the team's default, or when it is the team's only remaining contact. Reassign those dependencies first and confirm the current domains no longer reference the handle.
+
+Call [Delete a contact](/api/domainchief/contacts#delete-a-contact):
+
+```http
+DELETE /api/v1/contacts/$CONTACT_HANDLE HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Success returns `204 No Content`.
+
+## Handle registrant verification
+
+Registrant verification is reported on the affected domain, not as a status on the contact resource. The current `domain.contact_verification.required` notice tells you whether the registrant must open a verification URL or whether your integration can request another email. Follow [Hand off contact verification](/developers/domainchief/guides/notices#hand-off-contact-verification) for the complete notice rules.
+
+Use an email address the registrant can access. Show a verification link only while the current notice contains `domain.contact_verification.open` and a `contact_verification_url`. Open that URL in the registrant's browser. Do not fetch, log, cache, or modify it because it may contain a time-limited token.
+
+Call [Resend contact verification](/api/domainchief/domains#resend-contact-verification) only while the current notice contains `domain.contact_verification.resend`:
+
+```http
+POST /api/v1/domains/$DOMAIN_ID/contact-verification/resend HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Replace the displayed domain and notices with the `200 OK` response. A `400 Bad Request` means the domain is not currently eligible for another email. On `429 Too Many Requests`, wait for the number of seconds in `Retry-After` instead of retrying on your own schedule.
+
+After the registrant completes verification, wait for `domain.changed`, retrieve the domain, and replace the old notice snapshot. Do not assume the external page succeeded merely because the browser returned to your application.
+
+## Keep contacts synchronized
+
+Use [Sync domains and contacts with your system](/developers/domainchief/guides/sync-data) when your application keeps a local contact copy. Apply `contact.created` and `contact.changed` by retrieving the current handle with [Show contact](/api/domainchief/contacts#show-contact) or [List specific contacts](/api/domainchief/contacts#list-specific-contacts). Remove the local resource after `contact.deleted`.
+
+Match contacts by `handle`, not by names or email addresses. Those details can change and are not stable identifiers for your own records.
+
+## Handle request errors
+
+- `401 Unauthorized` and `403 Forbidden` require corrected authentication, team selection, scopes, team setup, or contact permissions.
+- `404 Not Found` means the handle or domain is absent from the selected team.
+- `422 Unprocessable Content` means the contact fields or a linked TLD requirement failed validation. Preserve the submitted input and show the returned field errors.
+
+Contact requests and responses contain personal data. Keep operational logs to request IDs, your own non-sensitive reference, the response status, and the returned handle. Apply your retention and access-control rules to any local copy of the contact.
+
+## API reference
+
+- [List contacts](/api/domainchief/contacts#list-contacts)
+- [Create a new contact](/api/domainchief/contacts#create-a-new-contact)
+- [List specific contacts](/api/domainchief/contacts#list-specific-contacts)
+- [Show contact](/api/domainchief/contacts#show-contact)
+- [Update a contact](/api/domainchief/contacts#update-a-contact)
+- [Delete a contact](/api/domainchief/contacts#delete-a-contact)
+- [Show TLD](/api/domainchief/tlds#show-tld)
+- [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain)
+- [Update a domain](/api/domainchief/domains#update-a-domain)
+- [Resend contact verification](/api/domainchief/domains#resend-contact-verification)
+- [`Contact` schema](/api/domainchief/~schemas#contact)
+- [`DomainNotice` schema](/api/domainchief/~schemas#domainnotice)

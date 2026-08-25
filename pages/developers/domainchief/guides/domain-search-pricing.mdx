@@ -184,11 +184,11 @@ For every selected-domain or premium quote:
 
 Do not replace a non-null exact-domain price with the TLD catalog price. Premium registration and renewal prices can differ from the standard TLD amounts.
 
-## Handle failures and retries
+## Handle errors
 
 - `400 Bad Request` means the TLD is unsupported or an optional authenticated check cannot be completed. Do not offer registration based on a catalog entry retained from an older response.
 - `422 Unprocessable Content` means the domain input or TLD eligibility rules rejected the candidate. Show the validation message and let the customer correct the name.
-- `504 Gateway Timeout` means the registry availability service is unavailable. Honor `Retry-After` when present and retry the read later.
+- `504 Gateway Timeout` means the registry availability service is unavailable. Wait for `Retry-After` when present before checking again.
 - `401 Unauthorized` and `403 Forbidden` require corrected authentication, team access, or scopes. They are not availability results.
 
 Keep failed candidates separate from `active` domains. A failed lookup does not prove that a name is registered. Do not fall back to an indicative catalog price after an exact quote fails.

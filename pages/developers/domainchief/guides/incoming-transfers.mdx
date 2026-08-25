@@ -1,0 +1,227 @@
+---
+title: Transfer a domain into Domain Chief
+description: Start, schedule, monitor, retry, or cancel an incoming domain transfer while preserving the customer's DNS configuration.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Transfer a domain into Domain Chief | Domain Chief</title>
+</Head>
+
+An incoming transfer uses the same creation endpoint as a registration, but starts with a domain that is active elsewhere. Collect the transfer credential when one exists, preserve the DNS configuration deliberately, and let the returned notices tell the customer whether to approve a transfer, change a registrar tag, correct a failure, or wait.
+
+## Recommended request flow
+
+1. [Confirm the selected domain and exact transfer price](#confirm-the-transfer-and-price).
+2. [Confirm that the customer controls the domain and collect the current registrar's transfer information](#collect-transfer-information-safely).
+3. [Create or reuse the required contacts](/developers/domainchief/guides/contacts#create-or-reuse-a-contact) and decide which supported roles should use them.
+4. [Decide whether to preserve the current DNS or move to Domain Chief hosted DNS](#preserve-or-replace-dns-deliberately).
+5. [Start an immediate transfer](#start-an-immediate-transfer), or [schedule an eligible authorization-code transfer](#schedule-an-eligible-transfer).
+6. [Store the returned Domain Chief ID and clear the authorization code](#start-an-immediate-transfer) from short-lived application state.
+7. [Present the returned notices](#follow-transfer-progress) and [use the team event feed](/developers/domainchief/guides/sync-data#apply-event-pages) for later changes.
+8. [Change or cancel a schedule](#schedule-an-eligible-transfer), or [retry or cancel a failed transfer](#recover-a-failed-transfer), only while the current state allows it.
+
+The token needs `domainchief:domains:register`. Reading the quote, domain, TLD, notices, and events requires the corresponding read scopes. See the [API introduction](/developers/domainchief/api/introduction) for authentication and team selection and the [scope reference](/developers/domainchief/api/scopes) for permissions.
+
+## Confirm the transfer and price
+
+Call [Check domain availability](/api/domainchief/domain-registration#check-domain-availability) with `expand[]=price` immediately before the customer confirms the transfer:
+
+```http
+GET /api/v1/domains/availability/customer-site.example?expand[]=price HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Continue with an incoming transfer only when `availability` is `active`. An `owned` result means the selected Domain Chief team already has the domain. A `free` result is a registration, not a transfer.
+
+Present `price` as the exact transfer amount and show `renewal_price` separately. Follow the complete [domain search and pricing workflow](/developers/domainchief/guides/domain-search-pricing) when this step is part of a search interface.
+
+If [Show TLD](/api/domainchief/tlds#show-tld) says `requires_intended_use` is true, collect an `intended_use` description before submission. The public TLD resource does not promise which transfer mechanism a registry will use. Do not hard-code an authorization-code or registrar-tag flow from the TLD name.
+
+## Collect transfer information safely
+
+Ask the customer to prepare the domain at its current registrar. Depending on the registry, that can include unlocking the domain, retrieving an authorization code, approving a transfer email, or changing a registrar tag.
+
+Authorization codes are credentials:
+
+- accept them over an authenticated, encrypted connection;
+- store them only as long as the transfer or retry needs them;
+- never place them in URLs, logs, analytics, support transcripts, or metadata;
+- clear them from your local order state after Domain Chief accepts the request and you have stored its domain ID.
+
+Domain Chief stores an accepted code securely for the registry operation. If a retry later requires a corrected code, ask the customer for it again rather than retaining plaintext indefinitely.
+
+## Preserve or replace DNS deliberately
+
+The transfer request does not copy settings from the current registrar. Omitting DNS fields selects Domain Chief hosted DNS by default.
+
+To keep the domain resolving through its current DNS provider, retrieve the current authoritative configuration before submitting and send it explicitly:
+
+```json
+{
+  "is_using_hosted_dns": false,
+  "nameservers": [
+    {"hostname": "ns1.current-dns.example"},
+    {"hostname": "ns2.current-dns.example"}
+  ],
+  "dnssec_keys": [
+    {
+      "public_key": "$DNSSEC_PUBLIC_KEY",
+      "algorithm": 13,
+      "flags": 257,
+      "protocol": 3
+    }
+  ]
+}
+```
+
+Include DNSSEC keys only when you have verified that they still match the active zone and the TLD supports their algorithm. A stale key can break DNSSEC validation. If the customer wants Domain Chief hosted DNS instead, plan the zone migration and record cutover before setting `is_using_hosted_dns` to `true`.
+
+<Callout type="caution" title="A registrar transfer does not migrate a DNS zone">
+  Nameservers and DNSSEC delegation can be preserved in the transfer request, but records hosted by the current DNS provider remain there. Moving those records is a separate migration.
+</Callout>
+
+Before the transfer, follow [Manage contacts](/developers/domainchief/guides/contacts#create-or-reuse-a-contact) to collect, deduplicate, and store the required contact handles. Contacts and WHOIS privacy then follow the same request rules as registration. Omit both to use team defaults, send explicit supported contact handles, or set `is_whois_privacy_enabled` when the TLD supports it. See [Register a domain](/developers/domainchief/guides/registration#prepare-the-registration) for the complete preparation choices.
+
+## Start an immediate transfer
+
+Call [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain). Include `auth_code` when the customer has one:
+
+```http
+POST /api/v1/domains HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "domain": "customer-site.example",
+  "auth_code": "$AUTH_CODE",
+  "is_using_hosted_dns": false,
+  "nameservers": [
+    {"hostname": "ns1.current-dns.example"},
+    {"hostname": "ns2.current-dns.example"}
+  ],
+  "metadata": {
+    "customer_id": "cust_7316",
+    "order_id": "ord_2054"
+  }
+}
+```
+
+A `201 Created` response means Domain Chief accepted the transfer request. It does not mean the registry has completed it. Store the returned domain ID, canonical name, status, and notices immediately, then clear the authorization code from local plaintext state.
+
+When the registry uses a registrar-tag transfer, the response can include `domain.transfer.incoming.registrar_tag_required`. Read the target tag from `notice.data.registrar_tag` and show it to the customer only while the notice action remains present. The customer must change the domain's tag at the current registrar; there is no Domain Chief API call that performs that external step.
+
+If the endpoint returns `400 Bad Request` because an authorization code is required, preserve the non-secret form state, ask the customer for the code, and let them submit again. Do not guess a placeholder code.
+
+### Reconcile a lost response
+
+The endpoint can charge the team or create an invoice and has no idempotency key. If the connection fails, do not immediately repeat the request. Call [Show domain](/api/domainchief/domains#show-domain) by canonical name first. If the domain exists, attach its ID to the order and continue from its notices. If it returns `404 Not Found`, recheck availability and retry only after proving that no accepted request exists.
+
+## Schedule an eligible transfer
+
+Scheduled incoming transfers are available only for authorization-code transfers on teams that use monthly invoicing. Set `scheduled_transfer_at` in the initial request to an RFC 3339 timestamp between 15 minutes and one year in the future. Domain Chief discards seconds.
+
+```json
+{
+  "domain": "scheduled-customer.example",
+  "auth_code": "$AUTH_CODE",
+  "scheduled_transfer_at": "2026-09-15T09:30:00Z",
+  "is_using_hosted_dns": false,
+  "nameservers": [
+    {"hostname": "ns1.current-dns.example"},
+    {"hostname": "ns2.current-dns.example"}
+  ]
+}
+```
+
+A scheduled domain remains a placeholder until execution. Store its ID like any other accepted transfer.
+
+Use [Move a scheduled incoming transfer](/api/domainchief/domain-registration#move-scheduled-incoming-transfer) to change its time. The request can also replace the stored authorization code:
+
+```http
+PATCH /api/v1/domains/scheduled-customer.example/transfer/schedule HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "scheduled_transfer_at": "2026-09-18T14:00:00Z",
+  "auth_code": "$REPLACEMENT_AUTH_CODE"
+}
+```
+
+Use [Cancel a scheduled incoming transfer](/api/domainchief/domain-registration#cancel-scheduled-incoming-transfer) to remove the placeholder:
+
+```http
+DELETE /api/v1/domains/scheduled-customer.example/transfer/schedule HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Moving or cancelling is allowed only until five minutes before execution. On `409 Conflict`, retrieve the domain because the schedule may already be executing or its state may otherwise have changed. A successful schedule cancellation returns `204 No Content`; remove the placeholder from your local domain inventory.
+
+## Follow transfer progress
+
+Apply the returned notices immediately, then follow [Sync domains and contacts with your system](/developers/domainchief/guides/sync-data). Establish an event checkpoint before an initial snapshot, poll the team feed, and retrieve this domain after `domain.changed`. Do not poll every transferring domain separately.
+
+The [domain notice guide](/developers/domainchief/guides/notices) covers extensible notice handling. Common transfer conditions include:
+
+- processing: keep waiting for an event and do not resubmit;
+- registrar tag required: hand the target tag to the customer;
+- contact verification required: open or resend only through the advertised action;
+- failed: show the reported cause and offer only the current retry or cancel actions;
+- scheduled: show the execution time and allow changes only while the schedule endpoints accept them.
+
+Treat a transfer as complete when the current domain is `active` and no incoming-transfer processing or action-required notice remains. Treat a successful cancellation as complete when the placeholder is gone. Unknown statuses and notice values are not success or failure by default; preserve them and continue synchronization.
+
+## Recover a failed transfer
+
+Do not branch only on `status: failed`. Read the current `domain.transfer.incoming.failed` notice and its `actions`.
+
+When `domain.transfer.retry` is present, collect a current authorization code and call [Retry a failed transfer](/api/domainchief/domains#retry-a-failed-transfer):
+
+```http
+POST /api/v1/domains/customer-site.example/transfer/retry HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "auth_code": "$CORRECTED_AUTH_CODE"
+}
+```
+
+Include `intended_use` when the failure notice data says it is required. A `202 Accepted` response starts the retry. Replace the current domain and notice snapshot, clear the newly supplied code from local plaintext state, and resume event synchronization. Honor `Retry-After` on `429 Too Many Requests`; retrieve the domain after `409 Conflict`.
+
+When `domain.transfer.cancel` is present and the customer abandons the transfer, call [Cancel a failed incoming transfer](/api/domainchief/domains#cancel-failed-incoming-transfer). It returns `204 No Content` and deletes the placeholder. Cancellation does not refund the transfer charge, so make that consequence clear before confirmation.
+
+Never guess that retry or cancellation is still available because it appeared earlier. Refresh the domain and use the current notice actions at the moment the customer confirms.
+
+## API reference
+
+- [Check domain availability](/api/domainchief/domain-registration#check-domain-availability)
+- [Show TLD](/api/domainchief/tlds#show-tld)
+- [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain)
+- [Show domain](/api/domainchief/domains#show-domain)
+- [Move a scheduled incoming transfer](/api/domainchief/domain-registration#move-scheduled-incoming-transfer)
+- [Cancel a scheduled incoming transfer](/api/domainchief/domain-registration#cancel-scheduled-incoming-transfer)
+- [Retry a failed transfer](/api/domainchief/domains#retry-a-failed-transfer)
+- [Cancel a failed incoming transfer](/api/domainchief/domains#cancel-failed-incoming-transfer)
+- [List team events](/api/domainchief/team#list-team-events)
+- [`Domain` schema](/api/domainchief/~schemas#domain)
+- [`DomainNotice` schema](/api/domainchief/~schemas#domainnotice)
+
+Use [`.example` domains](/domainchief/example-tld) to test immediate, scheduled, failed, retried, and cancelled transfer flows without moving a public domain.

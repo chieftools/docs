@@ -96,7 +96,7 @@ Do not repeatedly fetch a domain to discover whether its notices changed. Poll [
 
 Use the notices returned by a mutation immediately. For later changes, collect the event feed's unique domain IDs and retrieve their current state with the `notices` expansion.
 
-The [event synchronization guide](/developers/domainchief/guides/events) covers checkpoints, cursors, batch retrieval, deduplication, and recovery.
+The [data synchronization guide](/developers/domainchief/guides/sync-data) covers initial snapshots, checkpoints, cursors, batch retrieval, deduplication, and recovery.
 
 ### Interpret the fields
 
@@ -210,7 +210,7 @@ Accept: application/json
 
 Dismissal hides that notice for the whole team. It does not remove the failed attempt from domain activity.
 
-## Refresh and retry safely
+## Keep notices current
 
 - Treat `notices` as a current snapshot, not as an event stream or audit log.
 - When a mutation returns a domain resource, use its notices immediately. Do not wait for a second request before updating the interface.
@@ -231,4 +231,4 @@ Use [domain activity](/api/domainchief/domains#list-domain-activity-2) when you 
 - [`DomainNoticeAction` schema](/api/domainchief/~schemas#domainnoticeaction)
 - [`DomainNoticeData` schema](/api/domainchief/~schemas#domainnoticedata)
 
-For the complete cursor workflow, read [Keep local data in sync with events](/developers/domainchief/guides/events).
+For the complete cursor workflow, read [Sync domains and contacts with your system](/developers/domainchief/guides/sync-data).

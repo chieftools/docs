@@ -1,0 +1,190 @@
+---
+title: Register a domain
+description: Quote, configure, submit, and follow a new domain registration without duplicating or losing an asynchronous request.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Register a domain | Domain Chief</title>
+</Head>
+
+A registration starts with an exact availability and price check, then one `POST /domains` request. Domain Chief returns the domain immediately and completes the registry work asynchronously. Store the returned domain ID and use notices and the team event feed to follow what happens next.
+
+## Recommended request flow
+
+1. [Confirm the selected name and exact price](#confirm-the-name-and-price).
+2. [Create or reuse the required contacts](/developers/domainchief/guides/contacts#create-or-reuse-a-contact), then [prepare the TLD-specific contact roles, DNS settings, intended-use text, and metadata](#prepare-the-registration).
+3. Make the commercial decision in your application before you [submit the registration](#submit-the-registration).
+4. [Submit the registration](#submit-the-registration) once and store the returned domain ID immediately.
+5. [Present payment or registry-agreement handoffs](#follow-the-asynchronous-result) when the response requires them.
+6. [Apply the returned domain and notices](#follow-the-asynchronous-result) to your local state.
+7. [Use the team event feed](/developers/domainchief/guides/sync-data#apply-event-pages) for later changes and retrieve the domain again when it changes.
+8. [Offer a correction or retry](#retry-a-failed-registration) only when the current notice includes the matching action.
+
+The token needs `domainchief:domains:register`. Depending on the preparation flow, it may also need the domain availability, TLD, contact, domain read, and event read scopes. The [API introduction](/developers/domainchief/api/introduction) covers authentication and team selection, and the [scope reference](/developers/domainchief/api/scopes) lists the available permissions.
+
+## Confirm the name and price
+
+Use the [domain search and pricing workflow](/developers/domainchief/guides/domain-search-pricing) to discover names. Immediately before registration, call [Check domain availability](/api/domainchief/domain-registration#check-domain-availability) for the selected name with `expand[]=price`:
+
+```http
+GET /api/v1/domains/availability/customer-portal.example?expand[]=price HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Continue only when `availability` is `free`. Show the exact `price` and `renewal_price`, apply your own retail pricing and tax rules, and ask the customer to confirm any change from the earlier search result.
+
+The registration request does not accept a price ceiling or idempotency key. A successful request can charge the team or create an invoice, so perform the final quote and customer confirmation before calling it.
+
+Use [Show TLD](/api/domainchief/tlds#show-tld) when you need the selected TLD's current capabilities. In particular, check:
+
+- `requires_intended_use` before deciding whether to collect an intended-use description.
+- `supports_whois_privacy` before enabling WHOIS privacy.
+- the supported contact roles before assigning contact handles.
+- DNSSEC support and algorithms before supplying DNSSEC keys.
+
+Capabilities and enum values can grow. Ignore fields you do not use and do not reject a TLD only because a response contains a new value.
+
+## Prepare the registration
+
+### Contacts and WHOIS privacy
+
+Omit `contacts` to use the team's default contacts for supported roles. If your application supplies explicit contacts, follow [Manage contacts](/developers/domainchief/guides/contacts#create-or-reuse-a-contact) to collect, deduplicate, and store the required handles before registration. The underlying [Create a new contact](/api/domainchief/contacts#create-a-new-contact) operation returns each handle used here.
+
+Supply only roles the TLD supports. Missing supported roles fall back to the team's defaults, while unsupported roles are ignored.
+
+`contacts` and `is_whois_privacy_enabled` are mutually exclusive. Choose one of these approaches:
+
+- Omit both fields to use the team's default WHOIS privacy choice and default contacts.
+- Set `is_whois_privacy_enabled` to `true` or `false` to override the team default for this domain.
+- Supply `contacts` when the domain needs explicit role assignments; this disables WHOIS privacy for the request.
+
+### Hosted DNS, nameservers, and DNSSEC
+
+Omit DNS fields to use Domain Chief hosted DNS. Set `is_using_hosted_dns` to `false` and provide between two and eight nameservers when DNS will be hosted elsewhere:
+
+```json
+{
+  "is_using_hosted_dns": false,
+  "nameservers": [
+    {"hostname": "ns1.customer-dns.example"},
+    {"hostname": "ns2.customer-dns.example"}
+  ]
+}
+```
+
+Add glue IPv4 or IPv6 addresses only when the nameserver requires them. Supply `dnssec_keys` only when the TLD and selected algorithm support DNSSEC. DNSSEC keys describe the child's registry delegation; they do not create DNS records in the hosted zone.
+
+### Intended use and metadata
+
+When `requires_intended_use` is true, collect a concise description of how the registrant will use the domain and send it as `intended_use`. Do not invent an answer on the customer's behalf.
+
+Use `metadata` for your own stable references, such as a customer or order ID. Metadata values are strings. It is useful for reconciliation, but it does not replace storing Domain Chief's returned domain ID.
+
+## Submit the registration
+
+Call [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain) once the order or other commercial decision is final:
+
+```http
+POST /api/v1/domains HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "domain": "customer-portal.example",
+  "is_using_hosted_dns": false,
+  "nameservers": [
+    {"hostname": "ns1.customer-dns.example"},
+    {"hostname": "ns2.customer-dns.example"}
+  ],
+  "is_whois_privacy_enabled": false,
+  "metadata": {
+    "customer_id": "cust_4821",
+    "order_id": "ord_9137"
+  }
+}
+```
+
+<Callout type="caution" title="Do not retry a timed-out registration blindly">
+  The request can have succeeded even when your client did not receive the response. Repeating it as a generic network retry can duplicate commercial intent. Reconcile the domain first.
+</Callout>
+
+A `201 Created` response means Domain Chief accepted the request, not necessarily that the registry has activated the domain. In the same transaction as your order state, store at least:
+
+- the returned domain `id` and canonical `domain`;
+- its current `status`;
+- the complete `notices` array;
+- your own customer and order association.
+
+Clear any short-lived checkout state after this durable association exists. Do not wait for activation before storing the ID.
+
+### Reconcile an uncertain response
+
+If the connection ends without a usable response:
+
+1. Call [Show domain](/api/domainchief/domains#show-domain) using the canonical name.
+2. If it exists, attach the returned ID to the order and continue from its status and notices.
+3. If it returns `404 Not Found`, run the exact availability check again.
+4. Retry `POST /domains` only if the name is still `free` and your application can prove that no accepted request exists.
+
+A `409 Conflict` usually means the domain or a competing request already exists. Retrieve the domain before deciding what to show. Do not turn a conflict into an automatic second registration attempt.
+
+## Follow the asynchronous result
+
+Use the response's notices immediately. Then follow [Sync domains and contacts with your system](/developers/domainchief/guides/sync-data): establish an event checkpoint before the initial read, poll the team event feed, and retrieve the domain when `domain.changed` appears. The [domain notice guide](/developers/domainchief/guides/notices) explains how to render current conditions and actions.
+
+Treat status and notices as separate signals:
+
+- `active` means the domain is available for normal management.
+- `requested` means processing is still underway; keep the processing notice visible.
+- `pending_payment` requires a customer or billing handoff. Do not submit another registration.
+- `failed` requires the current failure notice to decide whether correction, retry, or support is appropriate.
+- Unknown status values are not success. Preserve them, show a neutral pending state, and continue synchronization.
+
+Registry agreements can also block submission. A `400 Bad Request` may direct the team to accept an agreement in Domain Chief. There is no public agreement-acceptance endpoint; send an authorized team member through that handoff, then let them explicitly retry the registration.
+
+### Retry a failed registration
+
+Offer retry only while the current notice includes `domain.registration.retry`. After correcting the reported cause, call [Retry a failed registration](/api/domainchief/domains#retry-a-failed-registration):
+
+```http
+POST /api/v1/domains/customer-portal.example/registration/retry HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+A `202 Accepted` response means the retry started. Replace the displayed domain and notices with that response and resume event-based synchronization. Honor `Retry-After` after `429 Too Many Requests`. On `409 Conflict`, retrieve the domain because its state changed before the retry was accepted.
+
+Do not infer retry eligibility from `status: failed` alone. The notice action is the current authorization and state signal.
+
+## Handle request errors
+
+- `400 Bad Request` indicates an unsupported TLD option, a missing registry requirement, or a required external handoff such as an agreement.
+- `401 Unauthorized` and `403 Forbidden` require corrected authentication, team selection, or scopes.
+- `409 Conflict` requires reconciliation with the current domain state.
+- `422 Unprocessable Content` means the submitted fields failed validation; preserve the customer's form and show field-level corrections.
+
+Do not log contact identity data, authorization headers, or complete request bodies. Keep operational logs to request IDs, your order reference, the canonical domain, response status, and returned Domain Chief resource ID.
+
+## API reference
+
+- [Check domain availability](/api/domainchief/domain-registration#check-domain-availability)
+- [Show TLD](/api/domainchief/tlds#show-tld)
+- [Create a new contact](/api/domainchief/contacts#create-a-new-contact)
+- [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain)
+- [Show domain](/api/domainchief/domains#show-domain)
+- [Retry a failed registration](/api/domainchief/domains#retry-a-failed-registration)
+- [List team events](/api/domainchief/team#list-team-events)
+- [`Domain` schema](/api/domainchief/~schemas#domain)
+- [`DomainNotice` schema](/api/domainchief/~schemas#domainnotice)
+
+Use [`.example` domains](/domainchief/example-tld) to test registrations and failures without buying a public domain.
