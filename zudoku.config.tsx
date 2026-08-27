@@ -23,21 +23,38 @@ const config: ZudokuConfig = {
         },
         showPoweredBy: false,
     },
-    apis: {
-        type: 'file',
-        path: '/api/domainchief',
-        input: './apis/domainchief.json',
-        options: {
-            schemaDownload: {
-                enabled: true,
+    apis: [
+        {
+            type: 'file',
+            path: '/api/accountchief/rest',
+            input: './apis/accountchief.json',
+            options: {
+                schemaDownload: {
+                    enabled: true,
+                },
+                disableSecurity: false,
+                examplesLanguage: 'shell',
+                supportedLanguages: [
+                    {label: 'cURL', value: 'shell'},
+                ],
             },
-            disableSecurity: false,
-            examplesLanguage: 'shell',
-            supportedLanguages: [
-                {label: 'cURL', value: 'shell'},
-            ],
         },
-    },
+        {
+            type: 'file',
+            path: '/api/domainchief',
+            input: './apis/domainchief.json',
+            options: {
+                schemaDownload: {
+                    enabled: true,
+                },
+                disableSecurity: false,
+                examplesLanguage: 'shell',
+                supportedLanguages: [
+                    {label: 'cURL', value: 'shell'},
+                ],
+            },
+        },
+    ],
     docs: {
         llms: {
             llmsTxt: true,
@@ -78,6 +95,15 @@ const config: ZudokuConfig = {
                     },
                 },
             ],
+        }),
+        graphqlPlugin({
+            schema: './apis/accountchief.graphql',
+            endpoint: 'https://account.chief.app/api/graphql',
+            path: '/api/accountchief/graphql',
+            options: {
+                title: 'Account Chief GraphQL API',
+                description: 'Query Account Chief profiles, teams, and account data.',
+            },
         }),
         graphqlPlugin({
             schema: './apis/certchief.graphql',
@@ -408,9 +434,28 @@ const config: ZudokuConfig = {
                             label: 'Introduction',
                         },
                         {
-                            type: 'doc',
-                            file: '/developers/accountchief/scopes',
-                            label: 'Scopes',
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'doc',
+                                    file: '/developers/accountchief/scopes',
+                                    label: 'Scopes',
+                                },
+                                {
+                                    type: 'link',
+                                    label: 'REST API reference',
+                                    to: '/api/accountchief/rest',
+                                    stack: true,
+                                },
+                                {
+                                    type: 'link',
+                                    label: 'GraphQL API reference',
+                                    to: '/api/accountchief/graphql',
+                                    stack: true,
+                                },
+                            ],
                         },
                     ],
                 },
@@ -467,10 +512,17 @@ const config: ZudokuConfig = {
                             label: 'Introduction',
                         },
                         {
-                            type: 'link',
-                            label: 'GraphQL API reference',
-                            to: '/api/certchief',
-                            stack: true,
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'link',
+                                    label: 'GraphQL API reference',
+                                    to: '/api/certchief',
+                                    stack: true,
+                                },
+                            ],
                         },
                     ],
                 },
@@ -485,10 +537,17 @@ const config: ZudokuConfig = {
                             label: 'Introduction',
                         },
                         {
-                            type: 'link',
-                            label: 'GraphQL API reference',
-                            to: '/api/deploychief',
-                            stack: true,
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'link',
+                                    label: 'GraphQL API reference',
+                                    to: '/api/deploychief',
+                                    stack: true,
+                                },
+                            ],
                         },
                     ],
                 },
@@ -502,12 +561,23 @@ const config: ZudokuConfig = {
                             file: '/developers/tny',
                             label: 'Introduction',
                         },
-                        '/developers/tny/scopes',
                         {
-                            type: 'link',
-                            label: 'GraphQL API reference',
-                            to: '/api/tny',
-                            stack: true,
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'doc',
+                                    file: '/developers/tny/scopes',
+                                    label: 'Scopes',
+                                },
+                                {
+                                    type: 'link',
+                                    label: 'GraphQL API reference',
+                                    to: '/api/tny',
+                                    stack: true,
+                                },
+                            ],
                         },
                     ],
                 },

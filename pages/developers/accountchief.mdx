@@ -53,6 +53,29 @@ Account Chief provides authentication and account context across Chief Tools. It
   </Link>
 </div>
 
+## API documentation
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/api/accountchief/rest"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">REST API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Browse endpoints, request fields, response schemas, and required permissions.
+    </p>
+  </Link>
+  <Link
+    to="/api/accountchief/graphql"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">GraphQL API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Explore the schema and send queries from the playground.
+    </p>
+  </Link>
+</div>
+
 ## Continue to a product API
 
 Authentication establishes who the integration acts for. The product API controls what it can do next.

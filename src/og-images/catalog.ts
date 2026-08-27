@@ -57,6 +57,14 @@ export const ogImageBrands: OgImageBrand[] = [
     fallbackDescription: 'Integrate applications and scripts with the Domain Chief API.',
   },
   {
+    prefix: '/api/accountchief',
+    styleId: 'accountchief',
+    productName: 'Account Chief',
+    label: 'API reference',
+    fallbackTitle: 'Account Chief API reference',
+    fallbackDescription: 'Query Account Chief profiles, email addresses, teams, and account data.',
+  },
+  {
     prefix: '/api/domainchief',
     styleId: 'domainchief',
     productName: 'Domain Chief',
