@@ -1,7 +1,7 @@
 ---
 title: Introduction
 ogTitle: Integrate with Account Chief
-description: Use Account Chief authentication, OAuth, identity scopes, and team context in a Chief Tools integration.
+description: Use Account Chief authentication, OAuth, team APIs, scopes, and identity data in a Chief Tools integration.
 ---
 
 import {Head, Link} from "zudoku/components";
@@ -10,7 +10,7 @@ import {Head, Link} from "zudoku/components";
   <title>Introduction | Account Chief developers</title>
 </Head>
 
-Account Chief provides authentication and account context across Chief Tools. It issues API tokens, runs the OAuth 2.0 and OpenID Connect flows, and identifies the user or team an integration acts for.
+Account Chief provides authentication and account context across Chief Tools. It issues API tokens, runs the OAuth 2.0 and OpenID Connect flows, and provides APIs for teams, members, connected applications, invoices, and token metadata.
 
 ## Start with authentication
 
@@ -48,7 +48,7 @@ Account Chief provides authentication and account context across Chief Tools. It
   >
     <div className="font-semibold">Scopes</div>
     <p className="mt-1.5 text-sm text-muted-foreground">
-      Request the profile, email, and team information your application uses.
+      Choose access to team settings, members, applications, invoices, token metadata, and identity details.
     </p>
   </Link>
 </div>
