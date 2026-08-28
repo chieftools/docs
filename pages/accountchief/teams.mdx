@@ -1,0 +1,137 @@
+---
+title: Manage teams and roles
+ogTitle: Manage team members and roles
+description: Invite people to a team, choose their access, change roles, and remove members safely.
+---
+
+import {BrowserWindow, Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Manage teams and roles | Account Chief</title>
+</Head>
+
+Use this guide to invite people to an Account Chief team and give them the access they need.
+
+## Choose your task
+
+- [Invite a team member](#invite-a-team-member)
+- [Compare Owner, Member, and Billing](#choose-a-role)
+- [Change a member's role](#change-a-members-role)
+- [Transfer team ownership](#transfer-team-ownership)
+- [Remove a member or leave a team](#remove-a-member-or-leave-a-team)
+- [Fix a team access problem](#troubleshooting)
+
+## Invite a team member
+
+You must be an Owner of the team.
+
+1. Open <ExternalLink href="https://account.chief.app/teams">**Teams**</ExternalLink> in Account Chief and select the team.
+2. Expand **Invite member**.
+3. Enter the person's **Email address**.
+4. Select a **Role**. Choose **Member** for ordinary app access, **Billing** for someone who only manages subscriptions and invoices, or **Owner** for full team administration.
+5. Select **Invite team member**.
+
+### What happens next
+
+Account Chief emails an invitation that names the team and selected role. The recipient can sign in or create a Chief Tools account, then select **Accept**. Their role appears beside their name in the **Members** list after they accept.
+
+The invitation email states when its link expires. Send a new invitation if the recipient does not accept it in time.
+
+## Choose a role
+
+| Capability | Owner | Member | Billing |
+|---|:---:|:---:|:---:|
+| Use connected Chief Tools apps | Yes | Yes | No |
+| View team details, members, plans, limits, and team token metadata | Yes | Yes | Yes |
+| Manage subscriptions and invoices | Yes | No | Yes |
+| Edit the team name, Gravatar email, and timezone | Yes | No | No |
+| Invite or remove people and change roles | Yes | No | No |
+| Create or revoke team API access tokens | Yes | No | No |
+| Use the team as the default when signing in | Yes | Yes | No |
+| Delete the team | Yes | No | No |
+
+<BrowserWindow
+  className="my-6"
+  url="https://account.chief.app/teams"
+>
+  <img
+    className="block w-full rounded-t-none dark:hidden"
+    src="/accountchief/teams/team-members-light.png"
+    alt="Members panel for an example team showing Owner, Member, and Billing roles"
+    width="900"
+    height="267"
+    loading="lazy"
+  />
+  <img
+    className="hidden w-full rounded-t-none dark:block"
+    src="/accountchief/teams/team-members-dark.png"
+    alt="Members panel for an example team showing Owner, Member, and Billing roles"
+    width="900"
+    height="267"
+    loading="lazy"
+  />
+</BrowserWindow>
+
+The names and email addresses above are demonstration data.
+
+<Callout type="caution" title="Billing removes app access">
+  When you change someone to Billing, Account Chief removes their access to connected apps for this team and revokes their personal or OAuth credentials tied to it. If they no longer have an Owner or Member role on any team, Account Chief revokes all their personal and OAuth credentials. Team API access tokens belong to the team and are not affected.
+</Callout>
+
+## Change a member's role
+
+You must be an Owner, and you can only change another person's role.
+
+1. Open **Teams** and select the team.
+2. Find the person under **Members**.
+3. Select their current role.
+4. Select **Owner**, **Member**, or **Billing**.
+
+Account Chief saves the role immediately. The person's available actions change the next time they open a page. Changing someone to Billing also has the credential effects described under [Choose a role](#choose-a-role).
+
+## Transfer team ownership
+
+Account Chief requires every team to keep at least one Owner. You cannot change your own role, so another Owner must complete a transfer.
+
+1. Invite the new owner with the **Owner** role, or change an existing member to **Owner**.
+2. Wait until the new owner appears as **Owner** in the **Members** list.
+3. Ask that owner to change your role to **Member** or **Billing**. You can also leave the team once another owner remains.
+
+The team is no longer dependent on your account when another Owner remains.
+
+## Remove a member or leave a team
+
+An Owner can remove another person. Any team member can leave on their own, unless they are the team's final Owner.
+
+1. Open **Teams** and select the team.
+2. Find the person under **Members**.
+3. Use the action at the right of their row.
+4. Confirm **Remove from team** or **Leave this team**.
+
+### What happens next
+
+The person loses access to the team's resources. Account Chief also revokes credentials tied to that team. If the person no longer has app access through another team, it revokes all their personal and OAuth credentials.
+
+If the removed team was their default, Account Chief chooses another team. When no other team remains, Account Chief creates a personal team for them.
+
+## Troubleshooting
+
+### Why can I not change my own role?
+
+Account Chief does not let anyone change their own role. Ask another Owner to make the change. If you are the only Owner, assign another person as Owner first.
+
+### Why can I not leave or remove an owner?
+
+That person is the team's final Owner. Add another Owner before changing or removing them. The same safeguard stops the final Owner from deleting their Chief Tools account while other people still belong to the team.
+
+### Why can a billing member not open a connected app?
+
+Billing access is limited to team details, subscriptions, and invoices. Change the person to Member or Owner if they also need to use connected Chief Tools apps.
+
+### Why can I not send the invitation again?
+
+Account Chief limits repeated invitations to the same email address. Wait for the retry period shown by Account Chief, then send a new invitation. If the first link has expired, the recipient must use the new email.
+
+### Why does the invitation show a different email address?
+
+The recipient is signed in with an address other than the invited address. They should sign out and use the address named in the invitation before accepting it.

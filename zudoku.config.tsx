@@ -204,6 +204,11 @@ const config: ZudokuConfig = {
                     items: [
                         '/accountchief/introduction',
                         {
+                            type: 'doc',
+                            file: '/accountchief/teams',
+                            label: 'Teams and roles',
+                        },
+                        {
                             type: 'link',
                             label: 'Developers',
                             to: '/developers/accountchief',

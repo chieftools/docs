@@ -108,3 +108,7 @@ Start the flow at the `device_authorization_endpoint`. Show the returned verific
 Request only the [scopes](/developers/scopes) your integration needs. Treat the token response's `scope` value as authoritative because a user can grant a subset of optional app permissions.
 
 An OAuth grant may also select a team. Keep that team context attached to the connection and follow the product's rules for team-scoped and non-team-scoped tokens. For Domain Chief, see [Select a team](/developers/domainchief/api/introduction#select-a-team).
+
+When a grant selects a team, its ID token and token introspection data include `team_role`. Use this claim together with the granted scopes, not instead of them. Account Chief only authorizes connected apps for Owner and Member memberships; Billing memberships are not available for OAuth team selection.
+
+If the user leaves the selected team or changes to Billing, credentials tied to that team stop working. Handle an API `401` or an `invalid_grant` refresh response by clearing the connection and asking the user to authorize again.

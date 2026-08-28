@@ -1,0 +1,12 @@
+screenshots:
+  - id: team-members
+    source_images:
+      light: public/accountchief/teams/team-members-light.png
+      dark: public/accountchief/teams/team-members-dark.png
+    local_url: https://account.chief.test/team/lqyorkeb
+    public_url: https://account.chief.app/teams
+    viewport: 900x1000
+    state: ACME B.V. Members panel with Jan Jansen as Owner, Sophie Bakker as Member, and Henk Vos as Billing; role menus and account menu closed
+    interactions: Attach users 77479d6e-15e4-49d8-a227-9e63df9d2e92 and 7830a141-fa60-4a88-a846-60e9fccfbb73 to ACME B.V. as Member and Billing respectively
+    crop: x=0, y=650, width=900, height=267
+version: 1

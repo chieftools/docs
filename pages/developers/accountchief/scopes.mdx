@@ -52,7 +52,9 @@ Each endpoint in the [REST API reference](/api/accountchief/rest) lists its requ
 | Scope | Access |
 |---|---|
 | `accountchief:team:members:read` | List and view team members |
-| `accountchief:team:members:write` | List, view, invite, and remove team members |
+| `accountchief:team:members:write` | List, view, invite, change the roles of, and remove team members |
+
+Scopes do not override the authenticated user's team role. User credentials need the Owner role to invite someone, change another person's role, or remove someone else. Any team member can remove themselves. A team access token with this scope acts for its own team. See [Manage teams and roles](/accountchief/teams) for the role permissions and ownership safeguards.
 
 ### Team access tokens
 
@@ -77,6 +79,8 @@ The team token endpoints return metadata such as a token's name, scopes, creator
 Do not use an email address as the stable account identifier. OpenID Connect's `sub` claim identifies the user.
 
 Request `teams` when the user needs to choose which team the integration should use. A team-scoped token limits the returned team information to its selected team. User credentials can use `accountchief:team:read` instead of `teams` for the basic team list and detail endpoints, but that API scope does not add team claims to identity responses.
+
+Billing memberships are available from the Account Chief team endpoints, but Account Chief omits them from connected-app identity responses because Billing does not grant access to connected apps.
 
 Keep the selected team ID with the connection. Product APIs may also accept that ID in a request header. For example, Domain Chief documents its behavior under [Select a team](/developers/domainchief/api/introduction#select-a-team).
 
@@ -112,7 +116,7 @@ A team access token can always list and view its own team, including a legacy to
 accountchief:team:members:write
 ```
 
-The token can list, invite, and remove team members. It cannot update team settings or read invoices.
+The token can list, invite, change the roles of, and remove team members when its credential also passes the team role rules above. It cannot update team settings or read invoices.
 
 ### Build a billing report
 
