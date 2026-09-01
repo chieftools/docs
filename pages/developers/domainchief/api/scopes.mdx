@@ -98,15 +98,20 @@ The token can read and change DNS records. It cannot list domains, manage contac
 domainchief:read
 ```
 
-The token can read domains, contacts, events, DNS records, TLDs, and activity. It cannot change them.
+The token can read domains, contacts, events, DNS records, redirects, TLDs, and activity. It cannot change them.
 
 ### Keep a local copy in sync
 
 ```text
-domainchief:events:read, domainchief:domains:read, domainchief:contacts:read
+domainchief:events:read
+domainchief:domains:read
+domainchief:contacts:read
+domainchief:dns:read
+domainchief:redirects_web:read
+domainchief:redirects_mail:read
 ```
 
-The token can read the team event feed and retrieve current domain and contact state. It cannot change those resources. The [data synchronization guide](/developers/domainchief/guides/sync-data) explains the snapshot and cursor workflow.
+The token can read the team event feed and retrieve current domains, contacts, DNS records, web redirects, and mail forwards. It cannot change those resources. Remove scopes for resource types the integration does not store. The [data synchronization guide](/developers/domainchief/guides/sync-data) explains the snapshot and cursor workflow.
 
 ### Check domain availability
 

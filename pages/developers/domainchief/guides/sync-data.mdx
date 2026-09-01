@@ -1,38 +1,47 @@
 ---
-title: Sync domains and contacts with your system
-description: Build an initial Domain Chief snapshot, then keep domains and contacts current with the team event feed.
+title: Sync Domain Chief data with your system
+description: Build an initial snapshot, then keep domains, contacts, DNS records, web redirects, and mail forwards current with the team event feed.
 ---
 
 import {Callout, Head} from "zudoku/components";
 
 <Head>
-  <title>Sync domains and contacts with your system | Domain Chief</title>
+  <title>Sync Domain Chief data with your system | Domain Chief</title>
 </Head>
 
-Load domains and contacts once to build a local snapshot. If that snapshot must stay current, create an event checkpoint before the initial read and use [List team events](/api/domainchief/team#list-team-events) to retrieve only the resources that change afterward.
+Load the Domain Chief resources your application needs once to build a local snapshot. If that snapshot must stay current, create an event checkpoint before the initial read and use [List team events](/api/domainchief/team#list-team-events) to retrieve only the resources that change afterward.
 
-Use the same collection requests for a one-time inventory, portfolio dashboard, or report. Skip the checkpoint and event loop when you do not need later changes.
+The event feed covers domains, contacts, DNS records, web redirects, and mail forwards. Use the same collection requests for a one-time inventory, portfolio dashboard, or report. Skip the checkpoint and event loop when you do not need later changes.
 
 ## Recommended sync flow
 
-1. Decide whether to sync domains, contacts, or both.
+1. Decide which supported resource types to sync.
 2. For continuous sync, call [List team events](/api/domainchief/team#list-team-events) without a cursor and store the returned checkpoint.
-3. Build the initial snapshot with [List domains](/api/domainchief/domains#list-domains) and, when needed, [List contacts](/api/domainchief/contacts#list-contacts).
-4. Poll [List team events](/api/domainchief/team#list-team-events) with the saved cursor.
-5. Collect each page's unique resource identifiers and retrieve their current state in batches.
-6. Apply the resource changes and any activity data your application needs.
-7. Save the returned cursor only after the complete page has been applied.
-8. Continue immediately while `meta.has_more` is `true`. Otherwise, wait before polling again.
+3. Load domains and contacts when the snapshot needs them.
+4. For each domain, load the selected DNS record, web redirect, and mail forward collections that apply.
+5. Poll [List team events](/api/domainchief/team#list-team-events) with the saved cursor.
+6. Route each event by `resource.type`. Use `resource.parent.id` for a domain-scoped resource.
+7. Apply deletions directly and retrieve current state for created or changed resources.
+8. Save the returned cursor only after the complete page has been applied.
+9. Continue immediately while `meta.has_more` is `true`. Otherwise, wait before polling again.
 
-Use `domainchief:domains:read` and `domainchief:contacts:read` for the resources you store. Continuous sync also needs `domainchief:events:read`. The broader `domainchief:read` scope works for a read-only monitoring integration, but resource-specific scopes give a dedicated sync process less access.
+Grant the read scope for each resource type the application stores:
 
-Pin the team with `X-Chief-Team` when the token does not already belong to one team. Use the same team for the snapshot, event feed, and every batch request. The [API introduction](/developers/domainchief/api/introduction#select-a-team) explains team selection.
+- `domainchief:domains:read` for domains and for finding domains that own nested resources
+- `domainchief:contacts:read` for contacts
+- `domainchief:dns:read` for DNS records
+- `domainchief:redirects_web:read` for web redirects
+- `domainchief:redirects_mail:read` for mail forwards
+
+Continuous sync also needs `domainchief:events:read`. The broader `domainchief:read` scope works for a read-only integration that stores every supported type. Resource-specific scopes give a dedicated sync process less access.
+
+Pin the team with `X-Chief-Team` when the token does not already belong to one team. Use the same team for the snapshot, event feed, and every resource request. The [API introduction](/developers/domainchief/api/introduction#select-a-team) explains team selection.
 
 ## Build the initial snapshot
 
 ### Create a checkpoint for continuous sync
 
-Call [List team events](/api/domainchief/team#list-team-events) without `cursor` before reading the first domain or contact page:
+Call [List team events](/api/domainchief/team#list-team-events) without `cursor` before reading the first selected collection:
 
 ```http
 GET /api/v1/events HTTP/1.1
@@ -109,6 +118,40 @@ The batch response preserves request order but can omit contacts that no longer 
 
 Call [List contacts](/api/domainchief/contacts#list-contacts) and follow its pagination when your application needs every team contact, including contacts that no current domain uses. Do not load the full contact collection merely to display the contacts already referenced by domains.
 
+### Load domain-scoped resources
+
+DNS records, web redirects, and mail forwards belong to a domain. Store the domain ID with each nested resource. Events use that ID in `resource.parent.id` so the application can call the matching domain-scoped endpoint later.
+
+For each domain in the snapshot, load the collections your application stores:
+
+```http
+GET /api/v1/domains/$DOMAIN_ID/dns/records?per_page=100&page=1 HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+```http
+GET /api/v1/domains/$DOMAIN_ID/redirects/web?per_page=100&page=1 HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+```http
+GET /api/v1/domains/$DOMAIN_ID/redirects/mail?per_page=100&page=1 HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Follow every collection's pagination and store each item by its stable `id` plus its parent domain ID. Request DNS records and web redirects when `is_using_hosted_dns` is `true`. Request mail forwards when `mail_forward_status` is not `disabled`.
+
+Skip collections the application does not store. A complete nested-resource snapshot still starts with [List domains](/api/domainchief/domains#list-domains), because the nested collection endpoints require a domain name or ID.
+
 ### Use filters for partial views
 
 Collection filters are useful for a one-time report or customer-specific portfolio. Do not use a partial collection as the baseline for a complete local copy.
@@ -139,17 +182,21 @@ X-Chief-Team: $TEAM_ID
 Accept: application/json
 ```
 
-An event identifies a resource that may have changed:
+An event identifies the affected resource. Nested resources include their parent domain:
 
 ```json
 {
   "data": [
     {
       "id": "$EVENT_ID",
-      "type": "domain.changed",
+      "type": "dns_record.changed",
       "resource": {
-        "type": "domain",
-        "id": "$DOMAIN_ID"
+        "type": "dns_record",
+        "id": "$DNS_RECORD_ID",
+        "parent": {
+          "type": "domain",
+          "id": "$DOMAIN_ID"
+        }
       },
       "activity": null,
       "occurred_at": "2026-08-23T12:07:12Z"
@@ -162,13 +209,23 @@ An event identifies a resource that may have changed:
 }
 ```
 
-Events are invalidation signals, not resource snapshots. Retrieve the resource before updating its fields. Changes made by the same integration also appear in the feed, so process them like any other event.
+The `parent` value is `null` for domains and contacts. For DNS records, web redirects, and mail forwards, it contains the domain needed by the matching endpoint.
+
+Events are notifications, not resource snapshots. Retrieve current state before updating local fields. Changes made by the same integration also appear in the feed, so process them like any other event.
 
 Event types are extensible. Do not reject a page because it contains a type your application does not recognize. The [`TeamEvent` schema](/api/domainchief/~schemas#teamevent) documents the current contract.
 
-### Retrieve current resources in batches
+### Route resource changes
 
-Collect unique identifiers by `resource.type` across the page. Retrieve each resource once, even when several events reference it.
+Collect unique resource keys across the page. Use `resource.type` and `resource.id` for domains and contacts. Include `resource.parent.id` in the key for nested resources.
+
+Remove local resources immediately for `contact.deleted`, `dns_record.deleted`, `web_redirect.deleted`, and `mail_forward.deleted`. These events already describe the current absence, so do not request the deleted resource.
+
+Retrieve current state for the other recognized events. If a resource disappears between the event and the request, treat a `404 Not Found` or an omitted batch result as current absence and remove the local copy. Several `*.changed` notifications for the same resource may be combined into one event. Retrieve each unique resource only once per page.
+
+Record unknown event or resource types for monitoring and continue processing the page. Do not guess which endpoint or local table they belong to.
+
+### Refresh domains and contacts in batches
 
 Use [List specific domains](/api/domainchief/domains#list-specific-domains) for up to 100 domain names or IDs. Request notices when the application presents [domain notices](/developers/domainchief/guides/notices):
 
@@ -201,9 +258,37 @@ Content-Type: application/json
 }
 ```
 
-Both batch endpoints preserve request order but omit resources that no longer exist or no longer belong to the selected team. Match results by identifier. Remove a requested resource that is absent from the response from your synchronized local copy.
+Both batch endpoints preserve request order but omit resources that no longer exist or no longer belong to the selected team. Match results by identifier, not array position.
 
-Several `*.changed` notifications for the same resource may be combined into one event. They tell you to retrieve the latest state, not how many changes occurred.
+### Refresh domain-scoped resources
+
+Use `resource.parent.id` as `$DOMAIN_ID` and `resource.id` as the nested resource ID. Call the matching endpoint for each unique created or changed resource:
+
+```http
+GET /api/v1/domains/$DOMAIN_ID/dns/records/$DNS_RECORD_ID HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+```http
+GET /api/v1/domains/$DOMAIN_ID/redirects/web/$WEB_REDIRECT_ID HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+```http
+GET /api/v1/domains/$DOMAIN_ID/redirects/mail/$MAIL_FORWARD_ID HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Upsert a successful response by its resource ID and parent domain ID. Remove the local resource after `404 Not Found`.
 
 ### Include activity when needed
 
@@ -225,9 +310,10 @@ Apply a page in this order:
 
 1. Deduplicate events by their stable `id`.
 2. Process recognized activity events.
-3. Retrieve and store current resources for the unique identifiers in the page.
-4. Remove requested resources omitted from the batch responses.
-5. Save `meta.cursor`.
+3. Apply recognized resource deletion events.
+4. Retrieve current state once for each remaining unique resource.
+5. Upsert returned resources and remove resources that are now absent.
+6. Save `meta.cursor`.
 
 If `meta.has_more` is `true`, request the next page with the newly saved cursor without waiting for the next polling interval.
 
@@ -239,7 +325,7 @@ If `meta.has_more` is `true`, request the next page with the newly saved cursor 
 
 ### Resume an interrupted read
 
-Keep the previous cursor when an event request, batch read, or local write fails. Resume from that cursor after the failure clears. Save the new cursor only after the related local writes succeed.
+Keep the previous cursor when an event request, resource read, or local write fails. Resume from that cursor after the failure clears. Save the new cursor only after the related local writes succeed.
 
 For an interrupted initial snapshot, request the failed collection page again with the same query parameters and upsert resources by identifier. Do not restart from page 1 unless your local import transaction requires it.
 
@@ -252,14 +338,14 @@ Domain Chief returns `422 Unprocessable Content` for an invalid cursor. Do not c
 If the saved cursor is missing or invalid:
 
 1. Request a new checkpoint without a cursor.
-2. Rebuild the current domain and contact snapshot.
+2. Rebuild the snapshot for every resource type the application stores.
 3. Resume event polling from the new checkpoint.
 
 The new snapshot is required because a fresh checkpoint does not replay changes that occurred before it.
 
 ### Keep one cursor per team
 
-Store each cursor with its team. Use that same team for the event request and all related collection and batch requests. Never reuse a cursor across teams.
+Store each cursor with its team. Use that same team for the event request and every related resource request. Never reuse a cursor across teams.
 
 `401 Unauthorized` requires a valid token. `403 Forbidden` requires corrected team access or scopes. `422 Unprocessable Content` means a filter, expansion, page size, sort, batch body, or cursor is invalid. Correct the request before sending it again.
 
@@ -269,9 +355,18 @@ Store each cursor with its team. Use that same team for the event request and al
 - [List specific domains](/api/domainchief/domains#list-specific-domains)
 - [List contacts](/api/domainchief/contacts#list-contacts)
 - [List specific contacts](/api/domainchief/contacts#list-specific-contacts)
+- [List DNS records](/api/domainchief/dns#list-dns-records)
+- [Show DNS record](/api/domainchief/dns#show-dns-record)
+- [List web redirects](/api/domainchief/web-redirects#list-web-redirects)
+- [Show web redirect](/api/domainchief/web-redirects#show-web-redirect)
+- [List mail forwards](/api/domainchief/mail-forwarding#list-mail-forwards)
+- [Show mail forward](/api/domainchief/mail-forwarding#show-mail-forward)
 - [List team events](/api/domainchief/team#list-team-events)
 - [`Domain` schema](/api/domainchief/~schemas#domain)
 - [`Contact` schema](/api/domainchief/~schemas#contact)
+- [`DNSRecord` schema](/api/domainchief/~schemas#dnsrecord)
+- [`WebRedirect` schema](/api/domainchief/~schemas#webredirect)
+- [`MailForward` schema](/api/domainchief/~schemas#mailforward)
 - [`TeamEvent` schema](/api/domainchief/~schemas#teamevent)
 
 For customer-facing conditions attached to a domain, continue with [Handle domain notices](/developers/domainchief/guides/notices).

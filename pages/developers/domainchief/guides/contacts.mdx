@@ -230,7 +230,7 @@ After the registrant completes verification, wait for `domain.changed`, retrieve
 
 ## Keep contacts synchronized
 
-Use [Sync domains and contacts with your system](/developers/domainchief/guides/sync-data) when your application keeps a local contact copy. Apply `contact.created` and `contact.changed` by retrieving the current handle with [Show contact](/api/domainchief/contacts#show-contact) or [List specific contacts](/api/domainchief/contacts#list-specific-contacts). Remove the local resource after `contact.deleted`.
+Use [Sync Domain Chief data with your system](/developers/domainchief/guides/sync-data) when your application keeps a local contact copy. Apply `contact.created` and `contact.changed` by retrieving the current handle with [Show contact](/api/domainchief/contacts#show-contact) or [List specific contacts](/api/domainchief/contacts#list-specific-contacts). Remove the local resource after `contact.deleted`.
 
 Match contacts by `handle`, not by names or email addresses. Those details can change and are not stable identifiers for your own records.
 
