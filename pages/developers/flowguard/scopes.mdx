@@ -1,0 +1,81 @@
+---
+title: Scopes
+description: Choose what an access token can read or change through the FlowGuard API.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes | FlowGuard</title>
+</Head>
+
+Scopes limit what an access token can do in FlowGuard. Choose them when you create an [access token](/developers/authentication#access-tokens). Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
+
+Each endpoint in the [REST API reference](/api/flowguard) lists its required scope under security.
+
+## Available scopes
+
+### Broad scopes
+
+| Scope | Access |
+|---|---|
+| `flowguard` | Every FlowGuard API operation |
+| `flowguard:read` | Read all FlowGuard resources |
+| `flowguard:write` | Read and change all FlowGuard resources |
+
+### Logs
+
+| Scope | Access |
+|---|---|
+| `flowguard:logs:read` | Discover log fields and query request logs |
+
+### Rules
+
+| Scope | Access |
+|---|---|
+| `flowguard:rules:read` | List and retrieve rules, and inspect rule capabilities |
+| `flowguard:rules:write` | Create and update rules, and read them |
+
+### Actions
+
+| Scope | Access |
+|---|---|
+| `flowguard:actions:read` | List and retrieve actions |
+| `flowguard:actions:write` | Create and update actions, and read them |
+
+### Servers and IP lists
+
+| Scope | Access |
+|---|---|
+| `flowguard:servers:read` | List servers and their capabilities |
+| `flowguard:ip_lists:read` | List team and global IP lists |
+
+<Callout type="info">
+Scopes are hierarchical. `flowguard:rules:write` includes `flowguard:rules:read`, `flowguard:write` includes every FlowGuard write scope and its matching read scope, and `flowguard` grants every FlowGuard scope.
+</Callout>
+
+## Example token configurations
+
+### Query request logs
+
+```text
+flowguard:logs:read
+```
+
+The token can discover available log fields and query logs. It cannot read or change rules and actions.
+
+### Build a rule editor
+
+```text
+flowguard:rules:write flowguard:actions:write flowguard:servers:read flowguard:ip_lists:read
+```
+
+The token can inspect rule capabilities, manage rules and actions, and read the servers and IP lists that rules can reference.
+
+### Read everything
+
+Use the broad read scope for reporting, monitoring, or inventory across FlowGuard.
+
+```text
+flowguard:read
+```

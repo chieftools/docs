@@ -49,6 +49,14 @@ export const ogImageBrands: OgImageBrand[] = [
     fallbackDescription: 'Manage Tny links, custom domains, and URL utilities.',
   },
   {
+    prefix: '/developers/flowguard',
+    styleId: 'flowguard',
+    productName: 'FlowGuard',
+    label: 'Documentation',
+    fallbackTitle: 'FlowGuard developer documentation',
+    fallbackDescription: 'Query request logs and manage FlowGuard rules and actions.',
+  },
+  {
     prefix: '/domainchief/api',
     styleId: 'domainchief',
     productName: 'Domain Chief',
@@ -95,6 +103,14 @@ export const ogImageBrands: OgImageBrand[] = [
     label: 'API reference',
     fallbackTitle: 'Tny API reference',
     fallbackDescription: 'Manage Tny links, custom domains, and URL utilities.',
+  },
+  {
+    prefix: '/api/flowguard',
+    styleId: 'flowguard',
+    productName: 'FlowGuard',
+    label: 'API reference',
+    fallbackTitle: 'FlowGuard API reference',
+    fallbackDescription: 'Query request logs and manage FlowGuard rules and actions.',
   },
   {
     prefix: '/domainchief',

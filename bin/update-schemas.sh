@@ -15,6 +15,10 @@ curl --fail --silent --show-error --location \
   --output apis/domainchief.json
 
 curl --fail --silent --show-error --location \
+  https://flowguard.network/api/spec/v1.json \
+  --output apis/flowguard.json
+
+curl --fail --silent --show-error --location \
   https://cert.chief.app/api/graphql/schema \
   --output apis/certchief.graphql
 

@@ -54,6 +54,21 @@ const config: ZudokuConfig = {
                 ],
             },
         },
+        {
+            type: 'file',
+            path: '/api/flowguard',
+            input: './apis/flowguard.json',
+            options: {
+                schemaDownload: {
+                    enabled: true,
+                },
+                disableSecurity: false,
+                examplesLanguage: 'shell',
+                supportedLanguages: [
+                    {label: 'cURL', value: 'shell'},
+                ],
+            },
+        },
     ],
     docs: {
         llms: {
@@ -178,6 +193,7 @@ const config: ZudokuConfig = {
         {from: '/tny', to: '/tny/introduction'},
         {from: '/tny/api/scopes', to: '/developers/tny/scopes'},
         {from: '/flowguard', to: '/flowguard/introduction'},
+        {from: '/flowguard/api/scopes', to: '/developers/flowguard/scopes'},
         {from: '/billdo', to: '/billdo/introduction'},
         {from: '/toolchief', to: '/introduction'},
     ],
@@ -352,6 +368,12 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/flowguard/introduction',
+                        {
+                            type: 'link',
+                            label: 'Developers',
+                            to: '/developers/flowguard',
+                            stack: true,
+                        },
                     ],
                 },
                 {
@@ -586,6 +608,36 @@ const config: ZudokuConfig = {
                         },
                     ],
                 },
+                {
+                    type: 'category',
+                    label: 'FlowGuard',
+                    icon: 'code',
+                    items: [
+                        {
+                            type: 'doc',
+                            file: '/developers/flowguard',
+                            label: 'Introduction',
+                        },
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'doc',
+                                    file: '/developers/flowguard/scopes',
+                                    label: 'Scopes',
+                                },
+                                {
+                                    type: 'link',
+                                    label: 'REST API reference',
+                                    to: '/api/flowguard',
+                                    stack: true,
+                                },
+                            ],
+                        },
+                    ],
+                },
             ],
         },
     ],
@@ -598,6 +650,7 @@ const config: ZudokuConfig = {
             'domainchief:read',
             'certchief',
             'tny:read',
+            'flowguard:read',
             'deploychief',
         ],
         issuer: process.env.ZUDOKU_PUBLIC_AUTH_ISSUER as string,
