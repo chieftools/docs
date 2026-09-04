@@ -19,9 +19,9 @@ Each endpoint in the [REST API reference](/api/flowguard) lists its required sco
 
 | Scope | Access |
 |---|---|
-| `flowguard` | Every FlowGuard API operation |
-| `flowguard:read` | Read all FlowGuard resources |
-| `flowguard:write` | Read and change all FlowGuard resources |
+| `flowguard` | Every user-facing FlowGuard API operation |
+| `flowguard:read` | Every resource read operation |
+| `flowguard:write` | Every resource write and read operation |
 
 ### Logs
 
@@ -29,29 +29,33 @@ Each endpoint in the [REST API reference](/api/flowguard) lists its required sco
 |---|---|
 | `flowguard:logs:read` | Discover log fields and query request logs |
 
+Both `GET /logs/fields` and `POST /logs/query` use this read scope. FlowGuard does not have a separate write scope for logs.
+
 ### Rules
 
 | Scope | Access |
 |---|---|
 | `flowguard:rules:read` | List and retrieve rules, and inspect rule capabilities |
-| `flowguard:rules:write` | Create and update rules, and read them |
+| `flowguard:rules:write` | Create, update, disable, and delete rules; also grants rule reads |
 
 ### Actions
 
 | Scope | Access |
 |---|---|
 | `flowguard:actions:read` | List and retrieve actions |
-| `flowguard:actions:write` | Create and update actions, and read them |
+| `flowguard:actions:write` | Create, update, and delete actions; also grants action reads |
 
 ### Servers and IP lists
 
 | Scope | Access |
 |---|---|
-| `flowguard:servers:read` | List servers and their capabilities |
-| `flowguard:ip_lists:read` | List team and global IP lists |
+| `flowguard:servers:read` | List and retrieve FlowGuard proxies, configuration, status, and capabilities |
+| `flowguard:servers:write` | Create, update, and delete FlowGuard proxies; also grants proxy reads |
+| `flowguard:ip_lists:read` | Read team and global IP lists and their entries |
+| `flowguard:ip_lists:write` | Create, update, and delete team IP lists and manage their entries; also grants IP-list reads |
 
 <Callout type="info">
-Scopes are hierarchical. `flowguard:rules:write` includes `flowguard:rules:read`, `flowguard:write` includes every FlowGuard write scope and its matching read scope, and `flowguard` grants every FlowGuard scope.
+Scopes are hierarchical. A resource write scope includes the matching read scope. `flowguard:read` grants every resource read scope, `flowguard:write` grants every resource write and read scope, and `flowguard` grants everything. A resource scope does not grant access to unrelated resources.
 </Callout>
 
 ## Example token configurations
