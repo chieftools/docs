@@ -1,0 +1,218 @@
+---
+title: View and filter request logs
+description: Monitor FlowGuard traffic, inspect individual requests, and combine filters to find the logs you need.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>View and filter request logs | FlowGuard</title>
+</Head>
+
+Use the Stream to follow request traffic, inspect individual logs, and narrow the view to the requests you need.
+
+## Choose your task
+
+- [Watch live traffic](#watch-live-traffic)
+- [Review logs from an earlier time](#review-logs-from-an-earlier-time)
+- [Inspect and copy a log](#inspect-and-copy-a-log)
+- [Check or block a client IP](#check-or-block-a-client-ip)
+- [Filter logs](#filter-logs)
+- [Build a complex query](#build-a-complex-query)
+- [Fix a Stream problem](#troubleshooting)
+
+## Watch live traffic
+
+Open [Stream](https://flowguard.network/team/current/stream?ref=chiefdocs) from the FlowGuard sidebar. The newest request appears at the bottom of the table while the green **live** status is visible.
+
+Scroll towards the top to load older logs. FlowGuard stops fetching new rows while you are away from the bottom. Press `End`, `Command` + `Arrow Down` on macOS, or `Control` + `Arrow Down` on other platforms to return to the newest rows and resume the live view. Use the same modifier with `Arrow Up` to jump to the oldest loaded row.
+
+Use the pause button when you want the table to stay still. The status changes to **paused**. Select the play button to jump to the bottom and resume.
+
+### Choose and resize columns
+
+Select **columns** to choose which fields appear in the table. **Timestamp** is required and cannot be hidden. Drag the boundary between two column headings to change their widths.
+
+FlowGuard saves column visibility and widths in this browser. Select **Reset to Default** in the **Visible Columns** menu to discard those changes.
+
+### What happens next
+
+FlowGuard keeps loading matching requests while you remain at the bottom of the table. Opening a log pauses live updates so the selected row does not move. Closing **Log Details** resumes updates when the Stream was live before you opened it.
+
+Some filters need to search several time windows before they find enough logs. Watch the loading message near the top of the table. **Searched all available logs** means FlowGuard has reached the oldest retained log.
+
+## Review logs from an earlier time
+
+1. Select **jump to**.
+2. Enter a date and time. FlowGuard uses your browser's timezone and does not accept a future time.
+3. Select **Show logs**.
+
+The **history near** status shows that you are reviewing retained logs around the selected time. Your current filter still applies. Scroll up for older logs or down for newer logs.
+
+Select **back to live** to return immediately. If you keep scrolling through newer history until you reach the current Stream, FlowGuard returns to the live view automatically.
+
+The available history depends on your team's log retention. FlowGuard shows **No matching retained logs around this time** when the selected time and filter have no retained matches.
+
+## Inspect and copy a log
+
+Select a row to open **Log Details**. The panel lists every value recorded for that request, including fields that are not visible as table columns.
+
+- Select **Markdown** or **JSON** to copy the complete log and the IP status shown in the panel.
+- Select **View in Context** to see nearby requests. FlowGuard highlights the selected request and shows **context view** at the top.
+- Select the filter icon beside a filterable value, then choose **Filter for this value** or **Exclude this value**. FlowGuard adds the condition to the existing query with `AND`.
+- Press `Escape` to close the panel.
+
+<Callout type="caution" title="Review copied logs before sharing">
+  A copied log can contain client IP addresses, requested URLs, headers, and other request data. Remove values the recipient does not need before you paste it elsewhere.
+</Callout>
+
+### Look up a domain, IP address, or ASN
+
+Some values in **Log Details** have lookup links:
+
+| Value | Available lookups |
+| --- | --- |
+| Request or ASN domain | DNS, RDAP, and WHOIS |
+| Client or proxy IP address | RDAP, WHOIS, and PTR |
+| Client or proxy ASN | RDAP and WHOIS |
+
+Each link opens the selected value in a new tab. The client IP also has an **AbuseIPDB** card. Select **Check IP** to open the current AbuseIPDB record.
+
+An AbuseIPDB match is one signal, not proof that every request from the address is malicious. Likewise, an address that is absent from the dataset may still send unwanted traffic.
+
+## Check or block a client IP
+
+The **Managed block list** card in **Log Details** shows whether the client IP matches the team's `Blocked IPs` list. If the entry was created from a retained Stream log, **View in context** returns to the request that led to the block.
+
+<Callout type="caution" title="A block changes live traffic">
+  **Block IP** updates the team's traffic rules. A range can include many clients, and the top-priority blocking rule runs before the team's other rules. Check the address and blocking scope before confirming.
+</Callout>
+
+### Block an address or range
+
+1. Open the request and select **Block IP**.
+2. Choose the blocking scope:
+
+   | Address type | Choices |
+   | --- | --- |
+   | IPv4 | **Single address** for `/32`, or the surrounding `/24` range |
+   | IPv6 | **Single address** for `/128`, the observed `/64` subnet, or the wider `/56` range |
+
+   FlowGuard selects one IPv4 address by default. For IPv6 it selects `/64`, which also covers privacy-address rotation within the observed subnet.
+3. Select **Block IP** in the confirmation.
+
+FlowGuard adds the address or range to `Blocked IPs`. It also creates or updates the `Block request` action and the top-priority `Block listed IPs` rule when needed. The **Managed block list** card changes to show the matching entry after the update succeeds.
+
+### Unblock an address or range
+
+Open a blocked request and select **Unblock IP** or **Unblock Range**. Review the entry shown in the confirmation, then confirm the removal.
+
+Removing a range unblocks the whole range, not only the address in the selected log. If another entry also matches the address, the card reports how many matches remain and the address stays blocked. Open **IP Lists** and review `Blocked IPs` when you need to remove the remaining entries.
+
+## Filter logs
+
+Select **Filter logs** and start typing a field name. FlowGuard suggests matching labels and field keys. Use the pointer, or use `Arrow Up` and `Arrow Down` followed by `Enter` or `Tab`, to accept a suggestion. Fixed-choice and boolean fields also suggest their valid values.
+
+FlowGuard applies a valid query after a short pause and stores it in the page URL, so you can bookmark or share the filtered view. Select **Clear filter** to return to all logs.
+
+Write each condition as a field, an operator, and a value:
+
+```text
+field operator value
+```
+
+For example:
+
+```text
+rule.result:block
+request.method:POST
+client.ip:192.0.2.44
+request.url.path^=/admin
+response.status!=404
+```
+
+These are only examples. Use autocomplete to find the current filterable fields instead of relying on a fixed list.
+
+### Available operators
+
+| Match | Symbol syntax | Word syntax | Available for |
+| --- | --- | --- | --- |
+| Equals | `:` or `=` | `equals` | Every field type |
+| Does not equal | `!=` | `not-equals` | Every field type |
+| Contains | `~` or `~=` | `contains` | Text fields |
+| Does not contain | `!~` | `not-contains` | Text fields |
+| Starts with | `^=` | `starts-with` | Text fields |
+| Ends with | `$=` | `ends-with` | Text fields |
+
+The word forms require a space on each side of the operator.
+
+Numbers, booleans, and fixed-choice fields such as `response.status`, `rule.result`, and `request.method` support **Equals** and **Does not equal**. Text fields such as `client.ip` and `request.url.path` support all six matches.
+
+FlowGuard does not support greater-than or less-than comparisons, regular expressions, or wildcard syntax. Use **Contains**, **Starts with**, or **Ends with** for partial text matches.
+
+### Quote values
+
+Wrap a value in double quotes when it contains spaces or parentheses:
+
+```text
+rule.name equals "Synthetic block rule"
+```
+
+Field keys and fixed-choice values must match the spelling shown by autocomplete. Operators and `AND` or `OR` are not case-sensitive, but uppercase logical operators make longer queries easier to scan.
+
+## Build a complex query
+
+Join conditions with `AND` when every condition must match:
+
+```text
+rule.result:block AND request.method:POST
+```
+
+For a short query, two adjacent conditions also mean `AND`:
+
+```text
+rule.result:block request.method:POST
+```
+
+Use `OR` when either condition may match:
+
+```text
+request.method:GET OR request.method:HEAD
+```
+
+`AND` takes precedence over `OR`. When both appear, put each `AND` branch in parentheses and join the branches with `OR`:
+
+```text
+(rule.result:block AND request.method:POST) OR
+(response.status:404 AND request.url.path^=/private)
+```
+
+This query returns blocked `POST` requests together with requests for paths under `/private` that returned `404`. Writing each alternative as a complete parenthesized branch makes the intended grouping clear and matches how the Stream builds grouped filters.
+
+Use explicit `AND` operators in a query that also contains `OR`. Implicit `AND` is best kept to a simple list of conditions.
+
+## Troubleshooting
+
+### Why does the filter say Invalid filter?
+
+Check the field key, operator, value, quotes, and closing parentheses. Use autocomplete to replace a field or fixed-choice value. While the input is invalid, the table keeps the last valid filter until you correct or clear the query.
+
+### Why are no matching logs visible yet?
+
+Sparse filters may take longer because FlowGuard searches older time windows. Wait for **Searched all available logs** before concluding that no retained logs match. Then simplify the query one condition at a time or clear it.
+
+### Why is Stream missing from the sidebar?
+
+The team needs at least one FlowGuard server with request logging configured. Ask a team administrator to check the server and logging setup.
+
+### Why did live updates stop?
+
+Live updates stop when you pause the Stream, scroll away from the bottom, open **Log Details**, or enter a historical or context view. Close the panel or return to the bottom. Use **back to live** when that button is visible.
+
+### Why could FlowGuard not copy a log?
+
+Your browser may have denied clipboard access. Check its site permissions, then select **Markdown** or **JSON** again.
+
+### Why is the IP still blocked after I removed an entry?
+
+Another exact address or CIDR entry still matches it. Check the additional-match message in **Managed block list**, then review `Blocked IPs` under **IP Lists**.

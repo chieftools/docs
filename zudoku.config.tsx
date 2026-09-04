@@ -368,6 +368,7 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/flowguard/introduction',
+                        '/flowguard/stream',
                         {
                             type: 'link',
                             label: 'Developers',
