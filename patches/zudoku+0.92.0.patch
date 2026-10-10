@@ -1,5 +1,5 @@
 diff --git a/node_modules/zudoku/src/lib/authentication/providers/openid.tsx b/node_modules/zudoku/src/lib/authentication/providers/openid.tsx
-index afe6ae0..0bc565a 100644
+index 3d91d0f..184b4f8 100644
 --- a/node_modules/zudoku/src/lib/authentication/providers/openid.tsx
 +++ b/node_modules/zudoku/src/lib/authentication/providers/openid.tsx
 @@ -17,7 +17,7 @@ import { LogoutCallbackHandler } from "../components/LogoutCallbackHandler.js";
@@ -32,15 +32,24 @@ index afe6ae0..0bc565a 100644
        ? oauth.getValidatedIdTokenClaims(response)
        : undefined;
 diff --git a/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts b/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
-index a3706347..d62d330b 100644
+index a370634..d62d330 100644
 --- a/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
 +++ b/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
-@@ -59,2 +59,2 @@ const resolveBack = (item: NavigationItem): BackLink => {
+@@ -56,7 +56,7 @@ const resolveBack = (item: NavigationItem): BackLink => {
+   return { to: "/", label: item.label };
+ };
+ 
 -// Cross-section stack: derive the back link from the ancestor that owns the `stack` link.
 +// Cross-section stack: derive the back link from the nearest ancestor that owns the `stack` link.
  export const resolveStackOwner = (
-@@ -67,3 +67,3 @@ export const resolveStackOwner = (
+   siteNavigation: NavigationItem[],
+   pathname: string,
+@@ -65,7 +65,7 @@ export const resolveStackOwner = (
+     if (item.type !== "link" || !item.stack) return;
+     const base = cleanPath(item.to);
      if (pathname !== base && !pathname.startsWith(`${base}/`)) return;
 -    return resolveBack(parents.at(0) ?? item);
 +    return resolveBack(parents.at(-1) ?? item);
    });
+ 
+ export const resolveNavigationFrame = (

@@ -14,24 +14,24 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@zudoku/plugin-graphql": "0.0.12",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "@zudoku/plugin-graphql": "0.0.13",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "serve": "14.2.6",
-    "zudoku": "0.83.1"
+    "zudoku": "0.92.0"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/json-schema": "7.0.15",
-    "@types/node": "26.2.0",
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
-    "@typescript-eslint/eslint-plugin": "8.67.0",
-    "@typescript-eslint/parser": "8.67.0",
-    "eslint": "10.8.1",
-    "globals": "17.11.0",
+    "@types/node": "26.6.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@typescript-eslint/eslint-plugin": "8.71.1",
+    "@typescript-eslint/parser": "8.71.1",
+    "eslint": "10.12.0",
+    "globals": "17.13.0",
     "patch-package": "8.0.1",
-    "rollup": "4.62.5",
+    "rollup": "4.64.2",
     "typescript": "6.0.3"
   },
   "engines": {
@@ -39,11 +39,14 @@
   },
   "packageManager": "yarn@1.22.22",
   "resolutions": {
-    "@radix-ui/react-dismissable-layer": "1.1.19",
-    "brace-expansion": "5.0.9",
-    "fast-uri": "3.1.5",
-    "hono": "4.13.3",
-    "zudoku/gray-matter/js-yaml": "3.15.1",
-    "zudoku/json-schema-to-typescript-lite/**/js-yaml": "4.3.1"
+    "@fastify/busboy": "3.2.2",
+    "@radix-ui/react-dismissable-layer": "1.1.20",
+    "brace-expansion": "5.0.12",
+    "compression": "1.8.2",
+    "fast-uri": "3.1.8",
+    "source-map-js": "1.2.2",
+    "zudoku/@apidevtools/json-schema-ref-parser/js-yaml": "4.3.2",
+    "zudoku/gray-matter/js-yaml": "3.15.2",
+    "zudoku/json-schema-to-typescript-lite/**/js-yaml": "4.3.2"
   }
 }

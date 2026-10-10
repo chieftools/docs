@@ -75,12 +75,14 @@ const config: ZudokuConfig = {
             llmsTxt: true,
             llmsTxtFull: true,
             includeProtected: false,
+            description: 'Product guides, developer guides, and API references for Chief Tools: Account Chief, Domain Chief, Cert Chief, Tny, Deploy Chief, FlowGuard, and Bill.DO.',
+            instructions: 'Use the product guides to answer questions about using a Chief Tools web app. Use the pages under /developers for authentication, scopes, and integration guides, and the API references for exact endpoints and fields. Every API uses tokens and scopes issued by Account Chief.',
         },
         files: 'pages/**/*.{md,mdx}',
         defaultOptions: {
             suggestEdit: {
                 text: 'Edit this page',
-                url: 'https://github.com/chieftools/docs/edit/main/docs/{filePath}',
+                url: 'https://github.com/chieftools/docs/edit/main/{filePath}',
             },
             showLastModified: false,
         },
