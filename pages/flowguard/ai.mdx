@@ -1,0 +1,154 @@
+---
+title: Connect an AI agent
+description: Connect an MCP-compatible AI client to FlowGuard.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Connect an AI agent | FlowGuard</title>
+</Head>
+
+Use this guide to connect an MCP-compatible AI client to FlowGuard so it can investigate request logs and manage rules and actions for your team.
+
+## Choose your task
+
+- [Connect an AI client](#connect-a-client)
+- [Try a request](#what-happens-next)
+- [Review the available tools](#available-tools)
+- [Let the agent change rules and actions](#allow-rule-and-action-changes)
+- [Fix a connection or permission problem](#troubleshooting)
+
+## Connect an AI client
+
+### Before you connect
+
+Your AI client must support remote MCP servers and browser-based sign-in. Use this server URL:
+
+```text
+https://flowguard.network/mcp
+```
+
+### Connect a client
+
+Look for MCP or integrations in your client's settings, then:
+
+1. Open the client's MCP or integrations settings.
+2. Add a remote MCP server with the URL above.
+3. Sign in with your Chief account.
+4. Review and approve the requested scopes.
+
+FlowGuard asks for read access when you first connect. The agent can then search logs and inspect rules, actions, servers, and IP lists, but it cannot change anything.
+
+<Callout type="caution" title="Review the requested access">
+  The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
+</Callout>
+
+### What happens next
+
+After connecting, give the client a specific task. For example:
+
+- Summarize traffic to my servers over the last hour and point out anything unusual.
+- Find requests that returned a `5xx` status in the last 30 minutes.
+- Which countries and ASNs sent the most blocked requests today?
+- List my rules in evaluation order and explain what each one does.
+
+Start with a short time range, such as the last hour, and widen it only when the agent finds too little. The agent can only find logs that your team still retains, so an empty result means no retained log matched, not that the traffic never happened.
+
+## Available tools
+
+Your client may list every tool, but each tool only works when the connection has its required scope. A higher-level scope also works. For example, `flowguard:rules:write` covers `flowguard:rules:read`.
+
+### Request logs
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `summarize-traffic` | Summarize request rates, top dimensions, and changes from the baseline | `flowguard:logs:read` |
+| `list-log-fields` | List the log fields and operators available to filters | `flowguard:logs:read` |
+| `query-logs` | Search retained request logs | `flowguard:logs:read` |
+| `get-log-by-stream` | Retrieve the log for a known stream ID | `flowguard:logs:read` |
+| `get-log-window` | Show the requests just before and after a known event | `flowguard:logs:read` |
+
+### Rules
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `get-rule-capabilities` | List the supported conditions, matches, and action results | `flowguard:rules:read` |
+| `list-rules` | List rules in evaluation order | `flowguard:rules:read` |
+| `get-rule` | Retrieve one rule | `flowguard:rules:read` |
+| `create-rule` | Create a rule | `flowguard:rules:write` |
+| `update-rule` | Update a rule | `flowguard:rules:write` |
+| `disable-rule` | Disable a rule while keeping its conditions | `flowguard:rules:write` |
+
+### Actions
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-actions` | List actions and how many rules use each one | `flowguard:actions:read` |
+| `get-action` | Retrieve one action | `flowguard:actions:read` |
+| `create-action` | Create an action | `flowguard:actions:write` |
+| `update-action` | Update an action | `flowguard:actions:write` |
+
+### Servers and IP lists
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-servers` | List proxies and their configuration status | `flowguard:servers:read` |
+| `list-ip-lists` | List team and global IP lists that rules can use | `flowguard:ip_lists:read` |
+
+The agent cannot delete rules or actions, add or remove servers, or edit IP lists. Use the FlowGuard dashboard or the [REST API](/developers/flowguard) for those tasks.
+
+## Allow rule and action changes
+
+When you ask the agent to create, update, or disable a rule or action, it needs `flowguard:rules:write` or `flowguard:actions:write`. Some clients ask you to approve the extra scope when the agent first needs it. If yours does not, reconnect the client and approve the write scopes.
+
+<Callout type="caution" title="Rule changes reach your proxies">
+  FlowGuard sends saved rule changes to your team's proxies, where they affect live traffic. Updating an action changes every rule that uses it.
+</Callout>
+
+Before you let the agent continue with a write, check that it states:
+
+- which requests the rule matches
+- which action it applies
+- which servers it targets
+- what effect you should expect on traffic
+
+After the change, ask the agent to read the rule again and check the proxies' configuration status. A disabled rule stays in your rule list without an action, so you can enable it again later.
+
+## Manage the connection
+
+### Change permissions
+
+Start with read access. Approve write scopes only when you want the agent to change rules or actions, and reconnect without them when it no longer needs that access.
+
+See [FlowGuard API scopes](/developers/flowguard/scopes) for the full scope hierarchy.
+
+### Choose MCP or REST
+
+Use MCP when an AI client needs to choose and call FlowGuard tools. Use the [REST API](/developers/flowguard) for application code, fixed workflows, or operations that the MCP server does not expose.
+
+## Troubleshooting
+
+### Why can't the client connect?
+
+Confirm that the client supports remote MCP servers and browser-based authorization. Copy the server URL exactly, then reconnect and complete the Chief sign-in flow.
+
+### Why does a tool report insufficient scope?
+
+The connection does not have the tool's required scope. Compare the tool with the tables above, then approve the additional scope when your client asks, or reconnect the client and approve it.
+
+### Why can't the agent find any logs?
+
+Ask for a shorter, more recent time range or fewer filters. Logs older than your team's retention period are no longer available. You can compare the result with the [Stream](/flowguard/stream).
+
+### Why does the agent report too many requests?
+
+FlowGuard limits how often a connection can call the server and query logs. Wait a minute, then ask the agent to continue with a narrower query.
+
+### Why doesn't a rule change affect traffic yet?
+
+Ask the agent to check the proxies' configuration status with `list-servers`. Also check earlier rules in the evaluation order, because an earlier rule may already handle the request.
+
+### Why does the authorization screen request unexpected access?
+
+Cancel the connection and review which tools or integration the client is trying to enable. FlowGuard approves or rejects the requested scopes as one set.

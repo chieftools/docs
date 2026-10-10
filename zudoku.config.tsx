@@ -369,6 +369,7 @@ const config: ZudokuConfig = {
                     items: [
                         '/flowguard/introduction',
                         '/flowguard/stream',
+                        '/flowguard/ai',
                         {
                             type: 'link',
                             label: 'Developers',
