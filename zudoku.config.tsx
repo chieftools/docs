@@ -334,21 +334,6 @@ const config: ZudokuConfig = {
                 },
                 {
                     type: 'category',
-                    label: 'Deploy Chief',
-                    icon: 'book',
-                    items: [
-                        '/deploychief/introduction',
-                        '/deploychief/server-setup',
-                        {
-                            type: 'link',
-                            label: 'Developers',
-                            to: '/developers/deploychief',
-                            stack: true,
-                        },
-                    ],
-                },
-                {
-                    type: 'category',
                     label: 'Tny',
                     icon: 'book',
                     items: [
@@ -358,6 +343,21 @@ const config: ZudokuConfig = {
                             type: 'link',
                             label: 'Developers',
                             to: '/developers/tny',
+                            stack: true,
+                        },
+                    ],
+                },
+                {
+                    type: 'category',
+                    label: 'Deploy Chief',
+                    icon: 'book',
+                    items: [
+                        '/deploychief/introduction',
+                        '/deploychief/server-setup',
+                        {
+                            type: 'link',
+                            label: 'Developers',
+                            to: '/developers/deploychief',
                             stack: true,
                         },
                     ],
@@ -557,31 +557,6 @@ const config: ZudokuConfig = {
                 },
                 {
                     type: 'category',
-                    label: 'Deploy Chief',
-                    icon: 'code',
-                    items: [
-                        {
-                            type: 'doc',
-                            file: '/developers/deploychief',
-                            label: 'Introduction',
-                        },
-                        {
-                            type: 'category',
-                            label: 'API',
-                            collapsible: true,
-                            items: [
-                                {
-                                    type: 'link',
-                                    label: 'GraphQL API reference',
-                                    to: '/api/deploychief',
-                                    stack: true,
-                                },
-                            ],
-                        },
-                    ],
-                },
-                {
-                    type: 'category',
                     label: 'Tny',
                     icon: 'code',
                     items: [
@@ -604,6 +579,31 @@ const config: ZudokuConfig = {
                                     type: 'link',
                                     label: 'GraphQL API reference',
                                     to: '/api/tny',
+                                    stack: true,
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    type: 'category',
+                    label: 'Deploy Chief',
+                    icon: 'code',
+                    items: [
+                        {
+                            type: 'doc',
+                            file: '/developers/deploychief',
+                            label: 'Introduction',
+                        },
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'link',
+                                    label: 'GraphQL API reference',
+                                    to: '/api/deploychief',
                                     stack: true,
                                 },
                             ],
