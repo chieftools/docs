@@ -38,6 +38,8 @@ Look for MCP or integrations in your client's settings, then:
 3. Sign in with your Chief account.
 4. Review and approve the requested scopes.
 
+Domain Chief asks for read access when you first connect. The agent can then list TLDs, contacts, domains, DNS records, and redirects, and check domain availability, but it cannot change anything.
+
 <Callout type="caution" title="Review the requested access">
   The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
 </Callout>
@@ -51,11 +53,11 @@ After connecting, give the client a specific task. For example:
 - Change the `tag` metadata on this domain to `staging`.
 - Create a redirect from `www` to the root domain.
 
-Review proposed write operations before allowing the agent to continue.
+The last two examples change data, so the agent needs a write scope first. See [Change permissions](#change-permissions). Review proposed write operations before allowing the agent to continue.
 
 ## Available tools
 
-The scopes you approve determine which tools the server makes available.
+Your client may list every tool, but each tool only works when the connection has its required scope. A higher-level scope also works. For example, `domainchief:dns:write` covers `domainchief:dns:read`.
 
 ### TLDs and contacts
 
@@ -102,7 +104,7 @@ These tools work only with domains using Domain Chief hosted DNS.
 
 ### Change permissions
 
-Start with read scopes. If the client needs a tool that is not available, reconnect it and approve the additional scope. Domain Chief cannot add scopes to an existing connection without another authorization step.
+Start with read access. When the agent needs a write tool, such as `create-dns-record` or `update-domain`, some clients ask you to approve the extra scope at that moment. If yours does not, reconnect the client and approve the write scope. Domain Chief cannot add scopes to an existing connection without another authorization step.
 
 See [Domain Chief API scopes](/developers/domainchief/api/scopes) for the full scope hierarchy.
 
@@ -116,9 +118,9 @@ Use MCP when an AI client needs to choose and call Domain Chief tools. Use the [
 
 Confirm that the client supports remote MCP servers and browser-based authorization. Copy the server URL exactly, then reconnect and complete the Chief sign-in flow.
 
-### Why is a tool missing?
+### Why does a tool report insufficient scope?
 
-The connection does not have the tool's required scope. Compare the tool with the tables above, then reconnect the client and approve the additional scope.
+The connection does not have the tool's required scope. Compare the tool with the tables above, then approve the additional scope when your client asks, or reconnect the client and approve it.
 
 ### Why can't the agent manage DNS records?
 
