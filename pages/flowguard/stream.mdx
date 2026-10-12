@@ -1,6 +1,6 @@
 ---
 title: View and filter request logs
-description: Monitor FlowGuard traffic, inspect individual requests, and combine filters to find the logs you need.
+description: Monitor FlowGuard traffic, inspect individual requests, combine filters to find the logs you need, and export them.
 ---
 
 import {Callout, Head} from "zudoku/components";
@@ -9,7 +9,7 @@ import {Callout, Head} from "zudoku/components";
   <title>View and filter request logs | FlowGuard</title>
 </Head>
 
-Use the Stream to follow request traffic, inspect individual logs, and narrow the view to the requests you need.
+Use the Stream to follow request traffic, inspect individual logs, narrow the view to the requests you need, and download them as a file.
 
 ## Choose your task
 
@@ -18,7 +18,9 @@ Use the Stream to follow request traffic, inspect individual logs, and narrow th
 - [Inspect and copy a log](#inspect-and-copy-a-log)
 - [Check or block a client IP](#check-or-block-a-client-ip)
 - [Filter logs](#filter-logs)
+- [Match letter case exactly](#match-letter-case-exactly)
 - [Build a complex query](#build-a-complex-query)
+- [Export logs as CSV or JSON Lines](#export-logs)
 - [Fix a Stream problem](#troubleshooting)
 
 ## Watch live traffic
@@ -150,6 +152,27 @@ Numbers, booleans, and fixed-choice fields such as `response.status`, `rule.resu
 
 FlowGuard does not support greater-than or less-than comparisons, regular expressions, or wildcard syntax. Use **Contains**, **Starts with**, or **Ends with** for partial text matches.
 
+### Match letter case exactly
+
+**Contains**, **Does not contain**, **Starts with**, and **Ends with** ignore letter case, so `request.url.path^=/admin` also finds `/Admin/login`. **Equals** and **Does not equal** compare the exact value, including case.
+
+Add `-cs` to the word syntax when a partial match must respect case:
+
+| Match | Word syntax |
+| --- | --- |
+| Contains, case-sensitive | `contains-cs` |
+| Does not contain, case-sensitive | `not-contains-cs` |
+| Starts with, case-sensitive | `starts-with-cs` |
+| Ends with, case-sensitive | `ends-with-cs` |
+
+For example, this finds `/Admin/login` but not `/admin/login`:
+
+```text
+request.url.path starts-with-cs /Admin
+```
+
+The case-sensitive matches have no symbol syntax.
+
 ### Quote values
 
 Wrap a value in double quotes when it contains spaces or parentheses:
@@ -191,6 +214,31 @@ This query returns blocked `POST` requests together with requests for paths unde
 
 Use explicit `AND` operators in a query that also contains `OR`. Implicit `AND` is best kept to a simple list of conditions.
 
+## Export logs
+
+Download the requests that match the current filter for a time range you choose.
+
+1. [Filter the Stream](#filter-logs) to the requests you need. Without a filter, the export includes every request in the range.
+2. Select **export** above the table.
+3. Choose a range: **15m**, **1h**, **24h**, **7d**, or **Custom**. A preset ends at the current time. For **Custom**, enter **From** and **To** in your browser's timezone.
+4. Choose a format:
+
+   | Format | Contents | Use it for |
+   | --- | --- | --- |
+   | **CSV** | The columns visible in the table, in the same order | Spreadsheets |
+   | **JSON Lines** | Every recorded field, one request per line | jq, scripts, or a SIEM |
+
+   For CSV, set up the table with **columns** first. Hidden columns are left out of the file.
+5. Select **Download**.
+
+An export holds up to 100,000 requests, oldest first. If the range contains more, the file ends at the 100,000th request. Export the rest with a range that starts after the last request in the file.
+
+FlowGuard only exports logs your team still retains. A range that starts before the retention period begins at the oldest retained log instead.
+
+In CSV files, FlowGuard puts an apostrophe before values that start with `=`, `+`, `-`, or `@`. Clients choose values such as the user agent and requested URL, and the apostrophe stops a spreadsheet app from running them as formulas. JSON Lines files contain the values unchanged.
+
+Like a copied log, an export contains client IP addresses, requested URLs, headers, and other request data. Store and share the file with the same care.
+
 ## Troubleshooting
 
 ### Why does the filter say Invalid filter?
@@ -212,6 +260,14 @@ Live updates stop when you pause the Stream, scroll away from the bottom, open *
 ### Why could FlowGuard not copy a log?
 
 Your browser may have denied clipboard access. Check its site permissions, then select **Markdown** or **JSON** again.
+
+### Why does a partial match find more logs than expected?
+
+**Contains**, **Starts with**, **Ends with**, and **Does not contain** ignore letter case. Use the `-cs` variant described in [Match letter case exactly](#match-letter-case-exactly) when case matters.
+
+### Why does the export say the range is no longer within log retention?
+
+The whole range is older than your team's oldest retained log. Choose a more recent range.
 
 ### Why is the IP still blocked after I removed an entry?
 

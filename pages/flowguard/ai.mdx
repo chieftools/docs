@@ -9,11 +9,12 @@ import {Callout, Head} from "zudoku/components";
   <title>Connect an AI agent | FlowGuard</title>
 </Head>
 
-Use this guide to connect an MCP-compatible AI client to FlowGuard so it can investigate request logs and manage rules and actions for your team.
+Use this guide to connect an MCP-compatible AI client to FlowGuard so it can investigate request logs and manage rules and actions for one team or all your teams.
 
 ## Choose your task
 
 - [Connect an AI client](#connect-a-client)
+- [Choose one team or all your teams](#choose-one-team-or-all-your-teams)
 - [Try a request](#what-happens-next)
 - [Review the available tools](#available-tools)
 - [Let the agent change rules and actions](#allow-rule-and-action-changes)
@@ -36,13 +37,27 @@ Look for MCP or integrations in your client's settings, then:
 1. Open the client's MCP or integrations settings.
 2. Add a remote MCP server with the URL above.
 3. Sign in with your Chief account.
-4. Review and approve the requested scopes.
+4. Under **Select a team**, choose the team the agent may use, or **All my teams**.
+5. Review the requested scopes and select **Authorize**.
 
 FlowGuard asks for read access when you first connect. The agent can then search logs and inspect rules, actions, servers, and IP lists, but it cannot change anything.
 
 <Callout type="caution" title="Review the requested access">
   The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
 </Callout>
+
+### Choose one team or all your teams
+
+The team you select in step 4 decides which FlowGuard data the agent can reach.
+
+| Choice | What the agent can use |
+| --- | --- |
+| A single team | Only that team. The agent never has to pick a team. |
+| **All my teams** | Every team you belong to, including teams you join later. The agent picks a team for each request. |
+
+With **All my teams**, the agent gets the same scopes in every team. Name the team in your request, such as "In the Staging team, list the rules", so the agent does not have to guess. It should ask you when the team is unclear and tell you which team it used. Before you approve a rule or action change, check that the agent named the right team.
+
+To switch between one team and all teams, reconnect the client and make a different choice.
 
 ### What happens next
 
@@ -52,12 +67,21 @@ After connecting, give the client a specific task. For example:
 - Find requests that returned a `5xx` status in the last 30 minutes.
 - Which countries and ASNs sent the most blocked requests today?
 - List my rules in evaluation order and explain what each one does.
+- Which of my teams received the most blocked requests today?
 
-Start with a short time range, such as the last hour, and widen it only when the agent finds too little. The agent can only find logs that your team still retains, so an empty result means no retained log matched, not that the traffic never happened.
+The last example only works with **All my teams**. Start with a short time range, such as the last hour, and widen it only when the agent finds too little. The agent can only find logs that the team still retains, so an empty result means no retained log matched, not that the traffic never happened.
 
 ## Available tools
 
 Your client may list every tool, but each tool only works when the connection has its required scope. A higher-level scope also works. For example, `flowguard:rules:write` covers `flowguard:rules:read`.
+
+### Teams
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-teams` | List the teams the connection can use and mark your default team | None |
+
+`list-teams` is only available to connections authorized for **All my teams**. These connections name a team on every other tool call. Your default team is a hint for the agent, not an automatic choice.
 
 ### Request logs
 
@@ -140,6 +164,14 @@ The connection does not have the tool's required scope. Compare the tool with th
 ### Why can't the agent find any logs?
 
 Ask for a shorter, more recent time range or fewer filters. Logs older than your team's retention period are no longer available. You can compare the result with the [Stream](/flowguard/stream).
+
+### Why can't the agent see one of my teams?
+
+The connection is limited to the team you selected when you connected. Reconnect the client and choose that team or **All my teams**. With **All my teams**, the agent can only use teams you are a member of.
+
+### Why did the agent use the wrong team?
+
+With **All my teams**, the agent picks a team for each request. Name the team in your request and ask the agent which team it used. If you only work in one team, reconnect and select that team instead.
 
 ### Why does the agent report too many requests?
 
