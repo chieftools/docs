@@ -75,7 +75,7 @@ const config: ZudokuConfig = {
             llmsTxt: true,
             llmsTxtFull: true,
             includeProtected: false,
-            description: 'Product guides, developer guides, and API references for Chief Tools: Account Chief, Domain Chief, Cert Chief, Tny, Deploy Chief, FlowGuard, and Bill.DO.',
+            description: 'Product guides, developer guides, and API references for Chief Tools: Account Chief, Domain Chief, Cert Chief, Tny, Deploy Chief, Backup Chief, FlowGuard, and Bill.DO.',
             instructions: 'Use the product guides to answer questions about using a Chief Tools web app. Use the pages under /developers for authentication, scopes, and integration guides, and the API references for exact endpoints and fields. Every API uses tokens and scopes issued by Account Chief.',
         },
         files: 'pages/**/*.{md,mdx}',
@@ -194,6 +194,7 @@ const config: ZudokuConfig = {
         {from: '/deploychief', to: '/deploychief/introduction'},
         {from: '/tny', to: '/tny/introduction'},
         {from: '/tny/api/scopes', to: '/developers/tny/scopes'},
+        {from: '/backupchief', to: '/backupchief/introduction'},
         {from: '/flowguard', to: '/flowguard/introduction'},
         {from: '/flowguard/api/scopes', to: '/developers/flowguard/scopes'},
         {from: '/billdo', to: '/billdo/introduction'},
@@ -362,6 +363,14 @@ const config: ZudokuConfig = {
                             to: '/developers/deploychief',
                             stack: true,
                         },
+                    ],
+                },
+                {
+                    type: 'category',
+                    label: 'Backup Chief',
+                    icon: 'book',
+                    items: [
+                        '/backupchief/introduction',
                     ],
                 },
                 {
@@ -609,6 +618,18 @@ const config: ZudokuConfig = {
                                     stack: true,
                                 },
                             ],
+                        },
+                    ],
+                },
+                {
+                    type: 'category',
+                    label: 'Backup Chief',
+                    icon: 'code',
+                    items: [
+                        {
+                            type: 'doc',
+                            file: '/developers/backupchief',
+                            label: 'Introduction',
                         },
                     ],
                 },

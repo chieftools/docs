@@ -1,0 +1,44 @@
+---
+title: Introduction
+ogTitle: Managed restic backups
+description: A quick introduction to Backup Chief, what it does and how to get your first backup running.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Introduction | Backup Chief</title>
+</Head>
+
+Backup Chief schedules, monitors, and restores <ExternalLink href="https://restic.net">restic</ExternalLink> backups of files, MySQL databases, and PostgreSQL databases on your Linux servers. The backups go to storage you control.
+
+## How Backup Chief works
+
+An <ExternalLink href="https://github.com/chieftools/backupchief-agent">open-source agent</ExternalLink> runs on each server you back up. You configure backup jobs in the Backup Chief dashboard, and the agent runs them on the server and uploads the data straight to your storage. The agent keeps the schedule on the server, so scheduled backups still run if the dashboard is briefly unreachable.
+
+Restic encrypts and deduplicates every backup. Each backup job gets its own restic repository on your S3-compatible storage or SFTP server. These are standard restic repositories, so you can also restore with restic itself, without Backup Chief.
+
+## Get your first backup running
+
+The dashboard guides a new team through four steps:
+
+1. **Add a server.** Name the Linux server and run the one-line setup command on it. The dashboard updates when the server connects.
+2. **Add storage.** Connect S3-compatible storage or an SFTP server. Backup Chief checks that it can reach the storage before saving it.
+3. **Create a backup job.** Choose the paths or databases to back up, how often the job runs, and how many recovery points to keep.
+4. **Finish recovery setup.** Every job has its own recovery key. Save the job's recovery document somewhere safe, then enter the code from that document. The job does not start backing up until you do.
+
+<Callout type="caution" title="Keep the recovery document">
+  You need the recovery document to read your backups. Store it outside the server and the storage it protects, for example in your password manager.
+</Callout>
+
+## What you can do next
+
+- Run a backup on demand, or let the schedule run it. The Free plan runs backups daily, and paid plans run them as often as every five minutes.
+- Set how many recent, hourly, daily, weekly, monthly, and yearly recovery points to keep. Mark a recovery point as keep forever to exempt it from cleanup.
+- Browse recovery points and files, download a prepared copy, or restore directly on your server.
+- Keep a second copy of a job's backups at another storage destination.
+- Get email alerts when a backup, maintenance task, or server needs attention, and when it recovers.
+
+Backup Chief also runs regular restic repository checks, and their results appear next to the job's backup history.
+
+Looking for something that is not covered here? <ExternalLink href="https://chief.app/contact">Contact us</ExternalLink> and we will help.

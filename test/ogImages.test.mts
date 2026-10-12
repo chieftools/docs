@@ -30,6 +30,8 @@ test('selects product branding and API labels from the route', () => {
   assert.equal(findOgImageBrand('/developers/deploychief').styleId, 'deploychief');
   assert.equal(findOgImageBrand('/developers/tny').styleId, 'tny');
   assert.equal(findOgImageBrand('/developers/flowguard').styleId, 'flowguard');
+  assert.equal(findOgImageBrand('/developers/backupchief').styleId, 'backupchief');
+  assert.equal(findOgImageBrand('/backupchief/introduction').styleId, 'backupchief');
   assert.equal(findOgImageBrand('/api/accountchief/example').styleId, 'accountchief');
   assert.equal(findOgImageBrand('/api/accountchief/example').label, 'API reference');
   assert.equal(findOgImageBrand('/api/domainchief/example').label, 'API reference');
