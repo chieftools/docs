@@ -1,0 +1,30 @@
+---
+title: Socket Chief
+description: Socket Chief uses the Pusher protocol and HTTP API instead of its own API.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Developer documentation | Socket Chief</title>
+</Head>
+
+Socket Chief uses the Pusher WebSocket protocol and the Pusher HTTP API, so you integrate with existing Pusher client and server libraries. It does not have a separate Chief Tools API yet. Manage applications, channel types, and webhooks from the Socket Chief dashboard for now.
+
+Looking for help using Socket Chief in the browser? Go to the [Socket Chief documentation](/socketchief/introduction).
+
+## Connect a Pusher library
+
+Copy the connection settings from your application page in Socket Chief, then use them in place of Pusher's:
+
+- Use the **App ID / App Key** value as both the app ID and the app key.
+- Use the **App Secret** only on your server. It signs HTTP API requests, private and presence channel authorizations, and webhooks.
+- Use the **Host** as `wsHost` in client libraries and as the host in server libraries, with the **Port** shown.
+- Always connect over TLS, with `forceTLS` in clients and `https` in server libraries.
+- Set any cluster value, such as `eu`, if your library requires one. Socket Chief ignores it.
+
+For channel authorization, events, webhooks, and HTTP API requests, follow the <ExternalLink href="https://pusher.com/docs/channels/">Pusher Channels documentation</ExternalLink> and the docs for your library.
+
+## Request API access
+
+If your integration needs to manage Socket Chief applications through an API, tell us what it should do. Suggest it on the <ExternalLink href="https://roadmap.chief.tools?ref=chiefdocs">roadmap</ExternalLink> or <ExternalLink href="https://chief.app/contact">contact us</ExternalLink>. Real use cases decide what the API covers first.

@@ -1,0 +1,41 @@
+---
+title: Introduction
+ogTitle: Hosted Pusher compatible WebSockets
+description: A quick introduction to Socket Chief, what it does and how to connect your first application.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Introduction | Socket Chief</title>
+</Head>
+
+Socket Chief runs hosted WebSockets for live updates, notifications, chat, and presence in your apps. It speaks the <ExternalLink href="https://pusher.com/docs/channels/library_auth_reference/pusher-websockets-protocol/">Pusher protocol</ExternalLink>, so your apps connect to it with Pusher client and server libraries.
+
+## How Socket Chief works
+
+Your backend publishes events through the Pusher HTTP API, and Socket Chief delivers them to every client subscribed to the channel. Socket Chief runs the WebSocket servers, so your application servers never hold long-lived connections.
+
+Use a Pusher library such as pusher-js, Laravel Echo, or Laravel broadcasting. Socket Chief does not have its own SDK. Switching to or from Socket Chief means changing a few connection settings.
+
+## Connect your first application
+
+1. **Create an application.** Go to **Applications**, choose **New application**, and give it a name. The name is only visible to your team.
+2. **Copy the credentials.** The application page shows the **App ID / App Key**, **App Secret**, **Host**, and **Port**. Use the App ID / App Key value for both the app ID and the app key in your Pusher libraries.
+3. **Configure your Pusher libraries.** Use the host as `wsHost` in Pusher client libraries and as the host in Pusher server libraries. Always connect over TLS, with `forceTLS` in clients and `https` in server libraries.
+4. **Choose channel types.** New applications allow private and presence channels. Turn on public, cache, or encrypted channels on the application page if your app uses them, then choose **Save**.
+
+If your Pusher library requires a cluster, set any value, such as `eu`. Socket Chief ignores it because the host takes precedence.
+
+<Callout type="caution" title="Keep the app secret on your server">
+  The app secret signs API requests and channel authorizations. Never embed it in JavaScript or other code that runs in a browser or app.
+</Callout>
+
+## What you can do next
+
+- Allow clients to publish events directly to other subscribers on private and presence channels by turning on **Client events**.
+- Add webhooks to hear when channels are occupied or vacated, when presence members join or leave, and when clients publish events. Socket Chief signs webhooks with your app secret.
+- Check delivered messages, client events, API triggers, and peak connections per application or for your whole team under **Usage**.
+- Create a separate application for each project or environment, each with its own credentials, channel types, and webhooks.
+
+Socket Chief is in public beta. Looking for something that is not covered here? <ExternalLink href="https://chief.app/contact">Contact us</ExternalLink> and we will help.

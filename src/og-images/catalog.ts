@@ -65,6 +65,14 @@ export const ogImageBrands: OgImageBrand[] = [
     fallbackDescription: 'Find out what is available for Backup Chief integrations.',
   },
   {
+    prefix: '/developers/socketchief',
+    styleId: 'socketchief',
+    productName: 'Socket Chief',
+    label: 'Documentation',
+    fallbackTitle: 'Socket Chief developer documentation',
+    fallbackDescription: 'Connect Pusher libraries to Socket Chief.',
+  },
+  {
     prefix: '/domainchief/api',
     styleId: 'domainchief',
     productName: 'Domain Chief',
@@ -159,6 +167,14 @@ export const ogImageBrands: OgImageBrand[] = [
     label: 'Documentation',
     fallbackTitle: 'Backup Chief documentation',
     fallbackDescription: 'Back up files and databases to your own storage with Backup Chief.',
+  },
+  {
+    prefix: '/socketchief',
+    styleId: 'socketchief',
+    productName: 'Socket Chief',
+    label: 'Documentation',
+    fallbackTitle: 'Socket Chief documentation',
+    fallbackDescription: 'Add realtime features with hosted, Pusher compatible WebSockets.',
   },
   {
     prefix: '/billdo',
