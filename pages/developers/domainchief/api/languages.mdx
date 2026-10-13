@@ -1,0 +1,114 @@
+---
+title: Languages
+description: Receive error messages, notices, and TLD descriptions in your customer's language.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Languages | Domain Chief</title>
+</Head>
+
+The Domain Chief API returns texts meant for people, such as error messages, domain notices, and TLD requirements, in English or Dutch. Send the language of the customer who will read them, and you can show those texts without translating them yourself.
+
+Codes, enum values, and field names never change with the language. Keep using them for every decision your application makes.
+
+## Request a language
+
+Add an `Accept-Language` header to any request:
+
+```http
+GET /api/v1/tlds/ie HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+Accept-Language: nl
+```
+
+The texts in the response are now in Dutch, while every other value stays the same:
+
+```json
+{
+  "data": {
+    "name": "ie",
+    "requirements": [
+      {
+        "type": "registrant_eligibility",
+        "operations": ["registration"],
+        "handle_types": ["owner"],
+        "description": "Een .ie-domein werkt alleen voor houders die een band met Ierland kunnen aantonen.",
+        "url": "https://www.weare.ie/how-to-register-a-domain/#registration_requirements"
+      },
+      ...
+    ],
+    ...
+  }
+}
+```
+
+### Supported languages
+
+| Language | Value |
+| --- | --- |
+| English | `en` |
+| Dutch | `nl` |
+
+The header follows the standard format, so you can pass the value your customer's browser sends. A regional variant such as `nl-BE` selects Dutch, and the API respects the order and `q` weights of a list such as `fr-FR,nl;q=0.8,en;q=0.5`. When none of the requested languages are available, or you omit the header, the API answers in English.
+
+### Check which language was used
+
+Every response includes a `Content-Language` header with the language of its texts:
+
+```http
+HTTP/1.1 200 OK
+Content-Language: nl
+Vary: Accept-Language
+```
+
+Read this header when you store or cache a response, instead of assuming the request was matched.
+
+## What is translated
+
+These texts follow `Accept-Language`:
+
+- **Error responses:** the `message` of errors such as `404 Not Found` and `409 Conflict`, and both `message` and `errors` of a `422 Unprocessable Content` response.
+- **Domain notices:** the `message` of each notice on a [domain](/api/domainchief/domains#show-domain). The [domain notices guide](/developers/domainchief/guides/notices) explains how to present them.
+- **TLD texts:** `requirements[].description`, `transfer_description`, and `whois_privacy_description` on a [TLD](/api/domainchief/tlds#show-tld).
+- **Activity failure causes:** `properties.cause.message` on failed domain operations in the activity log.
+- **DNS:** the `message` of a DNS import blocker, and the `display_name` of a DNS snapshot that was saved automatically.
+- **Automated actions:** the causer `name` of activity and DNS snapshots, which reads `System` in English.
+
+In the [API reference](/api/domainchief/~schemas), translated response fields say "Translated with `Accept-Language`." in their description.
+
+### What stays the same
+
+Some values never change with the language:
+
+- Codes, enum values, field names, and the keys of the `errors` object.
+- Values that you or your customers supplied, such as contact details, metadata, and the names of manually saved DNS snapshots.
+- Names that are part of a description, such as registry agreement titles.
+- Text that comes directly from a registry, such as `registry_message` on an activity and `registry_restriction_detail` on a notice.
+- The `description` of an activity, which is written when the activity happens.
+- Errors about authentication, missing scopes, and rate limits.
+
+The [Domain Chief MCP server](/domainchief/ai) always answers in English. AI clients translate its output for the user themselves.
+
+## Build with translated texts
+
+### Decide on codes, show the texts
+
+A translated text can change wording at any time and differs per language. Decide what to do based on the codes and enum values next to it, such as a notice `code`, a requirement `type`, or the field name in `errors`. Show the text to explain the situation to your customer.
+
+Validation messages name the field by its API field name, with spaces instead of underscores, for example `Het veld address postal code is verplicht.` Use the keys of `errors` to place each message next to the right input in your own form.
+
+### Cache per language
+
+Translated texts differ per language, so include the language in every cache key that stores a response with texts. The [TLD catalog](/developers/domainchief/guides/domain-search-pricing) is the most common example: keep one cached copy per language you serve, or cache the prices and codes once and fetch the descriptions in the customer's language when you show them.
+
+<Callout type="tip" title="Store codes, not texts">
+  When you save a notice or error for later, save its code as well. A stored text keeps the language and wording of the moment you saved it, so fetch the resource again for current text or show your own copy for that code.
+</Callout>
+
+### Serve other languages
+
+For a language the API does not support, request English and show your own translations based on the codes. Notice codes, requirement types, and transfer authorization values are stable for this purpose. Show the English text for any code you do not have a translation for yet.

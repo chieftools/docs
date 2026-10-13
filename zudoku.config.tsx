@@ -546,6 +546,7 @@ const config: ZudokuConfig = {
                                 '/developers/domainchief/api/introduction',
                                 '/developers/domainchief/api/scopes',
                                 '/developers/domainchief/api/metadata',
+                                '/developers/domainchief/api/languages',
                                 {
                                     type: 'link',
                                     label: 'API reference',

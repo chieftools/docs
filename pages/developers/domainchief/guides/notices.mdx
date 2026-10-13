@@ -103,7 +103,7 @@ The [data synchronization guide](/developers/domainchief/guides/sync-data) cover
 - `code` is the stable branching key. Use it for custom copy, analytics, and code-specific flows.
 - `type` distinguishes a condition that requires intervention from an operational update.
 - `severity` controls presentation urgency. It is not a domain lifecycle status.
-- `message` is fallback display copy. It may change or be localized, so do not branch on it or persist it as state.
+- `message` is fallback display copy in the language you request with [`Accept-Language`](/developers/domainchief/api/languages). It may change, so do not branch on it or persist it as state.
 - `actions` lists resolutions available for the current domain and actor. Let these values drive the next steps instead of inferring actions from `code` alone.
 - `data` contains code-specific context such as a failure cause, affected attributes, a deadline, or an identifier required by an action.
 
