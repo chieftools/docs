@@ -64,6 +64,12 @@ Registration, transfer, and immediate deletion use separate scopes because they 
 | `domainchief:dns:read` | List and view DNS records |
 | `domainchief:dns:write` | Create, update, delete, clear, and reset DNS records |
 
+### ACME
+
+| Scope | Access |
+|---|---|
+| `domainchief:acme:write` | Publish and delete ACME DNS-01 challenge values on `_acme-challenge` names |
+
 ### Redirects
 
 | Scope | Access |
@@ -91,6 +97,14 @@ domainchief:dns:write
 ```
 
 The token can read and change DNS records. It cannot list domains, manage contacts, or run domain lifecycle operations.
+
+### Issue certificates with DNS-01 validation
+
+```text
+domainchief:acme:write
+```
+
+The token can only publish and delete TXT records on `_acme-challenge` names through the ACME endpoints. It cannot list domains, read DNS records, or change any other record. Use this scope for ACME clients such as Certbot.
 
 ### Read data for monitoring
 
