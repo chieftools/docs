@@ -1,0 +1,37 @@
+diff --git a/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts b/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
+index a370634..d62d330 100644
+--- a/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
++++ b/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
+@@ -56,7 +56,7 @@ const resolveBack = (item: NavigationItem): BackLink => {
+   return { to: "/", label: item.label };
+ };
+ 
+-// Cross-section stack: derive the back link from the ancestor that owns the `stack` link.
++// Cross-section stack: derive the back link from the nearest ancestor that owns the `stack` link.
+ export const resolveStackOwner = (
+   siteNavigation: NavigationItem[],
+   pathname: string,
+@@ -65,7 +65,7 @@ export const resolveStackOwner = (
+     if (item.type !== "link" || !item.stack) return;
+     const base = cleanPath(item.to);
+     if (pathname !== base && !pathname.startsWith(`${base}/`)) return;
+-    return resolveBack(parents.at(0) ?? item);
++    return resolveBack(parents.at(-1) ?? item);
+   });
+ 
+ export const resolveNavigationFrame = (
+diff --git a/node_modules/zudoku/src/lib/plugins/openapi/schema/SchemaExampleAndDefault.tsx b/node_modules/zudoku/src/lib/plugins/openapi/schema/SchemaExampleAndDefault.tsx
+index 08da641..477d8b8 100644
+--- a/node_modules/zudoku/src/lib/plugins/openapi/schema/SchemaExampleAndDefault.tsx
++++ b/node_modules/zudoku/src/lib/plugins/openapi/schema/SchemaExampleAndDefault.tsx
+@@ -6,7 +6,9 @@ export const SchemaExampleAndDefault = ({
+ }: {
+   schema: SchemaObject;
+ }) => {
+-  const example = schema.examples?.at(0);
++  const example = Array.isArray(schema.examples)
++    ? schema.examples.at(0)
++    : undefined;
+   const defaultValue = schema.default;
+ 
+   if (example === undefined && defaultValue === undefined) return null;
