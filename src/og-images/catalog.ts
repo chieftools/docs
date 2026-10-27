@@ -73,6 +73,14 @@ export const ogImageBrands: OgImageBrand[] = [
     fallbackDescription: 'Connect Pusher libraries to Socket Chief.',
   },
   {
+    prefix: '/developers/serverchief',
+    styleId: 'serverchief',
+    productName: 'Server Chief',
+    label: 'Documentation',
+    fallbackTitle: 'Server Chief developer documentation',
+    fallbackDescription: 'Search server inventory and read vulnerabilities, metrics, and alerts.',
+  },
+  {
     prefix: '/domainchief/api',
     styleId: 'domainchief',
     productName: 'Domain Chief',
@@ -129,6 +137,14 @@ export const ogImageBrands: OgImageBrand[] = [
     fallbackDescription: 'Query request logs and manage FlowGuard rules and actions.',
   },
   {
+    prefix: '/api/serverchief',
+    styleId: 'serverchief',
+    productName: 'Server Chief',
+    label: 'API reference',
+    fallbackTitle: 'Server Chief API reference',
+    fallbackDescription: 'Search server inventory and read vulnerabilities, metrics, and alerts.',
+  },
+  {
     prefix: '/domainchief',
     styleId: 'domainchief',
     productName: 'Domain Chief',
@@ -175,6 +191,14 @@ export const ogImageBrands: OgImageBrand[] = [
     label: 'Documentation',
     fallbackTitle: 'Socket Chief documentation',
     fallbackDescription: 'Add realtime features with hosted, Pusher compatible WebSockets.',
+  },
+  {
+    prefix: '/serverchief',
+    styleId: 'serverchief',
+    productName: 'Server Chief',
+    label: 'Documentation',
+    fallbackTitle: 'Server Chief documentation',
+    fallbackDescription: 'Know what runs on every server, from packages and vulnerabilities to metrics and alerts.',
   },
   {
     prefix: '/billdo',

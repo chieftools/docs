@@ -69,13 +69,28 @@ const config: ZudokuConfig = {
                 ],
             },
         },
+        {
+            type: 'file',
+            path: '/api/serverchief',
+            input: './apis/serverchief.json',
+            options: {
+                schemaDownload: {
+                    enabled: true,
+                },
+                disableSecurity: false,
+                examplesLanguage: 'shell',
+                supportedLanguages: [
+                    {label: 'cURL', value: 'shell'},
+                ],
+            },
+        },
     ],
     docs: {
         llms: {
             llmsTxt: true,
             llmsTxtFull: true,
             includeProtected: false,
-            description: 'Product guides, developer guides, and API references for Chief Tools: Account Chief, Domain Chief, Cert Chief, Tny, Deploy Chief, Backup Chief, FlowGuard, Socket Chief, and Bill.DO.',
+            description: 'Product guides, developer guides, and API references for Chief Tools: Account Chief, Domain Chief, Cert Chief, Tny, Deploy Chief, Backup Chief, FlowGuard, Socket Chief, Server Chief, and Bill.DO.',
             instructions: 'Use the product guides to answer questions about using a Chief Tools web app. Use the pages under /developers for authentication, scopes, and integration guides, and the API references for exact endpoints and fields. Every API uses tokens and scopes issued by Account Chief.',
         },
         files: 'pages/**/*.{md,mdx}',
@@ -198,6 +213,7 @@ const config: ZudokuConfig = {
         {from: '/flowguard', to: '/flowguard/introduction'},
         {from: '/flowguard/api/scopes', to: '/developers/flowguard/scopes'},
         {from: '/socketchief', to: '/socketchief/introduction'},
+        {from: '/serverchief', to: '/serverchief/introduction'},
         {from: '/billdo', to: '/billdo/introduction'},
         {from: '/toolchief', to: '/introduction'},
     ],
@@ -400,6 +416,20 @@ const config: ZudokuConfig = {
                             type: 'link',
                             label: 'Developers',
                             to: '/developers/socketchief',
+                            stack: true,
+                        },
+                    ],
+                },
+                {
+                    type: 'category',
+                    label: 'Server Chief',
+                    icon: 'book',
+                    items: [
+                        '/serverchief/introduction',
+                        {
+                            type: 'link',
+                            label: 'Developers',
+                            to: '/developers/serverchief',
                             stack: true,
                         },
                     ],
@@ -691,6 +721,36 @@ const config: ZudokuConfig = {
                         },
                     ],
                 },
+                {
+                    type: 'category',
+                    label: 'Server Chief',
+                    icon: 'code',
+                    items: [
+                        {
+                            type: 'doc',
+                            file: '/developers/serverchief',
+                            label: 'Introduction',
+                        },
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'doc',
+                                    file: '/developers/serverchief/scopes',
+                                    label: 'Scopes',
+                                },
+                                {
+                                    type: 'link',
+                                    label: 'REST API reference',
+                                    to: '/api/serverchief',
+                                    stack: true,
+                                },
+                            ],
+                        },
+                    ],
+                },
             ],
         },
     ],
@@ -704,6 +764,7 @@ const config: ZudokuConfig = {
             'certchief',
             'tny:read',
             'flowguard:read',
+            'serverchief:read',
             'deploychief',
         ],
         issuer: process.env.ZUDOKU_PUBLIC_AUTH_ISSUER as string,

@@ -1,0 +1,77 @@
+---
+title: Scopes
+description: Choose what an access token can read or change through the Server Chief API.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes | Server Chief</title>
+</Head>
+
+Scopes limit what an access token can do in Server Chief. Choose them when you create an [access token](/developers/authentication#access-tokens). Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
+
+Each endpoint in the [REST API reference](/api/serverchief) lists its required scope under security.
+
+## Available scopes
+
+### Broad scopes
+
+| Scope | Access |
+|---|---|
+| `serverchief` | Every user-facing Server Chief API operation |
+| `serverchief:read` | Every resource read operation |
+| `serverchief:write` | Every resource write and read operation |
+
+### Servers
+
+| Scope | Access |
+|---|---|
+| `serverchief:servers:read` | List and retrieve servers and their inventory: packages, software, sites, certificates, package sources, vulnerabilities, metrics, install commands, and agent releases |
+| `serverchief:servers:write` | Create, update, and delete servers, refresh their inventory, update their agent, set their tags, and create or revoke install commands; also grants server reads |
+
+### Tags
+
+| Scope | Access |
+|---|---|
+| `serverchief:tags:read` | List tags and see which teams they are shared with |
+| `serverchief:tags:write` | Create, update, delete, and share tags; also grants tag reads |
+
+Setting the tags of a server needs `serverchief:servers:write`. The tags scopes cover the tags themselves and their sharing.
+
+### Alerts
+
+| Scope | Access |
+|---|---|
+| `serverchief:alerts:read` | List metric alert rules and the alerts they raised |
+| `serverchief:alerts:write` | Create, update, and delete metric alert rules; also grants alert reads |
+
+<Callout type="info">
+Scopes are hierarchical. A resource write scope includes the matching read scope. `serverchief:read` grants every resource read scope, `serverchief:write` grants every resource write and read scope, and `serverchief` grants everything. A resource scope does not grant access to unrelated resources.
+</Callout>
+
+## Example token configurations
+
+### Report on your fleet
+
+```text
+serverchief:servers:read
+```
+
+The token can search servers and read their inventory, vulnerabilities, and metrics. It cannot change anything.
+
+### Add servers from provisioning
+
+```text
+serverchief:servers:write
+```
+
+The token can create and revoke install commands for new servers. An install command takes the names or IDs of the tags every server it adds gets, so the integration does not need a tags scope.
+
+### Manage alert rules
+
+```text
+serverchief:alerts:write serverchief:tags:read
+```
+
+The token can manage metric alert rules and read the tags that rules can watch. Add `serverchief:servers:read` to scope rules to individual servers by their ID.

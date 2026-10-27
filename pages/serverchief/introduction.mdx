@@ -1,0 +1,41 @@
+---
+title: Introduction
+ogTitle: Inventory and monitoring for your servers
+description: A quick introduction to Server Chief, what it does and how to add your first server.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Introduction | Server Chief</title>
+</Head>
+
+Server Chief shows what runs on every server you manage and how each server is doing. Search your whole fleet for a package version, see which servers a vulnerability affects, and get an alert before a disk fills up.
+
+## How Server Chief works
+
+A small agent runs on each server and reports the operating system, packages, pending updates, hardware, network, sites, and certificates. It sends only what changed since its last report, and it collects host metrics every minute. The agent only makes outbound HTTPS connections, so you don't open any ports.
+
+The agent runs on Ubuntu 14.04 and newer, Debian 8 and newer, and CentOS, Red Hat, AlmaLinux, and Rocky Linux 7 and newer, on amd64 and arm64. Where systemd allows it, the agent runs as its own unprivileged user. It updates itself when we publish a new release.
+
+## Add your first server
+
+1. Go to **Servers** and choose **Add servers**.
+2. Choose **One server** or **Multiple servers**, pick how long the command stays valid, and optionally add tags. Choose **Create install command**.
+3. Run the command as root on the server. It installs the agent from our package repository and connects it to your team.
+
+The server appears in the list once the agent connects, named after its hostname. Its inventory fills in within a few minutes.
+
+<Callout type="caution" title="Treat the install command like a password">
+  Anyone with the command can add a server to your team until it expires. Revoke it on the **Add servers** page if it leaks.
+</Callout>
+
+## What you can do next
+
+- Search your servers by software version, package, operating system, location, or tag. For example, `arch:arm64 php:eol` finds ARM servers running a PHP release past its end of life.
+- See which security advisories affect a server and whether its pending updates or a reboot fix them.
+- Follow CPU, memory, disk, and network usage, and add alert rules that email your team when a metric stays above a threshold.
+- Share servers with another team through a tag. That team gets read-only access.
+- Connect an AI agent through the MCP server at `https://server.chief.app/mcp`, or build an integration with the [REST API](/developers/serverchief).
+
+Server Chief is in beta. Looking for something that is not covered here? <ExternalLink href="https://chief.app/contact">Contact us</ExternalLink> and we will help.

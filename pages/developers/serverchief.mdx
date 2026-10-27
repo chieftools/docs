@@ -1,0 +1,77 @@
+---
+title: Server Chief
+description: Authenticate and use the Server Chief REST API to search your server inventory, vulnerabilities, metrics, and alerts.
+---
+
+import {Head, Link} from "zudoku/components";
+
+<Head>
+  <title>Developer documentation | Server Chief</title>
+</Head>
+
+Use the Server Chief REST API to search your team's servers and read their packages, software, sites, certificates, vulnerabilities, and metrics. You can also manage tags, metric alert rules, and install commands that add new servers.
+
+Looking for help using Server Chief in the browser? Go to the [Server Chief documentation](/serverchief/introduction).
+
+## Make your first request
+
+Every request needs a bearer access token. Use a team access token for a service owned by one team, a personal access token for a private script, or OAuth when your application connects other users' accounts. The [token guide](/developers/authentication) explains how to create and protect each token type.
+
+Give the token only the [Server Chief scopes](/developers/serverchief/scopes) its requests need. The production API base URL is:
+
+```text
+https://server.chief.app/api/v1
+```
+
+Start by listing the servers with outstanding security updates. This read-only request needs `serverchief:servers:read`:
+
+```http
+GET /api/v1/servers?q=updates:security HTTP/1.1
+Host: server.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+The response is a page of servers with their operating system, hardware, addresses, update counts, and vulnerability summary. Use the `id` of a server, such as `server_01jb9a2c3d4e5f6g7h8j9k0m1n`, in requests about that server.
+
+## Search servers
+
+The `q` parameter of [List servers](/api/serverchief/servers#list-servers) takes the same search language as the Server Chief dashboard. Separate terms with spaces. Every term must match, and a leading `-` excludes servers that match the term.
+
+| Query | Finds |
+|---|---|
+| `php:7.x` | Servers running PHP 7 |
+| `arch:arm64 php:eol` | ARM servers running a PHP release past its end of life |
+| `pkg:openssl<3.0.13` | Servers with an older `openssl` package, compared like dpkg or rpm |
+| `vulnerable:critical` | Servers with a critical vulnerability |
+| `tag:production -status:offline` | Online servers tagged `production` |
+| `cert:expiring<7d` | Servers with a site certificate that expires within 7 days |
+
+The `q` parameter in the API reference lists every filter. A query the parser does not understand returns a `422` response that explains which term is wrong.
+
+## Servers shared with your team
+
+Teams can share servers with each other through a tag. The API returns those servers too, with `access` set to `viewer` and the owning team in `owner_team`. Shared servers are read-only. Requests that change them, such as updating tags or metadata, return `403`.
+
+## API documentation
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/serverchief/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Give a token only the Server Chief permissions the integration needs.
+    </p>
+  </Link>
+  <Link
+    to="/api/serverchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">REST API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Browse endpoints, request fields, response schemas, and required permissions.
+    </p>
+  </Link>
+</div>
