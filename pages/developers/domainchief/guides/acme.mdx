@@ -109,7 +109,9 @@ spec:
                 key: api-key
 ```
 
-cert-manager checks the nameservers itself and only asks for validation once the record is visible. The <ExternalLink href="https://artifacthub.io/packages/search?repo=cert-manager-webhook-domainchief">chart documentation</ExternalLink> lists every chart value, including how to read the Secret from other namespaces for namespaced issuers.
+The webhook publishes the challenge on the `_acme-challenge` name in the domain's own hosted DNS zone, so the `cnameStrategy: Follow` solver option is not supported.
+
+cert-manager checks the nameservers itself and only asks for validation once the record is visible. The <ExternalLink href="https://artifacthub.io/packages/search?repo=cert-manager-webhook-domainchief">chart documentation</ExternalLink> lists every chart value, including how to read the Secret from other namespaces for namespaced issuers and how to run multiple replicas.
 
 ## Publish and delete challenges
 
@@ -192,5 +194,6 @@ Errors use the standard error response. Branch on the HTTP status and, for `409`
 | `409` with `dns.not_hosted` | The domain does not use hosted DNS. | Retrying does not help until the domain uses hosted DNS. |
 | `409` with `dns.zone_busy` or `dns.zone_changed` | Another hosted DNS change for the domain was running. | Retry after a few seconds. |
 | `422` | The name or value is invalid. | Fix the request using the messages in `errors`. |
+| `5xx` | Domain Chief could not complete the request. | Retry with a growing delay. Publishing and deleting are safe to repeat. |
 
 Treat unknown `code` values as permanent failures and report the `message` to the person running the client.
