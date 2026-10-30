@@ -21,7 +21,7 @@ Domain Chief stores registrant and other domain contacts as team-scoped resource
 6. [Apply contact events](/developers/domainchief/guides/sync-data#apply-event-pages) to your local copy.
 7. [Hand registrant verification to the registrant](#handle-registrant-verification) when a domain notice requires it.
 
-Reading contacts needs `domainchief:contacts:read`; creating, updating, or deleting them needs `domainchief:contacts:write`. Reading TLD capabilities and affected domains needs `domainchief:tlds:read` and `domainchief:domains:read`. Assigning a contact during registration or transfer needs `domainchief:domains:register`, while changing an existing domain needs `domainchief:domains:write`. Event-driven synchronization also needs `domainchief:events:read`. The [scope reference](/developers/domainchief/api/scopes) lists all Domain Chief permissions.
+Reading contacts needs `domainchief:contacts:read`; creating, updating, or deleting them needs `domainchief:contacts:write`. Reading affected domains needs `domainchief:domains:read`, and every token can read TLD capabilities. Assigning a contact during registration or transfer needs `domainchief:domains:register`, while changing an existing domain needs `domainchief:domains:write`. Event-driven synchronization also needs `domainchief:events:read`. The [scope reference](/developers/domainchief/api/scopes) lists all Domain Chief permissions.
 
 Before creating contacts, the Domain Chief team must have a valid, verified default contact. An authorized team member can complete that prerequisite through [Domain Chief's team setup](/domainchief/getting-started#complete-the-team-setup).
 

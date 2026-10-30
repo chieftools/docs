@@ -79,12 +79,15 @@ Registration, transfer, and immediate deletion use separate scopes because they 
 | `domainchief:redirects_mail:read` | List and view mail redirects |
 | `domainchief:redirects_mail:write` | Create, update, and delete mail redirects |
 
-### TLDs and activity
+### Activity
 
 | Scope | Access |
 |---|---|
-| `domainchief:tlds:read` | List and view available TLDs and pricing |
 | `domainchief:activity:read` | View domain activity logs |
+
+### TLDs
+
+Every Domain Chief token can list and view TLDs and their indicative pricing, whatever its scopes. Older tokens may still include `domainchief:tlds:read`, which keeps working but is no longer needed.
 
 ## Common token setups
 

@@ -22,7 +22,7 @@ Build a responsive domain search by separating availability from exact pricing. 
 7. When the customer chooses a domain, check that one name with `expand[]=price` before registration or transfer.
 8. Require confirmation again if the exact availability, operation, or price differs from the search result.
 
-Use a token with both `domainchief:tlds:read` and `domainchief:domains:read:availability`. The [API introduction](/developers/domainchief/api/introduction) covers authentication and team selection, and the [scope reference](/developers/domainchief/api/scopes) explains how to grant these permissions.
+Use a token with `domainchief:domains:read:availability`. Every Domain Chief token can read the TLD catalog, so it needs no other scope. The [API introduction](/developers/domainchief/api/introduction) covers authentication and team selection, and the [scope reference](/developers/domainchief/api/scopes) explains how to grant these permissions.
 
 ## Load indicative TLD prices
 
