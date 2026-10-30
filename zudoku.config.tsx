@@ -567,6 +567,7 @@ const config: ZudokuConfig = {
                                 '/developers/domainchief/guides/notices',
                                 '/developers/domainchief/guides/domain-connect',
                                 '/developers/domainchief/guides/acme',
+                                '/developers/domainchief/guides/terraform',
                             ],
                         },
                         {
@@ -772,7 +773,7 @@ const config: ZudokuConfig = {
         clientId: process.env.ZUDOKU_PUBLIC_AUTH_CLIENT_ID as string,
     },
     syntaxHighlighting: {
-        languages: [...defaultLanguages, 'http', 'nginx', 'regex'],
+        languages: [...defaultLanguages, 'hcl', 'http', 'ini', 'nginx', 'regex'],
     },
     canonicalUrlOrigin: 'https://docs.chief.tools',
 };

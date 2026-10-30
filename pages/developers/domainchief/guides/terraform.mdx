@@ -1,0 +1,223 @@
+---
+title: Manage DNS with Terraform
+description: Manage hosted DNS records, web redirects and mail forwards as code with the Domain Chief provider for Terraform and OpenTofu.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Manage DNS with Terraform | Domain Chief</title>
+</Head>
+
+The Domain Chief provider for Terraform and OpenTofu manages the hosted DNS records, web redirects and mail forwards of your domains as code. DNS changes go through the same review as the rest of your infrastructure, and a plan shows every change before it is made.
+
+The provider manages domains that are already in Domain Chief. It does not register, transfer, renew or delete domains. Do that in Domain Chief or through the [API](/api/domainchief).
+
+This guide covers setting up the provider, managing records and importing a zone you already have. The <ExternalLink href="https://registry.terraform.io/providers/chieftools/domainchief/latest/docs">provider documentation</ExternalLink> on the Terraform Registry describes every resource, data source and attribute.
+
+## Before you start
+
+### Domain requirements
+
+The provider manages DNS records, web redirects and mail forwards of domains that use Domain Chief hosted DNS. Mail forwards also need mail forwarding to be enabled for the domain. Mail forwarding is a paid feature, so the provider does not enable it. Enable it in Domain Chief first.
+
+### Create a token
+
+[Create a team access token](https://account.chief.app/team/select/token/create?scopes=domainchief:dns:write,domainchief:redirects_web:write,domainchief:redirects_mail:write) for the team that owns the domains. Keep only the scopes of the resources you use:
+
+| Resource or data source | Scope |
+|---|---|
+| `domainchief_dns_record`, `domainchief_dns_records` | `domainchief:dns:write` |
+| `domainchief_web_redirect` | `domainchief:redirects_web:write` |
+| `domainchief_mail_forward` | `domainchief:redirects_mail:write` |
+| `domainchief_domain`, `domainchief_domains` | `domainchief:domains:read` |
+
+A write scope also allows reading, so `domainchief:dns:write` covers listing records with `domainchief_dns_records`. See [scopes](/developers/domainchief/api/scopes#dns-records) for what each scope allows.
+
+<Callout type="caution">
+The token can change every DNS record of every domain in the team. Store it in the secret store of your CI system or Terraform runner, never in your configuration or state backend files.
+</Callout>
+
+## Configure the provider
+
+Add the provider to your configuration:
+
+```hcl
+terraform {
+  required_providers {
+    domainchief = {
+      source = "chieftools/domainchief"
+    }
+  }
+}
+
+provider "domainchief" {}
+```
+
+Set the token in the `DOMAINCHIEF_API_TOKEN` environment variable and initialize the working directory:
+
+```bash
+export DOMAINCHIEF_API_TOKEN=$TOKEN
+terraform init
+```
+
+OpenTofu uses the same configuration. Run `tofu init` instead.
+
+## Manage records
+
+### DNS records
+
+Each `domainchief_dns_record` is one record. Leave out `name` for the domain itself:
+
+```hcl
+resource "domainchief_dns_record" "apex" {
+  domain  = "example.com"
+  type    = "A"
+  content = "192.0.2.10"
+}
+
+resource "domainchief_dns_record" "www" {
+  domain  = "example.com"
+  type    = "CNAME"
+  name    = "www"
+  content = "example.com"
+}
+
+resource "domainchief_dns_record" "mx" {
+  domain   = "example.com"
+  type     = "MX"
+  content  = "mail.example.net"
+  priority = 10
+}
+
+resource "domainchief_dns_record" "spf" {
+  domain  = "example.com"
+  type    = "TXT"
+  content = "v=spf1 include:example.net -all"
+  ttl     = 300
+}
+```
+
+Write records the way you are used to. `@` for the domain itself, uppercase names, hostnames with a trailing dot and TXT content with or without surrounding quotes are all accepted and do not show up as changes in later plans.
+
+The TTL must be one of the values hosted DNS supports, such as `300` or `3600`. A plan fails for other values instead of rounding them.
+
+### Web redirects
+
+A `domainchief_web_redirect` redirects the domain itself or one of its subdomains. Domain Chief creates the DNS records the redirect needs, so do not add `domainchief_dns_record` resources for the same names:
+
+```hcl
+resource "domainchief_web_redirect" "root" {
+  domain = "example.com"
+  target = "https://www.example.net"
+}
+
+resource "domainchief_web_redirect" "docs" {
+  domain       = "example.com"
+  subdomain    = "docs"
+  target       = "https://docs.example.net"
+  include_path = true
+}
+```
+
+A redirect of the domain itself also redirects `www` unless you set `include_www = false`.
+
+### Mail forwards
+
+A `domainchief_mail_forward` forwards one address, or every address without its own mail forward when the alias is `*`:
+
+```hcl
+resource "domainchief_mail_forward" "info" {
+  domain = "example.com"
+  alias  = "info"
+  target = "team@example.net"
+}
+```
+
+Like web redirects, mail forwarding creates its own MX, SPF and DKIM records. Do not manage those records as `domainchief_dns_record` resources.
+
+## Import an existing zone
+
+Records you created in Domain Chief or through the API are not in your Terraform state. Import them, so Terraform manages the existing records instead of creating duplicates next to them. Importing needs Terraform 1.5 or OpenTofu 1.6 or later.
+
+### Generate import blocks
+
+Each import needs the ID of the record. The `domainchief_dns_records` data source lists every record of a domain, and a temporary `discover.tf` file turns that list into an `import` block for each record:
+
+```hcl
+data "domainchief_dns_records" "existing" {
+  domain = "example.com"
+}
+
+locals {
+  # Records managed by web redirects, mail forwarding or ACME challenges are skipped.
+  importable = [for record in data.domainchief_dns_records.existing.records : record if record.managed_by == null]
+
+  # Group records by type and name to give each resource a readable, unique name.
+  grouped = {
+    for record in local.importable :
+    "${lower(record.type)}_${record.name == "" ? "apex" : replace(replace(record.name, "*", "wildcard"), "/[^0-9A-Za-z_]/", "_")}" => record...
+  }
+}
+
+output "import_blocks" {
+  value = join("\n", flatten([
+    for key, records in local.grouped : [
+      for index, record in records : <<-EOT
+        import {
+          to = domainchief_dns_record.${index == 0 ? key : "${key}_${index + 1}"}
+          id = "example.com/${record.id}"
+        }
+      EOT
+    ]
+  ]))
+}
+```
+
+Read the records and write the import blocks to a file:
+
+```bash
+terraform apply
+terraform output -raw import_blocks > imports.tf
+rm discover.tf
+```
+
+The apply only reads the records and changes nothing. `imports.tf` now contains an import block for every record you manage yourself:
+
+```hcl
+import {
+  to = domainchief_dns_record.cname_www
+  id = "example.com/01hx4m2z8q3v7k5n9t6r1w0ybc"
+}
+```
+
+The data source marks records that Domain Chief manages with `managed_by`: `web_redirect`, `mail_forwarding` or `acme_challenge`. Those are skipped because Domain Chief maintains them for you. Manage the web redirects and mail forwards themselves with their own resources instead. Import those with the IDs from [list web redirects](/api/domainchief/web-redirects#list-web-redirects) and [list mail forwards](/api/domainchief/mail-forwarding#list-mail-forwards), in the form `example.com/$ID`.
+
+### Generate the configuration
+
+Let Terraform write the resource configuration for the imported records:
+
+```bash
+terraform plan -generate-config-out=dns.tf
+```
+
+Review `dns.tf`. The generated resources also list attributes with their default values, such as `comment = null`, `metadata = null` and `priority = 0`, which you can remove. Then import the records:
+
+```bash
+terraform apply
+rm imports.tf
+terraform plan
+```
+
+The apply imports the records without changing them. The final plan reports no changes, because Terraform now manages the zone.
+
+## Keep Terraform and Domain Chief in sync
+
+Once Terraform manages a zone, make changes in your configuration:
+
+- A record changed in Domain Chief or through the API shows up as a change in the next plan, and the next apply reverts it.
+- A record deleted outside Terraform, for example by clearing or resetting the zone, is created again by the next apply.
+- Records with a `managed_by` value belong to their feature. Change them through the web redirect, mail forwarding or ACME client instead.
+- Metadata keys starting with `domainchief:` are reserved for Domain Chief. You cannot set them and Terraform does not track them.
+
+The provider applies changes to one domain one at a time. When another change to the same domain is running, for example from a second Terraform workspace, the provider waits and retries.
