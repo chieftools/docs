@@ -566,6 +566,7 @@ const config: ZudokuConfig = {
                                 '/developers/domainchief/guides/sync-data',
                                 '/developers/domainchief/guides/notices',
                                 '/developers/domainchief/guides/domain-connect',
+                                '/developers/domainchief/guides/acme',
                             ],
                         },
                         {

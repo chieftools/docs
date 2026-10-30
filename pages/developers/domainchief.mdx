@@ -19,6 +19,7 @@ Looking for help using Domain Chief in the browser? Go to the [Domain Chief docu
 - Use the **team event feed** to keep domains, contacts, DNS records, web redirects, and mail forwards current without repeatedly retrieving complete collections.
 - Use **domain notices** with the REST API to show current problems, available resolutions, and operation progress.
 - Use **Domain Connect** when your service needs to propose a known set of DNS records for the customer to approve without giving your application API access.
+- Use the **ACME endpoints**, or the Certbot and cert-manager integrations built on them, to issue certificates with DNS-01 validation.
 
 ## Developer guides
 
@@ -84,6 +85,15 @@ Looking for help using Domain Chief in the browser? Go to the [Domain Chief docu
     <div className="font-semibold">Integrate with Domain Connect</div>
     <p className="mt-1.5 text-sm text-muted-foreground">
       Publish a DNS template and send customers through Domain Chief's approval flow.
+    </p>
+  </Link>
+  <Link
+    to="/developers/domainchief/guides/acme"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Issue certificates with DNS-01 validation</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Use Certbot, cert-manager, or the ACME endpoints to publish DNS-01 challenge values.
     </p>
   </Link>
 </div>

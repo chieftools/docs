@@ -1,0 +1,196 @@
+---
+title: Issue certificates with DNS-01 validation
+description: Prove domain control to an ACME certificate authority by publishing DNS-01 challenge values on Domain Chief hosted DNS.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Issue certificates with DNS-01 validation | Domain Chief</title>
+</Head>
+
+ACME certificate authorities such as Let's Encrypt can verify that you control a domain by asking you to publish a TXT record on its `_acme-challenge` name. This is the DNS-01 challenge. It is the only challenge type that can issue wildcard certificates, and it works for servers that are not reachable from the internet.
+
+Domain Chief has two endpoints for this: one publishes a challenge value and one deletes it. A token with the `domainchief:acme:write` scope can call them and nothing else, so a server that renews certificates never holds a token that can change your other DNS records.
+
+Use an existing client when one fits:
+
+- [Certbot](#certbot) for servers that run Certbot.
+- [cert-manager](#cert-manager) for Kubernetes clusters.
+- The [ACME endpoints](#publish-and-delete-challenges) directly when you build or extend your own ACME client.
+
+## Before you start
+
+### Domain requirements
+
+The domain must be in the team that owns the token and must use Domain Chief hosted DNS. The challenge records are published in the hosted DNS zone, so a domain that uses other nameservers cannot be validated this way.
+
+### Create a token
+
+[Create a team access token](https://account.chief.app/team/select/token/create?scopes=domainchief:acme:write) with only the `domainchief:acme:write` scope. Select the team that owns the domains you issue certificates for.
+
+A team access token keeps working when the person who created it leaves the team, and it never switches to another team. See [authentication](/developers/authentication#team-access-tokens) for the token types and [scopes](/developers/domainchief/api/scopes#acme) for what the scope allows.
+
+<Callout type="caution">
+Anyone holding the token can obtain certificates for every domain in the team. Store it like any other credential and give each server or cluster its own token, so you can revoke one without affecting the others.
+</Callout>
+
+## Use an existing client
+
+### Certbot
+
+The <ExternalLink href="https://github.com/chieftools/certbot-dns-domainchief">certbot-dns-domainchief</ExternalLink> plugin adds a `dns-domainchief` authenticator to Certbot. Install it the same way you installed Certbot:
+
+```bash
+# Certbot installed as a snap
+snap install certbot-dns-domainchief
+snap set certbot trust-plugin-with-root=ok
+snap connect certbot:plugin certbot-dns-domainchief
+
+# Certbot installed with pip
+pip install certbot-dns-domainchief
+```
+
+Save the token in a credentials file that only the user running Certbot can read:
+
+```ini
+# ~/.secrets/domainchief.ini
+dns_domainchief_api_key = $TOKEN
+```
+
+Then request a certificate:
+
+```bash
+certbot certonly \
+  --authenticator dns-domainchief \
+  --dns-domainchief-credentials ~/.secrets/domainchief.ini \
+  -d example.com \
+  -d '*.example.com'
+```
+
+Certbot stores the credentials path and reuses it for renewals. The plugin waits a fixed time for the record to reach the nameservers before Certbot asks for validation. Raise it with `--dns-domainchief-propagation-seconds` if validation fails because the record was not found.
+
+### cert-manager
+
+The <ExternalLink href="https://github.com/chieftools/cert-manager-webhook-domainchief">cert-manager-webhook-domainchief</ExternalLink> webhook adds Domain Chief as a DNS01 solver for <ExternalLink href="https://cert-manager.io/">cert-manager</ExternalLink>. Install it into the cert-manager namespace:
+
+```bash
+helm install cert-manager-webhook-domainchief \
+  oci://ghcr.io/chieftools/charts/cert-manager-webhook-domainchief \
+  --namespace cert-manager
+```
+
+Store the token in a Secret the webhook can read:
+
+```bash
+kubectl -n cert-manager create secret generic domainchief-api-key --from-literal=api-key=$TOKEN
+```
+
+Reference the webhook from an issuer's DNS01 solver:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-account-key
+    solvers:
+      - dns01:
+          webhook:
+            groupName: acme.domain.chief.app
+            solverName: domainchief
+            config:
+              apiKeySecretRef:
+                name: domainchief-api-key
+                key: api-key
+```
+
+cert-manager checks the nameservers itself and only asks for validation once the record is visible. The <ExternalLink href="https://artifacthub.io/packages/search?repo=cert-manager-webhook-domainchief">chart documentation</ExternalLink> lists every chart value, including how to read the Secret from other namespaces for namespaced issuers.
+
+## Publish and delete challenges
+
+Use these requests when you build your own ACME client or add Domain Chief to one. The flow for each challenge is:
+
+1. Your ACME client receives a DNS-01 challenge and computes the TXT value.
+2. [Publish the value](#publish-a-challenge-value) on the `_acme-challenge` name.
+3. [Wait until the nameservers serve it](#wait-for-the-record).
+4. Tell the certificate authority to validate the challenge.
+5. [Delete the value](#delete-a-challenge-value) once validation finishes, whether it succeeded or not.
+
+### Publish a challenge value
+
+Send the fully qualified challenge name and the value to [publish ACME challenge](/api/domainchief/acme#publish-acme-challenge):
+
+```http
+POST /api/v1/acme/challenges HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "_acme-challenge.www.example.com",
+  "value": "gfj9Xq...Rg85nM"
+}
+```
+
+The `name` must start with `_acme-challenge.`. A trailing dot is accepted, so you can pass the name exactly as most ACME libraries return it. The `value` is the base64url-encoded challenge value, without padding.
+
+You don't send the domain. Domain Chief finds it from the name, using the most specific matching domain in the team. The response returns an [`ACMEChallenge`](/api/domainchief/~schemas#acmechallenge) with the domain it chose:
+
+```json
+{
+  "data": {
+    "id": "$RECORD_ID",
+    "domain": "example.com",
+    "name": "_acme-challenge.www.example.com",
+    "value": "gfj9Xq...Rg85nM",
+    "ttl": 60,
+    "created_at": "2026-10-30T12:20:12.000000Z"
+  }
+}
+```
+
+Publishing is safe to repeat. If the value is already published, Domain Chief returns the existing challenge instead of adding a second record.
+
+Other values on the same name are kept. A certificate for both `example.com` and `*.example.com` needs two values on `_acme-challenge.example.com`, and you can publish both before validating either.
+
+### Wait for the record
+
+A successful response means Domain Chief accepted the value, not that the nameservers already serve it. Publishing to the hosted DNS nameservers takes a short time.
+
+Before you ask the certificate authority to validate, look up the TXT record on the domain's authoritative nameservers until the value appears. Query the authoritative nameservers directly. A public resolver may cache the earlier answer and keep returning it for longer than the record takes to publish.
+
+### Delete a challenge value
+
+After validation, delete the value with [delete ACME challenge](/api/domainchief/acme#delete-acme-challenge). Pass the same name and value as query parameters:
+
+```http
+DELETE /api/v1/acme/challenges?name=_acme-challenge.www.example.com&value=gfj9Xq...Rg85nM HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+Only that value is deleted. Values for other challenges on the same name stay published, so concurrent renewals don't remove each other's records.
+
+Deleting a value that is not published also succeeds, so a cleanup step can run safely after a failed or repeated attempt. If your client crashes before cleaning up, Domain Chief removes challenge values automatically after 24 hours.
+
+### Handle errors
+
+Errors use the standard error response. Branch on the HTTP status and, for `409` responses, on the [`code`](/api/domainchief/~schemas#errorcode):
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `401` | The token is missing, expired, or revoked. | Replace the token. |
+| `403` | The token has neither `domainchief:acme:write` nor `domainchief:dns:write`. | Create a token with `domainchief:acme:write`. |
+| `404` | No domain in the team matches the challenge name. | Check that the domain is in the token's team. |
+| `409` with `dns.not_hosted` | The domain does not use hosted DNS. | Retrying does not help until the domain uses hosted DNS. |
+| `409` with `dns.zone_busy` or `dns.zone_changed` | Another hosted DNS change for the domain was running. | Retry after a few seconds. |
+| `422` | The name or value is invalid. | Fix the request using the messages in `errors`. |
+
+Treat unknown `code` values as permanent failures and report the `message` to the person running the client.

@@ -104,7 +104,7 @@ The token can read and change DNS records. It cannot list domains, manage contac
 domainchief:acme:write
 ```
 
-The token can only publish and delete TXT records on `_acme-challenge` names through the ACME endpoints. It cannot list domains, read DNS records, or change any other record. Use this scope for ACME clients such as Certbot.
+The token can only publish and delete TXT records on `_acme-challenge` names through the ACME endpoints. It cannot list domains, read DNS records, or change any other record. Use this scope for ACME clients such as Certbot and cert-manager. The [DNS-01 guide](/developers/domainchief/guides/acme) explains how to set them up.
 
 ### Read data for monitoring
 
