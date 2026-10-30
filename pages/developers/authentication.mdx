@@ -41,6 +41,16 @@ The [OAuth and OpenID Connect guide](/developers/discovery) covers client setup,
 
 Personal access tokens always include the Account Chief `profile`, `email`, and `teams` scopes. You cannot remove those defaults. Product scopes remain under your control.
 
+## Restrict a token to specific resources
+
+Some products let you limit a personal or team token to specific resources, on top of its scopes. In Domain Chief, for example, you can create a token that only works for one or two domains.
+
+When you create the token, select **Only selected resources** under the product and list the resources one per line. The token can then only reach the listed resources, with the permissions its scopes grant. Each product's scope reference explains which resources you can list and how a restricted token behaves, for example [Domain Chief](/developers/domainchief/api/scopes#restrict-a-token-to-specific-domains).
+
+You cannot change the resources of an existing token. Create a new token instead, and revoke the old one once you have switched.
+
+Products receive the restriction as RFC 9396 `authorization_details`, a list of objects with a `type` such as `domainchief:domain` and the `identifier` of an allowed resource.
+
 ## Send the token
 
 Pass the token in the `Authorization` header on every API request:
