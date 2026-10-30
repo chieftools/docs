@@ -214,7 +214,7 @@ Registrant verification is reported on the affected domain, not as a status on t
 
 Use an email address the registrant can access. Show a verification link only while the current notice contains `domain.contact_verification.open` and a `contact_verification_url`. Open that URL in the registrant's browser. Do not fetch, log, cache, or modify it because it may contain a time-limited token.
 
-Call [Resend contact verification](/api/domainchief/domains#resend-contact-verification) only while the current notice contains `domain.contact_verification.resend`:
+Call [Resend contact verification](/api/domainchief/domain-registration#resend-contact-verification) only while the current notice contains `domain.contact_verification.resend`:
 
 ```http
 POST /api/v1/domains/$DOMAIN_ID/contact-verification/resend HTTP/1.1
@@ -253,6 +253,6 @@ Contact requests and responses contain personal data. Keep operational logs to r
 - [Show TLD](/api/domainchief/tlds#show-tld)
 - [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain)
 - [Update a domain](/api/domainchief/domains#update-a-domain)
-- [Resend contact verification](/api/domainchief/domains#resend-contact-verification)
+- [Resend contact verification](/api/domainchief/domain-registration#resend-contact-verification)
 - [`Contact` schema](/api/domainchief/~schemas#contact)
 - [`DomainNotice` schema](/api/domainchief/~schemas#domainnotice)
