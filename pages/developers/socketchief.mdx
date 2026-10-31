@@ -1,21 +1,21 @@
 ---
 title: Socket Chief
-description: Socket Chief uses the Pusher protocol and HTTP API instead of its own API.
+description: Connect Pusher libraries to Socket Chief and use the REST API to manage applications, webhooks, and usage.
 ---
 
-import {Head} from "zudoku/components";
+import {Callout, Head, Link} from "zudoku/components";
 
 <Head>
   <title>Developer documentation | Socket Chief</title>
 </Head>
 
-Socket Chief uses the Pusher WebSocket protocol and the Pusher HTTP API, so you integrate with existing Pusher client and server libraries. It does not have a separate Chief Tools API yet. Manage applications, channel types, and webhooks from the Socket Chief dashboard for now.
+Socket Chief speaks the Pusher WebSocket protocol and the Pusher HTTP API, so your apps send and receive realtime events with existing Pusher client and server libraries. Use the Socket Chief REST API to create applications, configure their webhooks, and read their live channels and usage from your own code. AI clients can use the same operations through the [MCP server](/socketchief/ai).
 
 Looking for help using Socket Chief in the browser? Go to the [Socket Chief documentation](/socketchief/introduction).
 
 ## Connect a Pusher library
 
-Copy the connection settings from your application page in Socket Chief, then use them in place of Pusher's:
+Copy the connection settings from your application page in Socket Chief, or [read them through the API](#read-the-credentials-again), then use them in place of Pusher's:
 
 - Use the **App ID / App Key** value as both the app ID and the app key.
 - Use the **App Secret** only on your server. It signs HTTP API requests, private and presence channel authorizations, and webhooks.
@@ -23,8 +23,194 @@ Copy the connection settings from your application page in Socket Chief, then us
 - Always connect over TLS, with `forceTLS` in clients and `https` in server libraries.
 - Set any cluster value, such as `eu`, if your library requires one. Socket Chief ignores it.
 
-For channel authorization, events, webhooks, and HTTP API requests, follow the <ExternalLink href="https://pusher.com/docs/channels/">Pusher Channels documentation</ExternalLink> and the docs for your library.
+For channel authorization, events, webhooks, and HTTP API requests, follow the <ExternalLink href="https://pusher.com/docs/channels/">Pusher Channels documentation</ExternalLink> and the docs for your library. The Socket Chief REST API below manages applications. It does not publish events.
 
-## Request API access
+## Make your first request
 
-If your integration needs to manage Socket Chief applications through an API, tell us what it should do. Suggest it on the <ExternalLink href="https://roadmap.chief.tools?ref=chiefdocs">roadmap</ExternalLink> or <ExternalLink href="https://chief.app/contact">contact us</ExternalLink>. Real use cases decide what the API covers first.
+Every REST API request needs a bearer access token. Use a team access token for a service owned by one team, a personal access token for a private script, or OAuth when your application connects other users' accounts. The [token guide](/developers/authentication) explains how to create and protect each token type.
+
+Give the token only the [Socket Chief scopes](/developers/socketchief/scopes) its requests need. The production API base URL is:
+
+```text
+https://socket.chief.app/api/v1
+```
+
+Start by listing the team's applications. This read-only request needs `socketchief:apps:read`:
+
+```http
+GET /api/v1/apps HTTP/1.1
+Host: socket.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+The response is a page of applications with their channel types, client events setting, and webhook count. An application's `id` is also its Pusher app ID and app key. Application responses never include the app secret.
+
+### Choose the team
+
+A team access token always works in its own team. A personal access token or OAuth token works in your default team, unless it is limited to one team or the request names a team by its slug:
+
+```http
+X-Chief-Team: $TEAM_SLUG
+```
+
+When the token is limited to one team, the header must name that team. Any other team returns `404 Not Found`. Pin the team on every request when an integration runs unattended, so it keeps working in the same team when your default team changes.
+
+## Create an application
+
+Create a separate application for each project or environment. This workflow needs `socketchief:apps:write`.
+
+```http
+POST /api/v1/apps HTTP/1.1
+Host: socket.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "name": "Shop production",
+  "channel_types": ["private", "presence"],
+  "client_events": false
+}
+```
+
+`channel_types` sets which channel types clients may subscribe to: `public`, `private`, `presence`, and the `cache` and `encrypted` variants. Leave out `channel_types` and `client_events` to allow private and presence channels without client events.
+
+The `201 Created` response contains the application and its `credentials`:
+
+```json
+{
+  "data": {
+    "id": "9d8f6a52-3c1e-4b7a-9f2d-5e6c7b8a9d0e",
+    "name": "Shop production",
+    "channel_types": ["private", "presence"],
+    "client_events": false,
+    "credentials": {
+      "app_id": "9d8f6a52-3c1e-4b7a-9f2d-5e6c7b8a9d0e",
+      "key": "9d8f6a52-3c1e-4b7a-9f2d-5e6c7b8a9d0e",
+      "secret": "...",
+      "host": "...",
+      "port": 443
+    },
+    ...
+  }
+}
+```
+
+Write the credentials into your server's configuration. Clients only need the key, host, and port.
+
+When the team reached the application limit of its plan, the request returns `409 Conflict` with `code` set to `limit_reached` and creates nothing. [Get the team](/api/socketchief/team#get-the-team) to compare `limits.apps.usage` with `limits.apps.limit` before you create applications in bulk. A `null` limit is unlimited.
+
+### Read the credentials again
+
+[Get the app credentials](/api/socketchief/apps#get-the-app-credentials) when a deployment needs them later:
+
+```http
+GET /api/v1/apps/$APP_ID/credentials HTTP/1.1
+Host: socket.chief.app
+Authorization: Bearer $TOKEN
+```
+
+<Callout type="caution" title="Reading the secret needs write access">
+  This request needs `socketchief:apps:write`, the scope that can also delete the application. Anyone with the app secret can publish events to your users, so keep it out of logs and client code.
+</Callout>
+
+### Change or delete an application
+
+[Update an app](/api/socketchief/apps#update-an-app) with only the fields you want to change. `channel_types` replaces the whole list. Removing a channel type stops clients from subscribing to channels of that type.
+
+[Deleting an app](/api/socketchief/apps#delete-an-app) removes its webhooks and usage history. Its credentials stop working, so every client and server that uses them breaks. It cannot be undone.
+
+## Add a webhook
+
+Webhooks tell your server when channels are occupied or vacated, when presence members join or leave, and when clients publish events. This workflow needs `socketchief:webhooks:write`.
+
+```http
+POST /api/v1/apps/$APP_ID/webhooks HTTP/1.1
+Host: socket.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "url": "https://example.com/webhooks/pusher",
+  "events": ["channel_occupied", "channel_vacated"],
+  "headers": {"Authorization": "Bearer $WEBHOOK_TOKEN"},
+  "channel_prefixes": ["private-orders."]
+}
+```
+
+A webhook only receives deliveries when it has at least one event. `enabled` in the response tells whether it does. The URL must use HTTPS.
+
+- `headers` and `query_params` are objects of names to values that Socket Chief adds to every delivery.
+- `channel_prefixes` and `channel_suffixes` limit deliveries to channels whose name starts or ends with one of the values. Leave them empty for every channel.
+
+Socket Chief signs deliveries with the app secret in the same way as Pusher, so verify them with your Pusher server library.
+
+[Update a webhook](/api/socketchief/webhooks#update-a-webhook) with only the fields you want to change. A field you send replaces the current value completely: send the whole `headers` object to change one header, and `null` or an empty value to clear a field.
+
+## Read live channels and usage
+
+These requests need `socketchief:usage:read`.
+
+### Live channels
+
+[List live channels](/api/socketchief/apps#list-live-channels) returns the channels of an application that have subscribers right now, with subscription counts, presence user counts, and totals per channel type. Filter with `type` and `query`.
+
+Socket Chief asks its WebSocket servers at most every few seconds. Pass `fresh=true` to skip that snapshot. When the WebSocket servers cannot be reached, `status` is `unavailable`, `error` says why, and `channels` is empty. Try again later instead of treating the application as one without channels.
+
+### Usage
+
+[Get the usage summary](/api/socketchief/usage#get-the-usage-summary) returns the team's totals since a day, with a breakdown per application, the peak concurrent connections, and the connections right now. It starts on the first day of the current month unless you pass `from`.
+
+[Get the usage history](/api/socketchief/usage#get-the-usage-history) returns the usage per UTC day, up to 92 days, or per hour with `interval=hour`, up to 168 hours:
+
+```http
+GET /api/v1/usage/history?interval=day&from=2026-10-01&until=2026-10-31 HTTP/1.1
+Host: socket.chief.app
+Authorization: Bearer $TOKEN
+```
+
+Days and hours without usage are included with zeros. The team's peak connections in a period add up the peaks of its applications, so with several applications they are an upper bound.
+
+## Handle responses
+
+### Errors
+
+| Status | Meaning |
+|---|---|
+| `401` | The token is missing, invalid, or expired. |
+| `403` | The token lacks the scope the operation needs. |
+| `404` | The application or webhook does not exist in the team the request uses. |
+| `409` | The team reached the application limit of its plan. The body has a `message` to show and `code` set to `limit_reached`. |
+| `422` | The request is invalid. `errors` lists the messages per field, such as `channel_types.0` or `headers`. |
+| `429` | The token sent too many requests. Wait a minute before you try again. |
+
+### Pagination
+
+Lists of applications and webhooks return `data`, `links`, and `meta`. Request the next page with `page`, or follow `links.next` until it is `null`. `per_page` defaults to 50 and accepts up to 100.
+
+### New values
+
+Fields such as `channel_types` and `events` can gain new values. Treat a value you do not recognize as unknown instead of failing.
+
+## API documentation
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/socketchief/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Give a token only the Socket Chief permissions the integration needs.
+    </p>
+  </Link>
+  <Link
+    to="/api/socketchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">REST API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Browse endpoints, request fields, response schemas, and required permissions.
+    </p>
+  </Link>
+</div>

@@ -70,7 +70,7 @@ export const ogImageBrands: OgImageBrand[] = [
     productName: 'Socket Chief',
     label: 'Documentation',
     fallbackTitle: 'Socket Chief developer documentation',
-    fallbackDescription: 'Connect Pusher libraries to Socket Chief.',
+    fallbackDescription: 'Connect Pusher libraries and manage applications, webhooks, and usage.',
   },
   {
     prefix: '/developers/serverchief',
@@ -143,6 +143,14 @@ export const ogImageBrands: OgImageBrand[] = [
     label: 'API reference',
     fallbackTitle: 'Backup Chief API reference',
     fallbackDescription: 'Add servers, set up backup jobs, and download from backups.',
+  },
+  {
+    prefix: '/api/socketchief',
+    styleId: 'socketchief',
+    productName: 'Socket Chief',
+    label: 'API reference',
+    fallbackTitle: 'Socket Chief API reference',
+    fallbackDescription: 'Manage applications and webhooks and read their usage.',
   },
   {
     prefix: '/api/serverchief',

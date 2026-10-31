@@ -1,0 +1,193 @@
+---
+title: Connect an AI agent
+description: Connect an MCP-compatible AI client to Socket Chief.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Connect an AI agent | Socket Chief</title>
+</Head>
+
+Use this guide to connect an MCP-compatible AI client to Socket Chief so it can check your applications, live channels, and usage, and set up applications and webhooks for one team or all your teams.
+
+## Choose your task
+
+- [Connect an AI client](#connect-a-client)
+- [Choose one team or all your teams](#choose-one-team-or-all-your-teams)
+- [Try a request](#what-happens-next)
+- [Review the available tools](#available-tools)
+- [Let the agent make changes](#allow-changes)
+- [Let the agent read app secrets](#allow-access-to-app-secrets)
+- [Fix a connection or permission problem](#troubleshooting)
+
+## Connect an AI client
+
+### Before you connect
+
+Your AI client must support remote MCP servers and browser-based sign-in. Use this server URL:
+
+```text
+https://socket.chief.app/mcp
+```
+
+### Connect a client
+
+Look for MCP or integrations in your client's settings, then:
+
+1. Open the client's MCP or integrations settings.
+2. Add a remote MCP server with the URL above.
+3. Sign in with your Chief account.
+4. Under **Select a team**, choose the team the agent may use, or **All my teams**.
+5. Review the requested scopes and select **Authorize**.
+
+Socket Chief asks for read access to applications, webhooks, and usage when you first connect. The agent can then look at your applications and how they are used, but it cannot change anything or read app secrets.
+
+<Callout type="caution" title="Review the requested access">
+  The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
+</Callout>
+
+### Choose one team or all your teams
+
+The team you select in step 4 decides which Socket Chief data the agent can reach.
+
+| Choice | What the agent can use |
+| --- | --- |
+| A single team | Only that team. The agent never has to pick a team. |
+| **All my teams** | Every team you belong to, including teams you join later. The agent picks a team for each request. |
+
+With **All my teams**, the agent gets the same scopes in every team. Name the team in your request, such as "In the Production team, list the applications", so the agent does not have to guess. It should ask you when the team is unclear and tell you which team it used. Before you approve a change, check that the agent named the right team.
+
+To switch between one team and all teams, reconnect the client and make a different choice.
+
+### What happens next
+
+After connecting, give the client a specific task. For example:
+
+- Which of my applications delivered the most messages this month?
+- How many connections did my team have at its peak last week, per day?
+- Which presence channels of the Chat application have users right now?
+- Which webhooks of the Shop application have no events and receive nothing?
+- Which of my teams is closest to its application limit?
+
+The last example only works with **All my teams**.
+
+## Available tools
+
+Your client may list every tool, but each tool only works when the connection has its required scope. A higher-level scope also works. For example, `socketchief:apps:write` covers `socketchief:apps:read`.
+
+### Teams
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-teams` | List the teams the connection can use and mark your default team | Any Socket Chief read scope |
+| `get-team` | Show the team's application limit and how many applications it has | Any Socket Chief read scope |
+
+`list-teams` is only available to connections authorized for **All my teams**. These connections name a team on every other tool call. Your default team is a hint for the agent, not an automatic choice.
+
+### Applications
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-apps` | List applications with their channel types, client events setting, and webhook count | `socketchief:apps:read` |
+| `get-app` | Retrieve one application | `socketchief:apps:read` |
+| `create-app` | Create an application and return its credentials | `socketchief:apps:write` |
+| `update-app` | Rename an application or change its channel types and client events | `socketchief:apps:write` |
+| `delete-app` | Delete an application with its webhooks and usage history | `socketchief:apps:write` |
+| `get-app-credentials` | Return the app ID, key, secret, host, and port | `socketchief:apps:write` |
+
+### Webhooks
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-webhooks` | List the webhooks of an application | `socketchief:webhooks:read` |
+| `get-webhook` | Retrieve one webhook | `socketchief:webhooks:read` |
+| `create-webhook` | Add a webhook with its URL, events, headers, query parameters, and channel filters | `socketchief:webhooks:write` |
+| `update-webhook` | Change a webhook | `socketchief:webhooks:write` |
+| `delete-webhook` | Delete a webhook | `socketchief:webhooks:write` |
+
+The webhook read scope includes the headers and query parameters Socket Chief sends with each delivery. If a header carries a token for your endpoint, the agent can see it.
+
+### Live channels and usage
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-app-channels` | List the channels of an application that have subscribers right now | `socketchief:usage:read` |
+| `get-usage` | Show the team's totals for a period, per application, with peak connections | `socketchief:usage:read` |
+| `get-usage-history` | Show the team's usage per day, up to 92 days, or per hour, up to 168 hours | `socketchief:usage:read` |
+
+Live channels can be a few seconds old. Usage periods follow UTC days and hours.
+
+The agent manages applications and reads their usage. It cannot publish events, connect as a client, or authorize channels. Your server does that with a Pusher server library and the app secret.
+
+## Allow changes
+
+When you ask the agent to create an application, add a webhook, or change anything else, it needs the matching write scope from the tables above. Some clients ask you to approve the extra scope when the agent first needs it. If yours does not, reconnect the client and approve the write scopes.
+
+Before you let the agent continue with a change, check that it states which team, application, or webhook it changes. A few changes affect your live apps:
+
+- Removing a channel type from an application stops clients from subscribing to channels of that type.
+- A webhook only receives deliveries once it has at least one event.
+- Creating an application fails when the team reached the application limit of its plan. Manage the plan from **Settings** in Socket Chief.
+
+<Callout type="danger" title="Deleting an application breaks every client using it">
+  `delete-app` removes the application, its webhooks, and its usage history. Its credentials stop working and cannot be restored, so your apps need the credentials of a new application.
+</Callout>
+
+## Allow access to app secrets
+
+The app secret signs requests to the Pusher HTTP API and channel authorizations, so anyone who has it can publish events to your users. Reading it takes `socketchief:apps:write`, the same scope that can delete the application. `create-app` also returns the secret of the new application.
+
+<Callout type="caution" title="The secret appears in your conversation">
+  When the agent creates an application or reads its credentials, the secret is part of the conversation. Ask the agent to put it straight into your server's configuration, and keep it out of browser or mobile app code.
+</Callout>
+
+## Manage the connection
+
+### Change permissions
+
+Start with read access. Approve write scopes only when you want the agent to change something or read app secrets, and reconnect without them when it no longer needs that access.
+
+See [Socket Chief API scopes](/developers/socketchief/scopes) for the full scope hierarchy.
+
+### Choose MCP or REST
+
+Use MCP when an AI client needs to choose and call Socket Chief tools. Use the [REST API](/developers/socketchief) for application code and fixed workflows.
+
+## Troubleshooting
+
+### Why can't the client connect?
+
+Confirm that the client supports remote MCP servers and browser-based authorization. Copy the server URL exactly, then reconnect and complete the Chief sign-in flow.
+
+### Why does a tool report insufficient scope?
+
+The connection does not have the tool's required scope. Compare the tool with the tables above, then approve the additional scope when your client asks, or reconnect the client and approve it.
+
+### Why can't the agent read the app secret?
+
+`get-app-credentials` needs `socketchief:apps:write`, also when you only want to read the secret. Approve it when your client asks, or copy the secret from the application page in Socket Chief yourself.
+
+### Why can't the agent create an application?
+
+The team reached the application limit of its plan. Ask the agent for the team's limit, then delete an application you no longer use or manage the plan from **Settings** in Socket Chief.
+
+### Why are the live channels unavailable?
+
+Socket Chief could not reach its WebSocket servers for a moment. Ask the agent to try again. Usage totals and history are not affected.
+
+### Why can't the agent see one of my teams?
+
+The connection is limited to the team you selected when you connected. Reconnect the client and choose that team or **All my teams**. With **All my teams**, the agent can only use teams you are a member of.
+
+### Why did the agent use the wrong team?
+
+With **All my teams**, the agent picks a team for each request. Name the team in your request and ask the agent which team it used. If you only work in one team, reconnect and select that team instead.
+
+### Why does the agent report too many requests?
+
+Socket Chief limits how often a connection can call the server. Wait a minute, then ask the agent to continue.
+
+### Why does the authorization screen request unexpected access?
+
+Cancel the connection and review which tools or integration the client is trying to enable. Socket Chief approves or rejects the requested scopes as one set.

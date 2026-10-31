@@ -86,6 +86,21 @@ const config: ZudokuConfig = {
         },
         {
             type: 'file',
+            path: '/api/socketchief',
+            input: './apis/socketchief.json',
+            options: {
+                schemaDownload: {
+                    enabled: true,
+                },
+                disableSecurity: false,
+                examplesLanguage: 'shell',
+                supportedLanguages: [
+                    {label: 'cURL', value: 'shell'},
+                ],
+            },
+        },
+        {
+            type: 'file',
             path: '/api/serverchief',
             input: './apis/serverchief.json',
             options: {
@@ -434,6 +449,7 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/socketchief/introduction',
+                        '/socketchief/ai',
                         {
                             type: 'link',
                             label: 'Developers',
@@ -772,6 +788,24 @@ const config: ZudokuConfig = {
                             file: '/developers/socketchief',
                             label: 'Introduction',
                         },
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'doc',
+                                    file: '/developers/socketchief/scopes',
+                                    label: 'Scopes',
+                                },
+                                {
+                                    type: 'link',
+                                    label: 'REST API reference',
+                                    to: '/api/socketchief',
+                                    stack: true,
+                                },
+                            ],
+                        },
                     ],
                 },
                 {
@@ -820,6 +854,7 @@ const config: ZudokuConfig = {
             'serverchief:read',
             'deploychief',
             'backupchief:read',
+            'socketchief:read',
         ],
         issuer: process.env.ZUDOKU_PUBLIC_AUTH_ISSUER as string,
         clientId: process.env.ZUDOKU_PUBLIC_AUTH_CLIENT_ID as string,

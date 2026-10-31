@@ -1,0 +1,84 @@
+---
+title: Scopes
+description: Choose what an access token can read or change through the Socket Chief API.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes | Socket Chief</title>
+</Head>
+
+Scopes limit what an access token can do in Socket Chief. Choose them when you create an [access token](/developers/authentication#create-a-personal-or-team-token). Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
+
+Each endpoint in the [REST API reference](/api/socketchief) lists its required scope under security. The same scopes apply to the tools of the [MCP server](/socketchief/ai#available-tools).
+
+## Available scopes
+
+### Broad scopes
+
+| Scope | Access |
+|---|---|
+| `socketchief` | Every user-facing Socket Chief API operation |
+| `socketchief:read` | Every resource read operation |
+| `socketchief:write` | Every resource write and read operation |
+
+Getting the team and its plan limits works with any Socket Chief read scope.
+
+### Applications
+
+| Scope | Access |
+|---|---|
+| `socketchief:apps:read` | List and retrieve applications and their settings; app secrets are never returned |
+| `socketchief:apps:write` | Create, update, and delete applications and read their credentials, including the app secret; also grants application reads |
+
+<Callout type="caution" title="The apps write scope can read app secrets">
+  The app secret signs Pusher HTTP API requests and channel authorizations, so a token with `socketchief:apps:write` can let someone publish events to your users. Store it like the secret itself.
+</Callout>
+
+### Webhooks
+
+| Scope | Access |
+|---|---|
+| `socketchief:webhooks:read` | List and retrieve webhooks, including the headers and query parameters sent with each delivery |
+| `socketchief:webhooks:write` | Create, update, and delete webhooks; also grants webhook reads |
+
+If a webhook header carries a token for your endpoint, `socketchief:webhooks:read` can read it.
+
+### Usage
+
+| Scope | Access |
+|---|---|
+| `socketchief:usage:read` | Read live channels, connection counts, and usage statistics of applications |
+
+Usage has no write scope.
+
+<Callout type="info">
+  Scopes are hierarchical. A resource write scope includes the matching read scope. `socketchief:read` grants every resource read scope, `socketchief:write` grants every resource write and read scope, and `socketchief` grants everything. A resource scope does not grant access to unrelated resources.
+</Callout>
+
+## Example token configurations
+
+### Monitor usage
+
+```text
+socketchief:usage:read
+```
+
+The token can read live channels and usage totals and history. Listing applications by name also needs `socketchief:apps:read`.
+
+### Provision an application per environment
+
+```text
+socketchief:apps:write
+```
+
+The token can create an application and return its credentials to a deployment tool, and delete it when the environment goes away. It cannot configure webhooks.
+
+### Manage webhooks from deployments
+
+```text
+socketchief:apps:read socketchief:webhooks:write
+```
+
+The token can find the application and point its webhooks at a new URL. It cannot read the app secret.
