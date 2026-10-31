@@ -143,7 +143,7 @@ Scheduled incoming transfers are available only for authorization-code transfers
 
 A scheduled domain remains a placeholder until execution. Store its ID like any other accepted transfer.
 
-Use [Move a scheduled incoming transfer](/api/domainchief/domain-registration#move-scheduled-incoming-transfer) to change its time. The request can also replace the stored authorization code:
+Use [Move a scheduled incoming transfer](/api/domainchief/domain-transfers#move-scheduled-incoming-transfer) to change its time. The request can also replace the stored authorization code:
 
 ```http
 PATCH /api/v1/domains/scheduled-customer.example/transfer/schedule HTTP/1.1
@@ -159,7 +159,7 @@ Content-Type: application/json
 }
 ```
 
-Use [Cancel a scheduled incoming transfer](/api/domainchief/domain-registration#cancel-scheduled-incoming-transfer) to remove the placeholder:
+Use [Cancel a scheduled incoming transfer](/api/domainchief/domain-transfers#cancel-scheduled-incoming-transfer) to remove the placeholder:
 
 ```http
 DELETE /api/v1/domains/scheduled-customer.example/transfer/schedule HTTP/1.1
@@ -189,7 +189,7 @@ Treat a transfer as complete when the current domain is `active` and no incoming
 
 Do not branch only on `status: failed`. Read the current `domain.transfer.incoming.failed` notice and its `actions`.
 
-When `domain.transfer.retry` is present, collect a current authorization code and call [Retry a failed transfer](/api/domainchief/domains#retry-a-failed-transfer):
+When `domain.transfer.retry` is present, collect a current authorization code and call [Retry a failed transfer](/api/domainchief/domain-transfers#retry-a-failed-transfer):
 
 ```http
 POST /api/v1/domains/customer-site.example/transfer/retry HTTP/1.1
@@ -206,7 +206,7 @@ Content-Type: application/json
 
 Include `intended_use` when the failure notice data says it is required. A `202 Accepted` response starts the retry. Replace the current domain and notice snapshot, clear the newly supplied code from local plaintext state, and resume event synchronization. Honor `Retry-After` on `429 Too Many Requests`; retrieve the domain after `409 Conflict`.
 
-When `domain.transfer.cancel` is present and the customer abandons the transfer, call [Cancel a failed incoming transfer](/api/domainchief/domains#cancel-failed-incoming-transfer). It returns `204 No Content` and deletes the placeholder. Cancellation does not refund the transfer charge, so make that consequence clear before confirmation.
+When `domain.transfer.cancel` is present and the customer abandons the transfer, call [Cancel a failed incoming transfer](/api/domainchief/domain-transfers#cancel-failed-incoming-transfer). It returns `204 No Content` and deletes the placeholder. Cancellation does not refund the transfer charge, so make that consequence clear before confirmation.
 
 Never guess that retry or cancellation is still available because it appeared earlier. Refresh the domain and use the current notice actions at the moment the customer confirms.
 
@@ -216,10 +216,10 @@ Never guess that retry or cancellation is still available because it appeared ea
 - [Show TLD](/api/domainchief/tlds#show-tld)
 - [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain)
 - [Show domain](/api/domainchief/domains#show-domain)
-- [Move a scheduled incoming transfer](/api/domainchief/domain-registration#move-scheduled-incoming-transfer)
-- [Cancel a scheduled incoming transfer](/api/domainchief/domain-registration#cancel-scheduled-incoming-transfer)
-- [Retry a failed transfer](/api/domainchief/domains#retry-a-failed-transfer)
-- [Cancel a failed incoming transfer](/api/domainchief/domains#cancel-failed-incoming-transfer)
+- [Move a scheduled incoming transfer](/api/domainchief/domain-transfers#move-scheduled-incoming-transfer)
+- [Cancel a scheduled incoming transfer](/api/domainchief/domain-transfers#cancel-scheduled-incoming-transfer)
+- [Retry a failed transfer](/api/domainchief/domain-transfers#retry-a-failed-transfer)
+- [Cancel a failed incoming transfer](/api/domainchief/domain-transfers#cancel-failed-incoming-transfer)
 - [List team events](/api/domainchief/team#list-team-events)
 - [`Domain` schema](/api/domainchief/~schemas#domain)
 - [`DomainNotice` schema](/api/domainchief/~schemas#domainnotice)

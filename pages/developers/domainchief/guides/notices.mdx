@@ -153,7 +153,7 @@ An incoming transfer can fail because the authorization code was rejected. The r
 }
 ```
 
-When `domain.transfer.retry` is present, ask the customer for a corrected code and call [Retry a failed transfer](/api/domainchief/domains#retry-a-failed-transfer):
+When `domain.transfer.retry` is present, ask the customer for a corrected code and call [Retry a failed transfer](/api/domainchief/domain-transfers#retry-a-failed-transfer):
 
 ```http
 POST /api/v1/domains/customer-transfer.example/transfer/retry HTTP/1.1
@@ -191,7 +191,7 @@ Contact verification may require the customer to open a registry-hosted page:
 
 Show a **Verify contact** control only when `domain.contact_verification.open` and `data.contact_verification_url` are both present. Open the URL in the customer's browser. It may contain a time-limited token, so do not fetch it from your server, log it, cache it, or modify it.
 
-Another provider may offer `domain.contact_verification.resend` instead. In that case, call [Resend contact verification](/api/domainchief/domains#resend-contact-verification) and replace the current notices with those in the response. Respect `Retry-After` when the endpoint returns `429 Too Many Requests`.
+Another provider may offer `domain.contact_verification.resend` instead. In that case, call [Resend contact verification](/api/domainchief/domain-registration#resend-contact-verification) and replace the current notices with those in the response. Respect `Retry-After` when the endpoint returns `429 Too Many Requests`.
 
 ### Follow a domain update
 
@@ -199,7 +199,7 @@ A successful [Update a domain](/api/domainchief/domains#update-a-domain) respons
 
 Use `data.attribute` when one setting is involved and `data.attributes` when several changes are being processed together. Keep showing the last confirmed domain values and the pending notice. When the event feed reports `domain.changed` for that domain, retrieve its current state. Continue until the processing notice disappears or is replaced by `domain.operation.failed`.
 
-A failed update can include `domain.operation.failure.dismiss` and `data.operation_id`. After the customer has corrected the setting or has chosen not to retry it, call [Dismiss a failed-update notice](/api/domainchief/domains#dismiss-a-failed-update-notice):
+A failed update can include `domain.operation.failure.dismiss` and `data.operation_id`. After the customer has corrected the setting or has chosen not to retry it, call [Dismiss a failed-update notice](/api/domainchief/domain-activity-notices#dismiss-a-failed-update-notice):
 
 ```http
 POST /api/v1/domains/customer-site.example/operations/$OPERATION_ID/dismiss HTTP/1.1
@@ -218,7 +218,7 @@ Dismissal hides that notice for the whole team. It does not remove the failed at
 - After a user completes an external action, such as contact verification or unlocking a domain at another registrar, wait for `domain.changed` before retrieving the resulting state.
 - Honor endpoint-specific status codes and `Retry-After` headers. Do not retry a state-changing request only because a notice still exists.
 
-Use [domain activity](/api/domainchief/domains#list-domain-activity-2) when you need history. Notices answer what is true now and what can happen next.
+Use [domain activity](/api/domainchief/domain-activity-notices#list-domain-activity) when you need history. Notices answer what is true now and what can happen next.
 
 ## API reference
 

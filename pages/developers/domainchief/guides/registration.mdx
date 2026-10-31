@@ -152,7 +152,7 @@ Registry agreements can also block submission. A `400 Bad Request` may direct th
 
 ### Retry a failed registration
 
-Offer retry only while the current notice includes `domain.registration.retry`. After correcting the reported cause, call [Retry a failed registration](/api/domainchief/domains#retry-a-failed-registration):
+Offer retry only while the current notice includes `domain.registration.retry`. After correcting the reported cause, call [Retry a failed registration](/api/domainchief/domain-registration#retry-a-failed-registration):
 
 ```http
 POST /api/v1/domains/customer-portal.example/registration/retry HTTP/1.1
@@ -182,7 +182,7 @@ Do not log contact identity data, authorization headers, or complete request bod
 - [Create a new contact](/api/domainchief/contacts#create-a-new-contact)
 - [Register or transfer domain](/api/domainchief/domain-registration#register-or-transfer-domain)
 - [Show domain](/api/domainchief/domains#show-domain)
-- [Retry a failed registration](/api/domainchief/domains#retry-a-failed-registration)
+- [Retry a failed registration](/api/domainchief/domain-registration#retry-a-failed-registration)
 - [List team events](/api/domainchief/team#list-team-events)
 - [`Domain` schema](/api/domainchief/~schemas#domain)
 - [`DomainNotice` schema](/api/domainchief/~schemas#domainnotice)
