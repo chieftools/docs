@@ -1,0 +1,216 @@
+---
+title: Connect an AI agent
+description: Connect an MCP-compatible AI client to Server Chief.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Connect an AI agent | Server Chief</title>
+</Head>
+
+Use this guide to connect an MCP-compatible AI client to Server Chief so it can search your servers, check their updates, vulnerabilities, certificates, and metrics, and manage tags, alert rules, and new servers for one team or all your teams.
+
+## Choose your task
+
+- [Connect an AI client](#connect-a-client)
+- [Choose one team or all your teams](#choose-one-team-or-all-your-teams)
+- [Try a request](#what-happens-next)
+- [Review the available tools](#available-tools)
+- [Let the agent make changes](#allow-changes)
+- [Fix a connection or permission problem](#troubleshooting)
+
+## Connect an AI client
+
+### Before you connect
+
+Your AI client must support remote MCP servers and browser-based sign-in. Use this server URL:
+
+```text
+https://server.chief.app/mcp
+```
+
+### Connect a client
+
+Look for MCP or integrations in your client's settings, then:
+
+1. Open the client's MCP or integrations settings.
+2. Add a remote MCP server with the URL above.
+3. Sign in with your Chief account.
+4. Under **Select a team**, choose the team the agent may use, or **All my teams**.
+5. Review the requested scopes and select **Authorize**.
+
+Server Chief asks for read access to servers, tags, and alerts when you first connect. The agent can then search your inventory and read vulnerabilities, certificates, metrics, and alerts, but it cannot change anything.
+
+<Callout type="caution" title="Review the requested access">
+  The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
+</Callout>
+
+### Choose one team or all your teams
+
+The team you select in step 4 decides which Server Chief data the agent can reach.
+
+| Choice | What the agent can use |
+| --- | --- |
+| A single team | Only that team. The agent never has to pick a team. |
+| **All my teams** | Every team you belong to, including teams you join later. The agent picks a team for each request. |
+
+With **All my teams**, the agent gets the same scopes in every team. Name the team in your request, such as "In the Production team, list the servers that need a reboot", so the agent does not have to guess. It should ask you when the team is unclear and tell you which team it used. Before you approve a change, check that the agent named the right team.
+
+A team also sees the servers other teams share with it through a tag. The agent can read those servers but cannot change, refresh, or tag them.
+
+To switch between one team and all teams, reconnect the client and make a different choice.
+
+### What happens next
+
+After connecting, give the client a specific task. For example:
+
+- Which servers have security updates waiting, and which of those updates fix a known exploited vulnerability?
+- Which servers does CVE-2024-6387 affect, and does a pending update fix it?
+- Which site certificates expire in the next 14 days without automatic renewal?
+- When did disk usage on web-1 start to climb this week?
+- Which Laravel applications run a release past its end of life?
+- Which of my teams have servers that need a reboot?
+
+The last example only works with **All my teams**.
+
+## Available tools
+
+Your client may list every tool, but each tool only works when the connection has its required scope. A higher-level scope also works. For example, `serverchief:servers:write` covers `serverchief:servers:read`.
+
+### Teams
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-teams` | List the teams the connection can use and mark your default team | Any Server Chief scope |
+
+`list-teams` is only available to connections authorized for **All my teams**. These connections name a team on every other tool call. Your default team is a hint for the agent, not an automatic choice.
+
+### Servers and packages
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-servers` | Search servers with the dashboard's search language | `serverchief:servers:read` |
+| `get-server` | Retrieve one server | `serverchief:servers:read` |
+| `get-server-inventory` | Read the system, hardware, network, resolver, cloud, or update details an agent reported | `serverchief:servers:read` |
+| `list-server-changes` | List the change history of a server | `serverchief:servers:read` |
+| `list-server-packages` | List the packages of a server and their pending updates | `serverchief:servers:read` |
+| `search-packages` | Find a package version across all servers | `serverchief:servers:read` |
+| `list-server-repositories` | List the package repositories of a server and their issues | `serverchief:servers:read` |
+| `update-server` | Rename a server, change its tags or metadata, or override its location | `serverchief:servers:write` |
+| `refresh-server-inventory` | Ask the agent of a server to report its inventory now | `serverchief:servers:write` |
+
+### Sites and certificates
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-server-vhosts` | List the sites of a server with their PHP version and certificate | `serverchief:servers:read` |
+| `find-domain` | Find which servers host a domain | `serverchief:servers:read` |
+| `list-certificates` | List the certificates of sites, mail services, and panels | `serverchief:servers:read` |
+| `get-certificate` | Retrieve one certificate and the checks it fails | `serverchief:servers:read` |
+| `list-expiring-certificates` | List site certificates that expire within a number of days | `serverchief:servers:read` |
+| `find-certificate-issues` | Find certificates without renewal, with a weak key, an incomplete chain, or other problems | `serverchief:servers:read` |
+
+### Vulnerabilities and applications
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-server-vulnerabilities` | List the open vulnerabilities of a server, the most urgent first | `serverchief:servers:read` |
+| `find-affected-servers` | Find which servers a CVE or advisory affects | `serverchief:servers:read` |
+| `get-advisory` | Retrieve a security advisory and its fixed versions | `serverchief:servers:read` |
+| `list-applications` | List the WordPress, Laravel, Symfony, Composer, and npm applications of your sites | `serverchief:servers:read` |
+| `get-application` | Retrieve one application | `serverchief:servers:read` |
+| `list-application-packages` | List the packages, plugins, and themes of an application | `serverchief:servers:read` |
+| `list-application-vulnerabilities` | List the vulnerable and malicious packages of an application | `serverchief:servers:read` |
+
+### Metrics and alerts
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `get-server-metrics` | Read the current CPU, memory, disk, network, and other metrics of a server | `serverchief:servers:read` |
+| `get-server-metric-series` | Read how up to 10 metrics of a server changed over a range from 1 hour to 1 year | `serverchief:servers:read` |
+| `list-alert-rules` | List the team's metric alert rules | `serverchief:alerts:read` |
+| `list-alerts` | List firing and resolved alerts | `serverchief:alerts:read` |
+| `create-alert-rule` | Create a metric alert rule | `serverchief:alerts:write` |
+| `update-alert-rule` | Change a rule, or turn it off or on | `serverchief:alerts:write` |
+
+### Adding servers and agent updates
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-install-commands` | List the install commands that can still add servers | `serverchief:servers:read` |
+| `list-agent-releases` | List the agent releases and when their automatic rollout starts | `serverchief:servers:read` |
+| `create-install-command` | Create a command that adds every server it runs on | `serverchief:servers:write` |
+| `revoke-install-command` | Stop an install command from adding more servers | `serverchief:servers:write` |
+| `create-server` | Add one named server and return its install command | `serverchief:servers:write` |
+| `issue-enrollment-token` | Return a new install command for a server, for example to reinstall its agent | `serverchief:servers:write` |
+| `update-server-agent` | Update the agent of a server to the newest release now | `serverchief:servers:write` |
+
+### Tags
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-tags` | List the team's tags and the tags shared with it | `serverchief:tags:read` |
+| `create-tag` | Create a tag | `serverchief:tags:write` |
+| `share-tag` | Give another team read-only access to the servers with a tag | `serverchief:tags:write` |
+| `unshare-tag` | Stop sharing a tag with a team | `serverchief:tags:write` |
+
+To put a tag on a server, the agent uses `update-server`, which needs `serverchief:servers:write`.
+
+The agent cannot delete servers, tags, or alert rules, rename tags, or run commands on your servers. Use the Server Chief dashboard or the [REST API](/developers/serverchief) for those tasks.
+
+## Allow changes
+
+When you ask the agent to add a server, tag servers, create an alert rule, or change anything else, it needs the matching write scope from the tables above. Some clients ask you to approve the extra scope when the agent first needs it. If yours does not, reconnect the client and approve the write scopes.
+
+Before you let the agent continue with a change, check that it states which team, server, tag, or rule it changes and what happens next. A few changes need extra care:
+
+- A new server only connects after you run its install command as root on the server.
+- Sharing a tag gives the other team read-only access to the inventory and metadata of every server with that tag, including servers you tag later.
+- Changing an alert rule closes its firing alerts. They fire again at the next check if the server still breaches the rule.
+
+<Callout type="caution" title="Install commands add servers to your team">
+  Anyone with an install command can add a server to your team until the command is used or expires. Server Chief shows the command once, and the agent shows it in your conversation, so treat the conversation like the command itself. Revoke a command you no longer need.
+</Callout>
+
+## Manage the connection
+
+### Change permissions
+
+Start with read access. Approve write scopes only when you want the agent to change something, and reconnect without them when it no longer needs that access.
+
+See [Server Chief API scopes](/developers/serverchief/scopes) for the full scope hierarchy.
+
+### Choose MCP or REST
+
+Use MCP when an AI client needs to choose and call Server Chief tools. Use the [REST API](/developers/serverchief) for application code and fixed workflows.
+
+## Troubleshooting
+
+### Why can't the client connect?
+
+Confirm that the client supports remote MCP servers and browser-based authorization. Copy the server URL exactly, then reconnect and complete the Chief sign-in flow.
+
+### Why does a tool report insufficient scope?
+
+The connection does not have the tool's required scope. Compare the tool with the tables above, then approve the additional scope when your client asks, or reconnect the client and approve it.
+
+### Why can't the agent see one of my teams?
+
+The connection is limited to the team you selected when you connected. Reconnect the client and choose that team or **All my teams**. With **All my teams**, the agent can only use teams you are a member of.
+
+### Why did the agent use the wrong team?
+
+With **All my teams**, the agent picks a team for each request. Name the team in your request and ask the agent which team it used. If you only work in one team, reconnect and select that team instead.
+
+### Why can't the agent change a server?
+
+The server may be shared with your team by another team. Shared servers are read-only, so only their owner team can change, refresh, or tag them.
+
+### Why does the agent report too many requests?
+
+Server Chief limits how often a connection can call the server. Wait a minute, then ask the agent to continue.
+
+### Why does the authorization screen request unexpected access?
+
+Cancel the connection and review which tools or integration the client is trying to enable. Server Chief approves or rejects the requested scopes as one set.

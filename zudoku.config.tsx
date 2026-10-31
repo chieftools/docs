@@ -448,6 +448,7 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/serverchief/introduction',
+                        '/serverchief/ai',
                         {
                             type: 'link',
                             label: 'Developers',
