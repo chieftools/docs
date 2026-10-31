@@ -9,7 +9,7 @@ import {Head} from "zudoku/components";
   <title>Scopes | Tny</title>
 </Head>
 
-Scopes limit what an access token can do in Tny. Choose them when you create an [access token](/developers/authentication#access-tokens). Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
+Scopes limit what an access token can do in Tny. Choose them when you create a [team or personal access token](/developers/authentication#choose-a-token-type). Both token types use the same scopes. Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
 
 ## Available scopes
 
@@ -44,6 +44,31 @@ Scopes limit what an access token can do in Tny. Choose them when you create an 
 Scopes are hierarchical. `tny:write` includes every Tny write scope and its matching read scope. `tny` grants all Tny scopes.
 </Callout>
 
+## Handle a missing scope
+
+The API does not reject a GraphQL request as a whole when the token lacks a scope. It returns `null` for each field the token cannot access and adds an error for it. The error's `extensions` list the required and granted scopes:
+
+```json
+{
+  "data": {"team": null},
+  "errors": [
+    {
+      "message": "The 'links' field requires all of the following scopes: ['tny:links:read'], but your token has only been granted the: ['tny:domains:read'] scopes.",
+      "path": ["team", "links"],
+      "extensions": {
+        "requiredScopes": ["tny:links:read"],
+        "grantedScopes": ["tny:domains:read"],
+        "allScopesRequired": true
+      }
+    }
+  ]
+}
+```
+
+A `null` for a non-null field makes its parent `null` too, which is why `team` is `null` in this example. Remove the field from the query or create a token with the required scope. Retrying with the same token returns the same error.
+
+The [REST endpoints](/developers/tny#use-the-rest-endpoints) respond with `403` instead.
+
 ## Example token configurations
 
 ### Read links and domains
@@ -60,7 +85,7 @@ tny:links:read tny:domains:read
 tny:links:write
 ```
 
-Write access includes read access at the same level, so this token can also list and view links.
+Write access includes read access at the same level, so this token can also list and view links. For a server that shortens links, use a [team access token](/developers/authentication#team-access-tokens) so it keeps working when people join or leave the team.
 
 ### Read everything
 

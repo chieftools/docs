@@ -35,3 +35,80 @@ Looking for help using Tny in the browser? Go to the [Tny documentation](/tny/in
     </p>
   </Link>
 </div>
+
+## Authenticate
+
+Send GraphQL requests to `https://tny.app/api/graphql` with an [access token](/developers/authentication) in the `Authorization` header. Give the token only the [Tny scopes](/developers/tny/scopes) your integration needs.
+
+### Query with a team access token
+
+A [team access token](/developers/authentication#team-access-tokens) acts for one team. Start queries from the `team` field, which returns that team's links and domains:
+
+```http
+POST /api/graphql HTTP/1.1
+Host: tny.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{"query": "{ team { links(first: 10) { data { id url original clicks } } } }"}
+```
+
+`viewer` returns `null` for a team access token, because the token does not act as a user. Links created with a team access token have no `createdBy` user.
+
+### Query with a personal access token
+
+A [personal access token](/developers/authentication#personal-access-tokens) acts as your user account. You can start from `viewer` or `team`. Both use your default team, unless the token is limited to one team or the request names a team by its slug:
+
+```http
+X-Chief-Team: $TEAM_SLUG
+```
+
+A request for a team the token cannot use fails with a `404` response. Pin the team on every request when an integration runs unattended, or switch to a team access token, so it does not change teams when your default team changes.
+
+## Shorten a link
+
+Create a token with the `tny:links:write` scope, then call [`linkCreate`](/api/tny/mutation/linkCreate):
+
+```http
+POST /api/graphql HTTP/1.1
+Host: tny.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "query": "mutation ($input: LinkCreateInput!) { linkCreate(input: $input) { link { id url } status { success errors { name messages } } } }",
+  "variables": {"input": {"url": "https://example.com/a/very/long/path"}}
+}
+```
+
+Check `status.success` before reading the link. A rejected request, such as an unknown domain or a slug that is already taken, returns `success: false` with the reasons in `status.errors`. Shortening a URL the team already shortened on the same domain returns the existing link, so you can safely repeat the request.
+
+Pass `domain` to use one of the team's link domains. A custom `slug` also needs a custom domain.
+
+## Use the REST endpoints
+
+Tny also has REST endpoints for tools that cannot send GraphQL. They accept the same team and personal access tokens and need these scopes:
+
+| Endpoint | Scope |
+|---|---|
+| `/api/shorten` | `tny:links:write` |
+| `/api/unshorten` | `tny:utilities:read` |
+| `/api/metadata` | `tny:utilities:read` |
+
+Shorten a URL with a form or JSON body. The response is the short URL as plain text, unless you ask for JSON:
+
+```http
+POST /api/shorten HTTP/1.1
+Host: tny.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+Accept: application/json
+
+{"url": "https://example.com/a/very/long/path"}
+```
+
+```json
+{"status": "success", "shorturl": "https://tny.app/AbCdE"}
+```
+
+A token without the required scope receives a `403` response. Invalid input, such as a missing `url`, returns `422` with the validation errors. A link that cannot be created, for example because the team reached its link limit, returns `400` with `status` set to `error` and the reason in `message`.
