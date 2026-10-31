@@ -605,6 +605,11 @@ const config: ZudokuConfig = {
                             collapsible: true,
                             items: [
                                 {
+                                    type: 'doc',
+                                    file: '/developers/certchief/scopes',
+                                    label: 'Scopes',
+                                },
+                                {
                                     type: 'link',
                                     label: 'GraphQL API reference',
                                     to: '/api/certchief',

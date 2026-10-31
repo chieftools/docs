@@ -1,0 +1,106 @@
+---
+title: Scopes
+description: Choose what an access token can read or change through the Cert Chief API.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes | Cert Chief</title>
+</Head>
+
+Scopes limit what an access token can do in Cert Chief. Choose them when you create a [personal or team access token](/developers/authentication#choose-a-token-type). Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
+
+## Available scopes
+
+### Broad scopes
+
+| Scope | Access |
+|---|---|
+| `certchief` | Every Cert Chief API operation |
+| `certchief:read` | Read all Cert Chief resources |
+| `certchief:write` | Read and change all Cert Chief resources |
+
+### Domains
+
+| Scope | Access |
+|---|---|
+| `certchief:domains:read` | List and view monitored domains with their IP addresses and Server Test reports, domain statistics, and plan usage. Also needed to subscribe to `domainUpdated`. |
+| `certchief:domains:write` | Start and stop monitoring domains, mute them, change the HTTP check path, and request recrawls and Server Tests. Also grants domain reads. |
+
+### Certificates
+
+| Scope | Access |
+|---|---|
+| `certchief:certificates:read` | List and view certificates, their chains, and download links |
+
+This scope also covers certificates you reach through another object, such as the `certificate` field of a domain or an IP address. A token with only `certchief:domains:read` can list domains but cannot read their certificates.
+
+### Notifications
+
+| Scope | Access |
+|---|---|
+| `certchief:notifications:read` | List and view notifications, including the notifications of a domain or certificate |
+
+<Callout type="info">
+Scopes are hierarchical. `certchief:domains:write` includes `certchief:domains:read`. `certchief:read` grants every read scope, `certchief:write` grants every write and read scope, and `certchief` grants everything.
+</Callout>
+
+The public Server Test operations, `testsslScanStart` and `testsslRunById`, work without a token, so they do not need a scope.
+
+## Handle a missing scope
+
+Cert Chief returns scope errors in the GraphQL response, not as an HTTP status. The request still returns `200 OK`. The field the token cannot access resolves to `null`, and the `errors` list explains which scope it needs:
+
+```json
+{
+  "errors": [
+    {
+      "message": "The 'certificate' field requires all of the following scopes: ['certchief:certificates:read'], but your token has only been granted the: ['certchief:domains:read'] scopes.",
+      "path": ["team", "domains", "data", 0, "certificate"],
+      "extensions": {
+        "requiredScopes": ["certchief:certificates:read"],
+        "grantedScopes": ["certchief:domains:read"],
+        "allScopesRequired": true
+      }
+    }
+  ],
+  "data": {
+    "team": {
+      "domains": {
+        "data": [
+          {"display": "shop.example.com", "certificate": null}
+        ]
+      }
+    }
+  }
+}
+```
+
+Read `extensions.requiredScopes` to find the scope to add, then create a token that includes it. Retrying with the same token returns the same error.
+
+## Example token configurations
+
+### Monitor certificate expiry
+
+```text
+certchief:domains:read certchief:certificates:read
+```
+
+The token can list domains and read each domain's current certificate, including its expiry date. It cannot add, remove, or mute domains.
+
+### Add domains during provisioning
+
+```text
+certchief:domains:write
+```
+
+The token can start monitoring a new domain with `domainWatch` and stop with `domainUnwatch`. Write access includes domain reads, so it can also check which domains are already monitored.
+
+### Read everything
+
+Use the broad read scope for dashboards and reporting across Cert Chief.
+
+```text
+certchief:read
+```

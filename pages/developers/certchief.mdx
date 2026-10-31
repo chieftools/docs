@@ -17,6 +17,15 @@ Looking for help using Cert Chief in the browser? Go to the [Cert Chief document
 
 <div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
   <Link
+    to="/developers/certchief/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Give a token only the Cert Chief permissions the integration needs.
+    </p>
+  </Link>
+  <Link
     to="/api/certchief"
     className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
   >
@@ -26,3 +35,80 @@ Looking for help using Cert Chief in the browser? Go to the [Cert Chief document
     </p>
   </Link>
 </div>
+
+## Authenticate
+
+Every authenticated request needs a bearer access token. Use a team access token for a service owned by one team, a personal access token for a private script, or OAuth when your application connects other users' accounts. The [token guide](/developers/authentication) explains how to create and protect each token type, and the [scopes reference](/developers/certchief/scopes) lists the Cert Chief permissions.
+
+Send GraphQL requests to:
+
+```text
+https://cert.chief.app/api/graphql
+```
+
+### Select a team
+
+Domains, certificates, and notifications belong to a team. Query `team` to read them. It has the same fields for every token type.
+
+- With a team access token, `team` is the token's team. `viewer` returns `null` because the token does not belong to a user.
+- With a personal or OAuth access token, `team` is the team the token is limited to, otherwise the user's default team. `viewer` exposes the same fields for that team.
+
+A personal or OAuth token that is not limited to one team can select another of the user's teams with the `hint` argument:
+
+```graphql
+query ($teamId: String) {
+  team(hint: $teamId) {
+    id
+    name
+  }
+}
+```
+
+`team` returns `null` when the user does not belong to the hinted team, or when the token is limited to a different team. Use the `id` field of `team` as the hint.
+
+You can also select the team with the `X-Chief-Team` header, which applies to the whole request:
+
+```http
+X-Chief-Team: $TEAM_ID
+```
+
+When the token is limited to one team, including every team access token, the header must name that team. A team that the token cannot use returns `404 Not Found`.
+
+### Send a first request
+
+This request lists the team's monitored domains with the expiry date of each current certificate. It needs the `certchief:domains:read` and `certchief:certificates:read` scopes:
+
+```http
+POST /api/graphql HTTP/1.1
+Host: cert.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "query": "{ team { domains(first: 25) { paginatorInfo { hasMorePages } data { id display status certificate { expiresAt } } } } }"
+}
+```
+
+```json
+{
+  "data": {
+    "team": {
+      "domains": {
+        "paginatorInfo": {"hasMorePages": false},
+        "data": [
+          {
+            "id": "571528de-e944-4b72-acfb-2619451b0341",
+            "display": "shop.example.com",
+            "status": "VALID",
+            "certificate": {"expiresAt": "2027-01-29T12:00:00+00:00"}
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+When `hasMorePages` is `true`, repeat the request with `page: 2`, `page: 3`, and so on. Request at most 100 items per page.
+
+A field the token has no scope for resolves to `null` and adds an entry to `errors`, while the rest of the response still returns. [Handle a missing scope](/developers/certchief/scopes#handle-a-missing-scope) shows the error format.
