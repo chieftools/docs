@@ -196,6 +196,7 @@ Preparing the same content again while a download of it is in progress or ready 
 | `403` | The token lacks the scope the operation needs. |
 | `404` | The resource does not exist in the team the request uses. |
 | `409` | The resource is not in a state that allows the change. The body has a `message` to show and `code` set to `state_conflict`. |
+| `410` | The download has no ZIP, because it is not ready yet or was deleted. The body has a `message` and `code` set to `download_unavailable`. |
 | `422` | The request is invalid. `errors` lists the messages per field, such as `source.paths` or `settings.bucket`. |
 | `429` | The token sent too many requests. Wait a minute before you try again. |
 
