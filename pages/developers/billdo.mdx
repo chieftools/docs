@@ -1,0 +1,258 @@
+---
+title: Bill.DO
+description: Authenticate and use the Bill.DO REST API to read DigitalOcean spend, usage history, resources, and invoices, and manage billing alerts.
+---
+
+import {Callout, Head, Link} from "zudoku/components";
+
+<Head>
+  <title>Developer documentation | Bill.DO</title>
+</Head>
+
+Use the Bill.DO REST API to read what the DigitalOcean accounts of a team cost: current and predicted spend, usage history, the resources behind it, and invoices. You can also manage the billing alerts that email the team when spend exceeds a limit. AI clients can use the same operations through the [MCP server](/billdo/ai).
+
+Looking for help using Bill.DO in the browser? Go to the [Bill.DO documentation](/billdo/introduction).
+
+## Make your first request
+
+Every request needs a bearer access token. Use a team access token for a service owned by one team, a personal access token for a private script, or OAuth when your application connects other users' accounts. The [token guide](/developers/authentication) explains how to create and protect each token type.
+
+Give the token only the [Bill.DO scopes](/developers/billdo/scopes) its requests need. The production API base URL is:
+
+```text
+https://bill.do/api/v1
+```
+
+Start by listing the DigitalOcean accounts connected to the team. This read-only request works with any Bill.DO read scope:
+
+```http
+GET /api/v1/accounts HTTP/1.1
+Host: bill.do
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+```json
+{
+  "data": [
+    {
+      "id": 42,
+      "name": "Acme production",
+      "connected": true,
+      "stats": {
+        "hourly": 0.125,
+        "month_to_date": 42.5,
+        "month_predicted": 90,
+        "next_month_predicted": 84
+      },
+      ...
+    }
+  ],
+  ...
+}
+```
+
+Every other request names one of these accounts by its `id`. Amounts are in USD. `connected` is `false` when Bill.DO lost access to the DigitalOcean account. A person must then reconnect it in the Bill.DO dashboard, and requests that reach DigitalOcean fail until they do.
+
+Bill.DO imports every account from DigitalOcean each hour. `stats` holds the spend from the last import. For figures calculated at the moment you ask, or for some resource types only, [get the usage](#check-the-spend).
+
+### Choose the team
+
+A team access token always works in its own team. A personal access token or OAuth token works in your default team, unless it is limited to one team or the request names a team by its slug:
+
+```http
+X-Chief-Team: $TEAM_SLUG
+```
+
+When the token is limited to one team, the header must name that team. Any other team returns `404 Not Found`. Pin the team on every request when an integration runs unattended, so it keeps working in the same team when your default team changes.
+
+### Check the plan
+
+[Get the team](/api/billdo/team#get-the-team) to see what its plan allows before you build on it:
+
+- `spending_reports` is `false` while the team's accounts spend more per month than its plan covers. Usage, usage history, projects, and resources then return `403`, and `stats` of every account is `null`.
+- `project_filter` tells whether the plan includes usage per project. Without it, filtering on a project returns `403`.
+- `can_create_alerts` tells whether the team can create another alert.
+
+## Check the spend
+
+[Get the usage](/api/billdo/usage#get-the-usage) of an account with `billdo:accounts:read`:
+
+```http
+GET /api/v1/accounts/$ACCOUNT_ID/usage HTTP/1.1
+Host: bill.do
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+```json
+{
+  "account_id": 42,
+  "project_id": null,
+  "resource_types": null,
+  "hourly": 0.125,
+  "day_to_date": 2.75,
+  "day_predicted": 3,
+  "month_to_date": 42.5,
+  "month_predicted": 90.25,
+  "next_month_predicted": 84,
+  "calculated_at": "2026-10-31T12:30:00Z"
+}
+```
+
+`hourly` and `next_month_predicted` come from the resources that exist now. The `_to_date` figures add up the recorded usage, and the `_predicted` figures add what the current resources cost until the end of the day or month.
+
+To count only some resource types, repeat `resource_types[]` with `app`, `database`, `droplet`, `load_balancer`, `snapshot`, or `volume`. To count one project, add `project` with its ID from [list projects](/api/billdo/projects#list-projects). The project filter needs a plan that includes it.
+
+## Explain a change
+
+[Get the usage history](/api/billdo/usage#get-the-usage-history) to see when the spend changed and which resource types caused it:
+
+```http
+GET /api/v1/accounts/$ACCOUNT_ID/usage/history?range=past_7_days HTTP/1.1
+Host: bill.do
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+```json
+{
+  "range": "past_7_days",
+  "interval": "day",
+  "from": "2026-10-24T00:00:00Z",
+  "to": "2026-10-31T12:30:00Z",
+  "periods": [
+    {
+      "starts_at": "2026-10-24T00:00:00Z",
+      "total": 2.88,
+      "resource_types": {"droplet": 1.44, "database": 1.44, ...}
+    },
+    ...
+  ]
+}
+```
+
+The `range` decides the `interval` of the periods:
+
+| Range | Interval |
+|---|---|
+| `today`, `yesterday` | `hour` |
+| `past_7_days`, `past_30_days`, `past_90_days`, `month`, `past_month` | `day` |
+| `year`, `past_year`, `all` | `month` |
+
+`past_30_days` is the default. Periods run from old to new and stop at the current period. A period without recorded usage has a `total` of `0`, so you can chart the list without filling gaps. The same `resource_types[]` and `project` filters as the usage apply.
+
+## Find what drives the spend
+
+[List the resources](/api/billdo/resources#list-resources) of an account to see what each one costs:
+
+```http
+GET /api/v1/accounts/$ACCOUNT_ID/resources?type=droplet HTTP/1.1
+Host: bill.do
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+Each resource has its DigitalOcean `id`, `type`, `project_id`, and `tags`, its `cost` per hour, per month, and predicted for this month, and `details` such as the size of a droplet or the engine of a database. The fields in `details` depend on the type. Resource IDs are only unique within their type.
+
+The list returns the resources that exist, newest first. Set `status` to `deleted` for resources removed from DigitalOcean, or `all` for both. `query` searches the names. A cost is `null` when Bill.DO has no price for the size of a resource.
+
+## Manage billing alerts
+
+A billing alert emails the team members with access to an account when the spend it watches exceeds its limit, and again once the spend drops below it. Bill.DO checks every alert when it is created or changed, and after each hourly import. This workflow needs `billdo:alerts:write`.
+
+### Create an alert
+
+```http
+POST /api/v1/accounts/$ACCOUNT_ID/alerts HTTP/1.1
+Host: bill.do
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "type": "monthly_predicted",
+  "limit": 250,
+  "resources": ["droplet", "database"]
+}
+```
+
+`type` decides what the alert compares to its `limit` in USD:
+
+| Type | Watches |
+|---|---|
+| `hourly` | The current spend per hour |
+| `daily_actual` | The spend so far today |
+| `daily_predicted` | The predicted spend for today |
+| `monthly_actual` | The spend so far this month |
+| `monthly_predicted` | The predicted spend for this month |
+
+`resources` lists the resource types that count towards the alert. The `201 Created` response contains the alert with its `current_value`, the `percentage` of the limit, and `is_alarming`, which is `true` while the alert is triggered.
+
+The team's plan limits the number of alerts. When the team has as many as its plan allows, creating one returns `403` with `code` set to `alert_limit_reached`.
+
+### Change or remove an alert
+
+[Update an alert](/api/billdo/alerts#update-an-alert) with only the fields you change. [Delete an alert](/api/billdo/alerts#delete-an-alert) to stop its emails. Deleting cannot be undone.
+
+## Download invoices
+
+[List the invoices](/api/billdo/invoices#list-invoices) of an account with `billdo:invoices:read`. They come newest first, with the month as `period` and the `amount` in USD. The invoice of the current month has `preview` set to `true`, because it shows the costs up to now instead of the final amount. Bill.DO imports invoices once a day.
+
+[Download an invoice](/api/billdo/invoices#download-an-invoice) to get its PDF:
+
+```http
+GET /api/v1/accounts/$ACCOUNT_ID/invoices/$INVOICE_ID/pdf HTTP/1.1
+Host: bill.do
+Authorization: Bearer $TOKEN
+```
+
+A successful response is the PDF itself, with `Content-Type: application/pdf`. Errors are JSON.
+
+Bill.DO retrieves the PDF from DigitalOcean for every request, so store it if you need it again. When Bill.DO lost access to the account, the request returns `409` with `code` set to `account_reconnect_required`. When DigitalOcean does not return the PDF, it returns `502` with `code` set to `digitalocean_unavailable`, and you can try again later.
+
+## Handle responses
+
+### Errors
+
+| Status | Meaning |
+|---|---|
+| `401` | The token is missing, invalid, or expired. |
+| `403` | The token lacks the scope the operation needs, or the team's plan does not allow the request. Plan errors have a `message` to show and a `code`: `spend_limit_exceeded`, `plan_feature_unavailable`, or `alert_limit_reached`. |
+| `404` | The account, project, invoice, or alert does not exist in the team the request uses. |
+| `409` | Bill.DO can no longer access the DigitalOcean account. `code` is `account_reconnect_required`. |
+| `422` | The request is invalid. `errors` lists the messages per field, such as `limit` or `resource_types.0`. |
+| `429` | The token sent too many requests. Wait a minute before you try again. |
+| `502` | DigitalOcean did not return an invoice PDF. `code` is `digitalocean_unavailable`. |
+
+A plan error changes nothing. Show its `message` to the user, who can upgrade the plan in Bill.DO.
+
+### Pagination
+
+List endpoints return `data`, `links`, and `meta`. Request the next page with `page`, or follow `links.next` until it is `null`. `per_page` defaults to 50 and accepts up to 100.
+
+### New values
+
+Resource types, alert types, and error codes can gain new values. Treat a value you do not recognize as unknown instead of failing.
+
+## API documentation
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/billdo/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Give a token only the Bill.DO permissions the integration needs.
+    </p>
+  </Link>
+  <Link
+    to="/api/billdo"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">REST API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Browse endpoints, request fields, response schemas, and required permissions.
+    </p>
+  </Link>
+</div>

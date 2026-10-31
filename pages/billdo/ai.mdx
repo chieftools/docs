@@ -1,0 +1,169 @@
+---
+title: Connect an AI agent
+description: Connect an MCP-compatible AI client to Bill.DO.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Connect an AI agent | Bill.DO</title>
+</Head>
+
+Use this guide to connect an MCP-compatible AI client to Bill.DO so it can explain your DigitalOcean spend, find the resources behind it, and manage billing alerts for one team or all your teams.
+
+## Choose your task
+
+- [Connect an AI client](#connect-a-client)
+- [Choose one team or all your teams](#choose-one-team-or-all-your-teams)
+- [Try a request](#what-happens-next)
+- [Review the available tools](#available-tools)
+- [Let the agent manage alerts](#allow-changes)
+- [Fix a connection or permission problem](#troubleshooting)
+
+## Connect an AI client
+
+### Before you connect
+
+Your AI client must support remote MCP servers and browser-based sign-in. Use this server URL:
+
+```text
+https://bill.do/mcp
+```
+
+### Connect a client
+
+Look for MCP or integrations in your client's settings, then:
+
+1. Open the client's MCP or integrations settings.
+2. Add a remote MCP server with the URL above.
+3. Sign in with your Chief account.
+4. Under **Select a team**, choose the team the agent may use, or **All my teams**.
+5. Review the requested scopes and select **Authorize**.
+
+Bill.DO asks for read access to your accounts and alerts when you first connect. The agent can then explain your spend and check your alerts, but it cannot change anything or read your invoices.
+
+<Callout type="caution" title="Review the requested access">
+  The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
+</Callout>
+
+### Choose one team or all your teams
+
+The team you select in step 4 decides which Bill.DO data the agent can reach.
+
+| Choice | What the agent can use |
+| --- | --- |
+| A single team | Only that team. The agent never has to pick a team. |
+| **All my teams** | Every team you belong to, including teams you join later. The agent picks a team for each request. |
+
+With **All my teams**, the agent gets the same scopes in every team. Name the team in your request, such as "In the Production team, what will we spend this month?", so the agent does not have to guess. It should ask you when the team is unclear and tell you which team it used. Before you approve a change, check that the agent named the right team.
+
+To switch between one team and all teams, reconnect the client and make a different choice.
+
+### What happens next
+
+After connecting, give the client a specific task. For example:
+
+- What will we spend on DigitalOcean this month, and how does that compare to last month?
+- Why did our spend go up this week? Which resource types caused it?
+- Which droplets cost the most, and which of them have no project?
+- Which billing alerts are triggered right now?
+- Which of my teams spends the most on databases?
+
+The last example only works with **All my teams**.
+
+Bill.DO imports your accounts from DigitalOcean every hour, so a resource you created a few minutes ago may not show up yet.
+
+## Available tools
+
+Your client may list every tool, but each tool only works when the connection has its required scope. A higher-level scope also works. For example, `billdo:alerts:write` covers `billdo:alerts:read`.
+
+### Teams and accounts
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-teams` | List the teams the connection can use and mark your default team | Any Bill.DO read scope |
+| `get-team` | Show the team's plan limits and usage | Any Bill.DO read scope |
+| `list-accounts` | List the connected DigitalOcean accounts and their spend | Any Bill.DO read scope |
+| `get-account` | Retrieve one connected account | Any Bill.DO read scope |
+
+`list-teams` is only available to connections authorized for **All my teams**. These connections name a team on every other tool call. Your default team is a hint for the agent, not an automatic choice.
+
+### Spend
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `get-usage` | Calculate the current spend and the predicted spend for today, this month, and next month | `billdo:accounts:read` |
+| `get-usage-history` | Show the spend per hour, day, or month of a period, split by resource type | `billdo:accounts:read` |
+| `list-projects` | List the DigitalOcean projects of an account | `billdo:accounts:read` |
+| `get-project` | Retrieve one project | `billdo:accounts:read` |
+| `list-resources` | List apps, databases, droplets, load balancers, snapshots, and volumes with their cost | `billdo:accounts:read` |
+
+The agent can limit spend to one project only when your plan includes the project filter.
+
+### Invoices
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-invoices` | List the monthly DigitalOcean invoices of an account | `billdo:invoices:read` |
+
+### Alerts
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-alerts` | List billing alerts with their limit and current value | `billdo:alerts:read` |
+| `get-alert` | Retrieve one billing alert | `billdo:alerts:read` |
+| `create-alert` | Create a billing alert | `billdo:alerts:write` |
+| `update-alert` | Change the type, limit, or resource types of an alert | `billdo:alerts:write` |
+| `delete-alert` | Delete a billing alert | `billdo:alerts:write` |
+
+The agent cannot connect or disconnect DigitalOcean accounts, download invoice PDFs, or change your plan. Bill.DO also never changes anything at DigitalOcean. Use the Bill.DO dashboard and DigitalOcean for those tasks.
+
+## Allow changes
+
+When you ask the agent to create, change, or delete an alert, it needs `billdo:alerts:write`. Some clients ask you to approve the extra scope when the agent first needs it. If yours does not, reconnect the client and approve it.
+
+Before you let the agent continue, check that it states the team, the account, and the alert's type, limit, and resource types. A new or changed alert is checked right away, and an alert that already exceeds its limit emails the team members with access to the account.
+
+To let the agent read your invoices, approve `billdo:invoices:read`. Bill.DO does not request it when you connect.
+
+## Manage the connection
+
+### Change permissions
+
+Start with read access. Approve write scopes only when you want the agent to change something, and reconnect without them when it no longer needs that access.
+
+See [Bill.DO API scopes](/developers/billdo/scopes) for the full scope hierarchy.
+
+### Choose MCP or REST
+
+Use MCP when an AI client needs to choose and call Bill.DO tools. Use the [REST API](/developers/billdo) for application code and fixed workflows.
+
+## Troubleshooting
+
+### Why can't the client connect?
+
+Confirm that the client supports remote MCP servers and browser-based authorization. Copy the server URL exactly, then reconnect and complete the Chief sign-in flow.
+
+### Why does a tool report insufficient scope?
+
+The connection does not have the tool's required scope. Compare the tool with the tables above, then approve the additional scope when your client asks, or reconnect the client and approve it.
+
+### Why does the agent say my plan does not allow it?
+
+Your plan limits the monthly spend Bill.DO reports on, the number of alerts, and whether you can see spend per project. When your accounts spend more than your plan covers, the agent cannot read spend, projects, or resources. Upgrade your plan in Bill.DO, then ask the agent again.
+
+### Why can't the agent see one of my teams?
+
+The connection is limited to the team you selected when you connected. Reconnect the client and choose that team or **All my teams**. With **All my teams**, the agent can only use teams you are a member of.
+
+### Why did the agent use the wrong team?
+
+With **All my teams**, the agent picks a team for each request. Name the team in your request and ask the agent which team it used. If you only work in one team, reconnect and select that team instead.
+
+### Why does the agent report too many requests?
+
+Bill.DO limits how often a connection can call the server. Wait a minute, then ask the agent to continue.
+
+### Why does the authorization screen request unexpected access?
+
+Cancel the connection and review which tools or integration the client is trying to enable. Bill.DO approves or rejects the requested scopes as one set.

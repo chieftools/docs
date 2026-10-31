@@ -81,6 +81,14 @@ export const ogImageBrands: OgImageBrand[] = [
     fallbackDescription: 'Search server inventory and read vulnerabilities, metrics, and alerts.',
   },
   {
+    prefix: '/developers/billdo',
+    styleId: 'billdo',
+    productName: 'Bill.DO',
+    label: 'Documentation',
+    fallbackTitle: 'Bill.DO developer documentation',
+    fallbackDescription: 'Read DigitalOcean spend, usage history, and invoices, and manage billing alerts.',
+  },
+  {
     prefix: '/domainchief/api',
     styleId: 'domainchief',
     productName: 'Domain Chief',
@@ -159,6 +167,14 @@ export const ogImageBrands: OgImageBrand[] = [
     label: 'API reference',
     fallbackTitle: 'Server Chief API reference',
     fallbackDescription: 'Search server inventory and read vulnerabilities, metrics, and alerts.',
+  },
+  {
+    prefix: '/api/billdo',
+    styleId: 'billdo',
+    productName: 'Bill.DO',
+    label: 'API reference',
+    fallbackTitle: 'Bill.DO API reference',
+    fallbackDescription: 'Read DigitalOcean spend, usage history, and invoices, and manage billing alerts.',
   },
   {
     prefix: '/domainchief',

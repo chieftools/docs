@@ -114,6 +114,21 @@ const config: ZudokuConfig = {
                 ],
             },
         },
+        {
+            type: 'file',
+            path: '/api/billdo',
+            input: './apis/billdo.json',
+            options: {
+                schemaDownload: {
+                    enabled: true,
+                },
+                disableSecurity: false,
+                examplesLanguage: 'shell',
+                supportedLanguages: [
+                    {label: 'cURL', value: 'shell'},
+                ],
+            },
+        },
     ],
     docs: {
         llms: {
@@ -479,7 +494,14 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/billdo/introduction',
+                        '/billdo/ai',
                         '/billdo/frequently-asked-questions',
+                        {
+                            type: 'link',
+                            label: 'Developers',
+                            to: '/developers/billdo',
+                            stack: true,
+                        },
                     ],
                 },
                 {
@@ -838,6 +860,36 @@ const config: ZudokuConfig = {
                         },
                     ],
                 },
+                {
+                    type: 'category',
+                    label: 'Bill.DO',
+                    icon: 'code',
+                    items: [
+                        {
+                            type: 'doc',
+                            file: '/developers/billdo',
+                            label: 'Introduction',
+                        },
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'doc',
+                                    file: '/developers/billdo/scopes',
+                                    label: 'Scopes',
+                                },
+                                {
+                                    type: 'link',
+                                    label: 'REST API reference',
+                                    to: '/api/billdo',
+                                    stack: true,
+                                },
+                            ],
+                        },
+                    ],
+                },
             ],
         },
     ],
@@ -855,6 +907,7 @@ const config: ZudokuConfig = {
             'deploychief',
             'backupchief:read',
             'socketchief:read',
+            'billdo:read',
         ],
         issuer: process.env.ZUDOKU_PUBLIC_AUTH_ISSUER as string,
         clientId: process.env.ZUDOKU_PUBLIC_AUTH_CLIENT_ID as string,

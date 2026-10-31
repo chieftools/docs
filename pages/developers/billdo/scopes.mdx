@@ -1,0 +1,81 @@
+---
+title: Scopes
+description: Choose what an access token can read or change through the Bill.DO API.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes | Bill.DO</title>
+</Head>
+
+Scopes limit what an access token can do in Bill.DO. Choose them when you create an [access token](/developers/authentication#create-a-personal-or-team-token). Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
+
+Each endpoint in the [REST API reference](/api/billdo) lists its required scope under security. The same scopes apply to the tools of the [MCP server](/billdo/ai#available-tools).
+
+## Available scopes
+
+### Broad scopes
+
+| Scope | Access |
+|---|---|
+| `billdo` | Every user-facing Bill.DO API operation |
+| `billdo:read` | Every resource read operation |
+| `billdo:write` | Every resource write and read operation |
+
+Getting the team, its plan limits, and its connected accounts works with any Bill.DO read scope.
+
+### Accounts
+
+| Scope | Access |
+|---|---|
+| `billdo:accounts:read` | List and retrieve the connected DigitalOcean accounts, their projects and resources, current and predicted usage, and usage history |
+
+Bill.DO only reads from DigitalOcean, so accounts have no write scope. Connecting and disconnecting accounts happens in the Bill.DO dashboard.
+
+### Invoices
+
+| Scope | Access |
+|---|---|
+| `billdo:invoices:read` | List the DigitalOcean invoices of the connected accounts and download their PDFs |
+
+<Callout type="info" title="Invoices are not selected by default">
+  New tokens only get `billdo:invoices:read` when you select it, because invoices are financial documents. The broad scopes `billdo` and `billdo:read` include it too.
+</Callout>
+
+### Alerts
+
+| Scope | Access |
+|---|---|
+| `billdo:alerts:read` | List and retrieve billing alerts and their current values |
+| `billdo:alerts:write` | Create, update, and delete billing alerts; also grants alert reads |
+
+<Callout type="info">
+  Scopes are hierarchical. A resource write scope includes the matching read scope. `billdo:read` grants every resource read scope, `billdo:write` grants every resource write and read scope, and `billdo` grants everything. A resource scope does not grant access to unrelated resources.
+</Callout>
+
+## Example token configurations
+
+### Report spend
+
+```text
+billdo:accounts:read
+```
+
+The token can read the usage, usage history, projects, and resources of every connected account. It cannot see invoices or alerts.
+
+### Manage alerts from automation
+
+```text
+billdo:alerts:write
+```
+
+The token can list the accounts and create, change, and delete their alerts. It cannot read the usage history or resources.
+
+### Collect invoices for bookkeeping
+
+```text
+billdo:invoices:read
+```
+
+The token can list the accounts and their invoices and download the PDFs. Store this token like the invoices it can read.

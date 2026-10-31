@@ -37,11 +37,15 @@ test('selects product branding and API labels from the route', () => {
   assert.equal(findOgImageBrand('/developers/serverchief').styleId, 'serverchief');
   assert.equal(findOgImageBrand('/serverchief/introduction').styleId, 'serverchief');
   assert.equal(findOgImageBrand('/api/serverchief/example').styleId, 'serverchief');
+  assert.equal(findOgImageBrand('/developers/billdo').styleId, 'billdo');
+  assert.equal(findOgImageBrand('/billdo/ai').styleId, 'billdo');
+  assert.equal(findOgImageBrand('/api/billdo/example').styleId, 'billdo');
   assert.equal(findOgImageBrand('/api/accountchief/example').styleId, 'accountchief');
   assert.equal(findOgImageBrand('/api/accountchief/example').label, 'API reference');
   assert.equal(findOgImageBrand('/api/domainchief/example').label, 'API reference');
   assert.equal(findOgImageBrand('/api/flowguard/example').label, 'API reference');
   assert.equal(findOgImageBrand('/api/serverchief/example').label, 'API reference');
+  assert.equal(findOgImageBrand('/api/billdo/example').label, 'API reference');
   assert.equal(findOgImageBrand('/api/backupchief/example').styleId, 'backupchief');
   assert.equal(findOgImageBrand('/api/backupchief/example').label, 'API reference');
   assert.equal(findOgImageBrand('/api/socketchief/example').styleId, 'socketchief');

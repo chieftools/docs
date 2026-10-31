@@ -27,6 +27,10 @@ curl --fail --silent --show-error --location \
   --output apis/backupchief.json
 
 curl --fail --silent --show-error --location \
+  https://bill.do/api/spec/v1.json \
+  --output apis/billdo.json
+
+curl --fail --silent --show-error --location \
   https://socket.chief.app/api/spec/v1.json \
   --output apis/socketchief.json
 
