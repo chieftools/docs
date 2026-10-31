@@ -1,0 +1,139 @@
+---
+title: Scopes
+description: Choose what an access token can read or change through the Deploy Chief API.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes | Deploy Chief</title>
+</Head>
+
+Scopes limit what an access token can do in Deploy Chief. Choose them when you create a [team or personal access token](/developers/authentication#choose-a-token-type). Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
+
+## Available scopes
+
+### Broad scopes
+
+| Scope | Access |
+|---|---|
+| `deploychief` | Every Deploy Chief API operation |
+| `deploychief:read` | Read all Deploy Chief resources, including environment files and deploy trigger URLs |
+| `deploychief:write` | Read and change all Deploy Chief resources, including environment files and deploy trigger URLs |
+
+### Application scopes
+
+| Scope | Access |
+|---|---|
+| `deploychief:apps:read` | List and view applications and the branches and tags of their repository |
+| `deploychief:apps:write` | Create, update, and delete applications and change their Sentry projects |
+
+### Deployment scopes
+
+| Scope | Access |
+|---|---|
+| `deploychief:deployments:read` | List and view deployments, including their steps and output |
+| `deploychief:deployments:write` | Start, roll back, and cancel deployments |
+
+### Environment scopes
+
+| Scope | Access |
+|---|---|
+| `deploychief:environments:read` | List and view environments and their deployment scripts |
+| `deploychief:environments:write` | Create, update, and delete environments and change their deployment scripts |
+| `deploychief:environments:secrets:read` | View the environment file, deploy trigger URL, and trigger secret |
+| `deploychief:environments:secrets:write` | Update the environment file and regenerate the deploy trigger URL |
+
+### Server scopes
+
+| Scope | Access |
+|---|---|
+| `deploychief:servers:read` | List and view servers, including their public SSH key |
+| `deploychief:servers:write` | Create, update, and delete servers, test their connection, and regenerate their SSH key pair |
+
+### Script scopes
+
+| Scope | Access |
+|---|---|
+| `deploychief:scripts:read` | List and view deployment scripts |
+| `deploychief:scripts:write` | Create, update, and delete deployment scripts |
+
+### Integration scopes
+
+| Scope | Access |
+|---|---|
+| `deploychief:integrations:read` | List the connected repository providers, GitLab and Bitbucket accounts, and Sentry organizations and projects |
+
+Each write scope includes the read scope of the same resource. For example, `deploychief:deployments:write` can also list and view deployments.
+
+## Understand environment secrets
+
+`deploychief:environments:read` returns environment settings but not the `envFile`, `secret`, or `trigger` fields. Those need `deploychief:environments:secrets:read`, because anyone with the deploy trigger URL can start a deployment and the environment file usually holds credentials.
+
+<Callout type="caution" title="Broad scopes include secrets">
+  `deploychief:read`, `deploychief:write`, and `deploychief` all grant access to environment files and deploy trigger URLs. Use resource scopes when an integration does not need them.
+</Callout>
+
+## Find applications with a narrow token
+
+The `app` and `apps` fields accept any of these scopes, so a token scoped to one part of an application can still look the application up:
+
+- `deploychief:apps:read`
+- `deploychief:environments:read`
+- `deploychief:servers:read`
+- `deploychief:deployments:read`
+
+The fields below an application still need their own scope. A token with only `deploychief:deployments:read` can read `app { deployments }`, but not `app { environments }` or `app { servers }`.
+
+## Handle a missing scope
+
+The API does not reject a GraphQL request as a whole when the token lacks a scope. It returns `null` for each field the token cannot access and adds an error for it. The error's `extensions` list the required and granted scopes:
+
+```json
+{
+  "data": {"team": {"app": null}},
+  "errors": [
+    {
+      "message": "The 'environments' field requires all of the following scopes: ['deploychief:environments:read'], but your token has only been granted the: ['deploychief:deployments:read'] scopes.",
+      "path": ["team", "app", "environments"],
+      "extensions": {
+        "requiredScopes": ["deploychief:environments:read"],
+        "grantedScopes": ["deploychief:deployments:read"],
+        "allScopesRequired": true
+      }
+    }
+  ]
+}
+```
+
+When `allScopesRequired` is `false`, any one of the `requiredScopes` is enough. A `null` for a non-null field makes its parent `null` too, which is why `app` is `null` in this example. Remove the field from the query or create a token with the required scope. Retrying with the same token returns the same error.
+
+## Example token configurations
+
+### Deploy from CI
+
+A pipeline that starts a deployment and waits for it to finish only needs:
+
+```text
+deploychief:deployments:write
+```
+
+Use a [team access token](/developers/authentication#team-access-tokens) so the pipeline keeps working when people join or leave the team. The [Deploy Chief introduction](/developers/deploychief#start-a-deployment) shows the requests.
+
+### Monitor deployments
+
+A dashboard that shows deployment history and the state of each environment can use:
+
+```text
+deploychief:deployments:read deploychief:environments:read
+```
+
+### Manage servers and environments
+
+An infrastructure tool that adds servers and environments, without reading environment files:
+
+```text
+deploychief:servers:write deploychief:environments:write
+```
+
+Add `deploychief:environments:secrets:write` only when the tool also writes the environment file.

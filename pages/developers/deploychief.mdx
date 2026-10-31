@@ -17,6 +17,15 @@ Looking for help using Deploy Chief in the browser? Go to the [Deploy Chief docu
 
 <div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
   <Link
+    to="/developers/deploychief/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Give a token only the Deploy Chief permissions the integration needs.
+    </p>
+  </Link>
+  <Link
     to="/api/deploychief"
     className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
   >
@@ -26,3 +35,115 @@ Looking for help using Deploy Chief in the browser? Go to the [Deploy Chief docu
     </p>
   </Link>
 </div>
+
+## Authenticate
+
+Send every request to `https://deploy.chief.app/api/graphql` with an [access token](/developers/authentication) in the `Authorization` header. Give the token only the [Deploy Chief scopes](/developers/deploychief/scopes) your integration needs.
+
+### Query with a team access token
+
+A [team access token](/developers/authentication#team-access-tokens) acts for one team. Start queries from the `team` field, which returns that team's applications, scripts, and integrations:
+
+```http
+POST /api/graphql HTTP/1.1
+Host: deploy.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{"query": "{ team { apps { id name } } }"}
+```
+
+`viewer` returns `null` for a team access token, because the token does not act as a user.
+
+### Query with a personal access token
+
+A [personal access token](/developers/authentication#personal-access-tokens) acts as your user account. You can start from `viewer` or `team`. Both use your default team, unless the token is limited to one team or the request names a team by its slug:
+
+```http
+X-Chief-Team: $TEAM_SLUG
+```
+
+Pin the team on every request when an integration runs unattended, or switch to a team access token, so it does not change teams when your default team changes.
+
+## Start a deployment
+
+This workflow suits a CI pipeline that deploys after its tests pass. Create a team access token with the `deploychief:deployments:write` scope.
+
+### Find the application and environment IDs
+
+The deployment request needs the IDs of the application and the environment. Open the environment's settings in Deploy Chief and copy them from the URL:
+
+```text
+https://deploy.chief.app/team/$TEAM_SLUG/apps/$APP_ID/environments/$ENVIRONMENT_ID/edit
+```
+
+A token with `deploychief:environments:read` can also list them with `team { apps { id name environments { id name } } }`. The CI token does not need that scope.
+
+### Request the deployment
+
+[`appDeploymentCreate`](/api/deploychief/mutation/appDeploymentCreate) deploys the latest commit on the environment's branch:
+
+```http
+POST /api/graphql HTTP/1.1
+Host: deploy.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "query": "mutation ($input: AppDeploymentCreateInput!) { appDeploymentCreate(input: $input) { deployment { id state } status { success errors { name messages } } } }",
+  "variables": {"input": {"appId": "$APP_ID", "environmentId": "$ENVIRONMENT_ID"}}
+}
+```
+
+To deploy something other than the branch head, use [`appDeploymentCreateByBranch`](/api/deploychief/mutation/appDeploymentCreateByBranch), [`appDeploymentCreateByTag`](/api/deploychief/mutation/appDeploymentCreateByTag), or [`appDeploymentCreateByCommit`](/api/deploychief/mutation/appDeploymentCreateByCommit).
+
+Check `status.success` before reading the deployment. A rejected request, such as an unknown environment or a missing commit, returns `success: false` with the reasons in `status.errors`:
+
+```json
+{
+  "data": {
+    "appDeploymentCreate": {
+      "deployment": null,
+      "status": {
+        "success": false,
+        "errors": [{"name": "environmentId", "messages": ["Could find an environment with that ID, does it still exist?"]}]
+      }
+    }
+  }
+}
+```
+
+A successful request returns the new deployment in the `QUEUED` state:
+
+```json
+{
+  "data": {
+    "appDeploymentCreate": {
+      "deployment": {"id": "$DEPLOYMENT_ID", "state": "QUEUED"},
+      "status": {"success": true, "errors": null}
+    }
+  }
+}
+```
+
+Each successful request queues a new deployment. If the request fails without a response, check the application's recent deployments before you send it again.
+
+### Wait for the result
+
+The deployment runs in the background. Poll it with a delay between requests until `state` is `SUCCESS`, `FAILED`, or `CANCELLED`:
+
+```http
+POST /api/graphql HTTP/1.1
+Host: deploy.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "query": "query ($app: ID!, $deployment: ID!) { team { app(id: $app) { deployment(id: $deployment) { state finishedAt } } } }",
+  "variables": {"app": "$APP_ID", "deployment": "$DEPLOYMENT_ID"}
+}
+```
+
+`QUEUED` and `RUNNING` mean the deployment is still in progress. Fail the pipeline on `FAILED` or `CANCELLED`. Treat a state your integration does not recognize as still in progress until a timeout you choose.
+
+In Deploy Chief, deployments started with a team access token show the `TOKEN` [actor](/api/deploychief/enum/DeploymentActor) instead of a team member.
