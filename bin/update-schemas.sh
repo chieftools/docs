@@ -23,6 +23,10 @@ curl --fail --silent --show-error --location \
   --output apis/serverchief.json
 
 curl --fail --silent --show-error --location \
+  https://backup.chief.app/api/spec/v1.json \
+  --output apis/backupchief.json
+
+curl --fail --silent --show-error --location \
   https://cert.chief.app/api/graphql/schema \
   --output apis/certchief.graphql
 

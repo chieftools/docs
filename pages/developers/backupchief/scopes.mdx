@@ -1,0 +1,102 @@
+---
+title: Scopes
+description: Choose what an access token can read or change through the Backup Chief API.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Scopes | Backup Chief</title>
+</Head>
+
+Scopes limit what an access token can do in Backup Chief. Choose them when you create an [access token](/developers/authentication#access-tokens). Start with the narrowest scope that covers your integration. The shared [scopes guide](/developers/scopes) explains how parent scopes and write access work.
+
+Each endpoint in the [REST API reference](/api/backupchief) lists its required scope under security. The same scopes apply to the tools of the [MCP server](/backupchief/ai#available-tools).
+
+## Available scopes
+
+### Broad scopes
+
+| Scope | Access |
+|---|---|
+| `backupchief` | Every user-facing Backup Chief API operation |
+| `backupchief:read` | Every resource read operation |
+| `backupchief:write` | Every resource write and read operation |
+
+Getting the team and its plan limits works with any Backup Chief read scope.
+
+### Servers
+
+| Scope | Access |
+|---|---|
+| `backupchief:servers:read` | List and retrieve servers and their agents |
+| `backupchief:servers:write` | Add, rename, revoke, and delete servers, issue enrollment tokens, and update their agents; also grants server reads |
+
+An enrollment token sets up the agent on a server, and a new token for an enrolled server disconnects its current agent. Give `backupchief:servers:write` only to integrations that provision servers.
+
+### Storage
+
+| Scope | Access |
+|---|---|
+| `backupchief:storage:read` | List and retrieve storage destinations; credentials are never returned |
+| `backupchief:storage:write` | Create, update, and delete storage destinations and rotate their credentials; also grants storage reads |
+
+### Backup jobs
+
+| Scope | Access |
+|---|---|
+| `backupchief:jobs:read` | List and retrieve backup jobs, their repositories, source test results, runs, run logs, and snapshots |
+| `backupchief:jobs:write` | Create, update, pause, run, and delete backup jobs and their backups, test sources on servers, run maintenance, cancel and retry runs, and keep or expire recovery points; also grants backup job reads |
+
+`backupchief:jobs:write` can delete backups. Deleting a job with its backups, or expiring a recovery point, removes data from your storage that Backup Chief cannot bring back.
+
+Creating a job references a server and a storage destination by ID. It does not need the servers or storage scopes, but listing them to find the IDs does.
+
+### Downloads
+
+| Scope | Access |
+|---|---|
+| `backupchief:downloads:read` | List and retrieve hosted downloads of backup contents |
+| `backupchief:downloads:write` | Prepare, cancel, and delete hosted downloads, and create URLs that download them; also grants downloads reads |
+
+<Callout type="caution" title="Downloads expose backup contents">
+  A download URL works without a token for 60 minutes. New tokens only get the downloads scopes when you select them. The broad scopes `backupchief`, `backupchief:read`, and `backupchief:write` include them too.
+</Callout>
+
+<Callout type="info">
+  Scopes are hierarchical. A resource write scope includes the matching read scope. `backupchief:read` grants every resource read scope, `backupchief:write` grants every resource write and read scope, and `backupchief` grants everything. A resource scope does not grant access to unrelated resources.
+</Callout>
+
+## Example token configurations
+
+### Monitor backups
+
+```text
+backupchief:jobs:read
+```
+
+The token can list jobs and their runs, read run logs, and check whether recovery points are restorable. It cannot change anything or read backup contents.
+
+### Provision servers
+
+```text
+backupchief:servers:write
+```
+
+The token can add servers and return their setup command to a provisioning tool. It cannot create backup jobs.
+
+### Set up backups from automation
+
+```text
+backupchief:servers:read backupchief:storage:read backupchief:jobs:write
+```
+
+The token can find the server and storage destination, test the source, and create the job. A person still saves the recovery document in Backup Chief before the job runs.
+
+### Fetch database dumps
+
+```text
+backupchief:jobs:read backupchief:downloads:write
+```
+
+The token can list snapshots, prepare downloads of database dumps, and create download URLs. Store this token like the backups it can read.

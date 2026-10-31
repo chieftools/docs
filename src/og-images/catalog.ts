@@ -62,7 +62,7 @@ export const ogImageBrands: OgImageBrand[] = [
     productName: 'Backup Chief',
     label: 'Documentation',
     fallbackTitle: 'Backup Chief developer documentation',
-    fallbackDescription: 'Find out what is available for Backup Chief integrations.',
+    fallbackDescription: 'Add servers, set up backup jobs, and download from backups.',
   },
   {
     prefix: '/developers/socketchief',
@@ -135,6 +135,14 @@ export const ogImageBrands: OgImageBrand[] = [
     label: 'API reference',
     fallbackTitle: 'FlowGuard API reference',
     fallbackDescription: 'Query request logs and manage FlowGuard rules and actions.',
+  },
+  {
+    prefix: '/api/backupchief',
+    styleId: 'backupchief',
+    productName: 'Backup Chief',
+    label: 'API reference',
+    fallbackTitle: 'Backup Chief API reference',
+    fallbackDescription: 'Add servers, set up backup jobs, and download from backups.',
   },
   {
     prefix: '/api/serverchief',

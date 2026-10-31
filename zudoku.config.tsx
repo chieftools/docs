@@ -71,6 +71,21 @@ const config: ZudokuConfig = {
         },
         {
             type: 'file',
+            path: '/api/backupchief',
+            input: './apis/backupchief.json',
+            options: {
+                schemaDownload: {
+                    enabled: true,
+                },
+                disableSecurity: false,
+                examplesLanguage: 'shell',
+                supportedLanguages: [
+                    {label: 'cURL', value: 'shell'},
+                ],
+            },
+        },
+        {
+            type: 'file',
             path: '/api/serverchief',
             input: './apis/serverchief.json',
             options: {
@@ -388,6 +403,13 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/backupchief/introduction',
+                        '/backupchief/ai',
+                        {
+                            type: 'link',
+                            label: 'Developers',
+                            to: '/developers/backupchief',
+                            stack: true,
+                        },
                     ],
                 },
                 {
@@ -689,6 +711,24 @@ const config: ZudokuConfig = {
                             file: '/developers/backupchief',
                             label: 'Introduction',
                         },
+                        {
+                            type: 'category',
+                            label: 'API',
+                            collapsible: true,
+                            items: [
+                                {
+                                    type: 'doc',
+                                    file: '/developers/backupchief/scopes',
+                                    label: 'Scopes',
+                                },
+                                {
+                                    type: 'link',
+                                    label: 'REST API reference',
+                                    to: '/api/backupchief',
+                                    stack: true,
+                                },
+                            ],
+                        },
                     ],
                 },
                 {
@@ -778,6 +818,7 @@ const config: ZudokuConfig = {
             'flowguard:read',
             'serverchief:read',
             'deploychief',
+            'backupchief:read',
         ],
         issuer: process.env.ZUDOKU_PUBLIC_AUTH_ISSUER as string,
         clientId: process.env.ZUDOKU_PUBLIC_AUTH_CLIENT_ID as string,

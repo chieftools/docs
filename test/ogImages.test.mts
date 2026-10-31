@@ -42,6 +42,8 @@ test('selects product branding and API labels from the route', () => {
   assert.equal(findOgImageBrand('/api/domainchief/example').label, 'API reference');
   assert.equal(findOgImageBrand('/api/flowguard/example').label, 'API reference');
   assert.equal(findOgImageBrand('/api/serverchief/example').label, 'API reference');
+  assert.equal(findOgImageBrand('/api/backupchief/example').styleId, 'backupchief');
+  assert.equal(findOgImageBrand('/api/backupchief/example').label, 'API reference');
 });
 
 test('creates a stable signed image URL', () => {

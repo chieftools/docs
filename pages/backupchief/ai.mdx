@@ -1,0 +1,220 @@
+---
+title: Connect an AI agent
+description: Connect an MCP-compatible AI client to Backup Chief.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Connect an AI agent | Backup Chief</title>
+</Head>
+
+Use this guide to connect an MCP-compatible AI client to Backup Chief so it can check your backups, set up servers and backup jobs, and prepare downloads for one team or all your teams.
+
+## Choose your task
+
+- [Connect an AI client](#connect-a-client)
+- [Choose one team or all your teams](#choose-one-team-or-all-your-teams)
+- [Try a request](#what-happens-next)
+- [Review the available tools](#available-tools)
+- [Let the agent make changes](#allow-changes)
+- [Let the agent prepare downloads](#allow-downloads)
+- [Fix a connection or permission problem](#troubleshooting)
+
+## Connect an AI client
+
+### Before you connect
+
+Your AI client must support remote MCP servers and browser-based sign-in. Use this server URL:
+
+```text
+https://backup.chief.app/mcp
+```
+
+### Connect a client
+
+Look for MCP or integrations in your client's settings, then:
+
+1. Open the client's MCP or integrations settings.
+2. Add a remote MCP server with the URL above.
+3. Sign in with your Chief account.
+4. Under **Select a team**, choose the team the agent may use, or **All my teams**.
+5. Review the requested scopes and select **Authorize**.
+
+Backup Chief asks for read access to servers, storage, and backup jobs when you first connect. The agent can then check your backups and their history, but it cannot change anything or read backup contents.
+
+<Callout type="caution" title="Review the requested access">
+  The authorization screen presents all requested scopes as one set. You must approve the full set or cancel the connection.
+</Callout>
+
+### Choose one team or all your teams
+
+The team you select in step 4 decides which Backup Chief data the agent can reach.
+
+| Choice | What the agent can use |
+| --- | --- |
+| A single team | Only that team. The agent never has to pick a team. |
+| **All my teams** | Every team you belong to, including teams you join later. The agent picks a team for each request. |
+
+With **All my teams**, the agent gets the same scopes in every team. Name the team in your request, such as "In the Production team, list the failed backups", so the agent does not have to guess. It should ask you when the team is unclear and tell you which team it used. Before you approve a change, check that the agent named the right team.
+
+To switch between one team and all teams, reconnect the client and make a different choice.
+
+### What happens next
+
+After connecting, give the client a specific task. For example:
+
+- Which backup jobs did not complete a backup in the last 24 hours?
+- Show the log of the last failed backup of the Website files job and explain what went wrong.
+- Which servers are offline or run an outdated agent?
+- How much storage do the backups at each storage destination use?
+- Which of my teams have backup jobs that need attention?
+
+The last example only works with **All my teams**.
+
+## Available tools
+
+Your client may list every tool, but each tool only works when the connection has its required scope. A higher-level scope also works. For example, `backupchief:jobs:write` covers `backupchief:jobs:read`.
+
+### Teams
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-teams` | List the teams the connection can use and mark your default team | Any Backup Chief read scope |
+| `get-team` | Show the team's plan limits and usage | Any Backup Chief read scope |
+
+`list-teams` is only available to connections authorized for **All my teams**. These connections name a team on every other tool call. Your default team is a hint for the agent, not an automatic choice.
+
+### Servers
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-servers` | List servers with their status and agent version | `backupchief:servers:read` |
+| `get-server` | Retrieve one server | `backupchief:servers:read` |
+| `create-server` | Add a server and return its setup command | `backupchief:servers:write` |
+| `update-server` | Rename a server or change its automatic agent updates | `backupchief:servers:write` |
+| `issue-enrollment-token` | Return a new setup command for a server | `backupchief:servers:write` |
+| `update-server-agent` | Update the agent of a server | `backupchief:servers:write` |
+| `revoke-server` | Disconnect the agent of a server | `backupchief:servers:write` |
+| `delete-server` | Delete a server that never connected | `backupchief:servers:write` |
+
+### Storage
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-storage-destinations` | List storage destinations and their use | `backupchief:storage:read` |
+| `get-storage-destination` | Retrieve one storage destination | `backupchief:storage:read` |
+| `create-storage-destination` | Add S3-compatible or SFTP storage | `backupchief:storage:write` |
+| `update-storage-destination` | Rename a destination, rotate its credentials, or change its settings | `backupchief:storage:write` |
+| `delete-storage-destination` | Delete a destination that no backup job uses | `backupchief:storage:write` |
+
+The agent never sees stored credentials. When it creates storage or rotates credentials, it asks you for them.
+
+### Backup jobs
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-jobs` | List backup jobs and their status | `backupchief:jobs:read` |
+| `get-job` | Retrieve one backup job with its source, schedule, and retention | `backupchief:jobs:read` |
+| `list-job-repositories` | List the main repository and extra copies of a job | `backupchief:jobs:read` |
+| `get-source-inspection` | Check the result of a source test | `backupchief:jobs:read` |
+| `inspect-source` | Ask a server's agent to test a backup source | `backupchief:jobs:write` |
+| `create-job` | Create a backup job from a successful source test | `backupchief:jobs:write` |
+| `update-job` | Change the name, source, schedule, or retention of a job | `backupchief:jobs:write` |
+| `pause-job` | Pause a job | `backupchief:jobs:write` |
+| `resume-job` | Resume a paused job | `backupchief:jobs:write` |
+| `run-job` | Start a backup now | `backupchief:jobs:write` |
+| `run-job-maintenance` | Start cleanup, pruning, or a recovery point recheck now | `backupchief:jobs:write` |
+| `retry-job-provisioning` | Continue a storage setup that stopped | `backupchief:jobs:write` |
+| `delete-job` | Delete a paused job, with or without its backups | `backupchief:jobs:write` |
+
+### Runs and recovery points
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-runs` | List backups and maintenance runs | `backupchief:jobs:read` |
+| `get-run` | Retrieve one run | `backupchief:jobs:read` |
+| `get-run-log` | Read the end of a run's log | `backupchief:jobs:read` |
+| `list-snapshots` | List the snapshots of a job | `backupchief:jobs:read` |
+| `get-snapshot` | Retrieve one snapshot | `backupchief:jobs:read` |
+| `cancel-run` | Cancel a pending or running run | `backupchief:jobs:write` |
+| `retry-run` | Retry a failed maintenance run | `backupchief:jobs:write` |
+| `keep-run-forever` | Exempt a recovery point from cleanup | `backupchief:jobs:write` |
+| `use-run-retention-policy` | Return a recovery point to the job's retention | `backupchief:jobs:write` |
+| `expire-run` | Remove a recovery point | `backupchief:jobs:write` |
+
+### Downloads
+
+| Tool | Action | Required scope |
+|---|---|---|
+| `list-downloads` | List prepared and past downloads | `backupchief:downloads:read` |
+| `get-download` | Check a download | `backupchief:downloads:read` |
+| `create-download` | Prepare a ZIP of a database dump, file, or directory from a snapshot | `backupchief:downloads:write` |
+| `cancel-download` | Cancel a download that is being prepared | `backupchief:downloads:write` |
+| `expire-download` | Delete a ready download | `backupchief:downloads:write` |
+| `create-download-url` | Create a URL that downloads a ready ZIP | `backupchief:downloads:write` |
+
+The agent cannot save or confirm recovery documents, add extra copies, browse the files of a snapshot, restore backups, or manage alerts and Plesk. Use the Backup Chief dashboard for those tasks.
+
+## Allow changes
+
+When you ask the agent to add a server, create a job, or change anything else, it needs the matching write scope from the tables above. Some clients ask you to approve the extra scope when the agent first needs it. If yours does not, reconnect the client and approve the write scopes.
+
+<Callout type="caution" title="Some changes delete backups">
+  `delete-job` with its backups and `expire-run` remove backup data from your storage. Backup Chief cannot bring it back.
+</Callout>
+
+Before you let the agent continue with a change, check that it states which team, server, job, or recovery point it changes and what happens next. A few changes need you:
+
+- A new server only connects after you run its setup command as root on the server.
+- A new backup job only starts after you save and confirm its recovery document in Backup Chief.
+
+## Allow downloads
+
+Downloads contain your backup contents, so Backup Chief never requests the downloads scopes when you connect. Approve `backupchief:downloads:write` only when you want the agent to prepare a download, and reconnect without it afterwards.
+
+<Callout type="caution" title="Download URLs work without signing in">
+  Anyone with a download URL can download the ZIP until it expires after 60 minutes. The agent shows the URL in your conversation, so treat the conversation like the file itself.
+</Callout>
+
+## Manage the connection
+
+### Change permissions
+
+Start with read access. Approve write scopes only when you want the agent to change something, and reconnect without them when it no longer needs that access.
+
+See [Backup Chief API scopes](/developers/backupchief/scopes) for the full scope hierarchy.
+
+### Choose MCP or REST
+
+Use MCP when an AI client needs to choose and call Backup Chief tools. Use the [REST API](/developers/backupchief) for application code and fixed workflows.
+
+## Troubleshooting
+
+### Why can't the client connect?
+
+Confirm that the client supports remote MCP servers and browser-based authorization. Copy the server URL exactly, then reconnect and complete the Chief sign-in flow.
+
+### Why does a tool report insufficient scope?
+
+The connection does not have the tool's required scope. Compare the tool with the tables above, then approve the additional scope when your client asks, or reconnect the client and approve it.
+
+### Why can't the agent see one of my teams?
+
+The connection is limited to the team you selected when you connected. Reconnect the client and choose that team or **All my teams**. With **All my teams**, the agent can only use teams you are a member of.
+
+### Why did the agent use the wrong team?
+
+With **All my teams**, the agent picks a team for each request. Name the team in your request and ask the agent which team it used. If you only work in one team, reconnect and select that team instead.
+
+### Why does a new backup job stay pending?
+
+The job waits for its recovery document. Open the job in Backup Chief, save the recovery document somewhere safe, and confirm it.
+
+### Why does the agent report too many requests?
+
+Backup Chief limits how often a connection can call the server. Wait a minute, then ask the agent to continue.
+
+### Why does the authorization screen request unexpected access?
+
+Cancel the connection and review which tools or integration the client is trying to enable. Backup Chief approves or rejects the requested scopes as one set.

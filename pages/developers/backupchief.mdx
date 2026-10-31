@@ -1,18 +1,233 @@
 ---
 title: Backup Chief
-description: Backup Chief does not have a public API yet.
+description: Authenticate and use the Backup Chief REST API to add servers, set up backup jobs, and download from backups.
 ---
 
-import {Head} from "zudoku/components";
+import {Callout, Head, Link} from "zudoku/components";
 
 <Head>
   <title>Developer documentation | Backup Chief</title>
 </Head>
 
-Backup Chief does not have a public API yet. Manage servers, storage, and backup jobs from the Backup Chief dashboard for now.
+Use the Backup Chief REST API to add servers, connect storage, create and run backup jobs, follow their runs, and prepare downloads from recovery points. AI clients can use the same operations through the [MCP server](/backupchief/ai).
 
 Looking for help using Backup Chief in the browser? Go to the [Backup Chief documentation](/backupchief/introduction).
 
-## Request API access
+## Make your first request
 
-If your integration needs a Backup Chief API, tell us what it should do. Suggest it on the <ExternalLink href="https://roadmap.chief.tools?ref=chiefdocs">roadmap</ExternalLink> or <ExternalLink href="https://chief.app/contact">contact us</ExternalLink>. Real use cases decide what the API covers first.
+Every request needs a bearer access token. Use a team access token for a service owned by one team, a personal access token for a private script, or OAuth when your application connects other users' accounts. The [token guide](/developers/authentication) explains how to create and protect each token type.
+
+Give the token only the [Backup Chief scopes](/developers/backupchief/scopes) its requests need. The production API base URL is:
+
+```text
+https://backup.chief.app/api/v1
+```
+
+Start by listing the team's servers. This read-only request needs `backupchief:servers:read`:
+
+```http
+GET /api/v1/servers HTTP/1.1
+Host: backup.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+```
+
+The response is a page of servers with their status, agent version, and job counts. IDs start with a prefix that names the resource, such as `server_01j8q8zk2f4m6n7p9r1s3t5v7x` or `job_01j8q8zk2f4m6n7p9r1s3t5v7x`. Send them back exactly as you received them.
+
+### Choose the team
+
+A team access token always works in its own team. A personal access token or OAuth token works in your default team, unless it is limited to one team or the request names a team by its slug:
+
+```http
+X-Chief-Team: $TEAM_SLUG
+```
+
+When the token is limited to one team, the header must name that team. Any other team returns `404 Not Found`. Pin the team on every request when an integration runs unattended, so it keeps working in the same team when your default team changes.
+
+## Add a server
+
+A server runs the open-source Backup Chief agent. This workflow needs `backupchief:servers:write`.
+
+### Create the server
+
+```http
+POST /api/v1/servers HTTP/1.1
+Host: backup.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{"name": "Web server"}
+```
+
+The `201 Created` response contains the pending server and a one-time `enrollment` object:
+
+```json
+{
+  "data": {
+    "id": "server_01j8q8zk2f4m6n7p9r1s3t5v7x",
+    "status": "pending",
+    "enrollment": {
+      "token": "bcenr_...",
+      "setup_command": "...",
+      "expires_at": "2026-11-01T13:00:00Z"
+    },
+    ...
+  }
+}
+```
+
+Run `setup_command` as root on the server within the hour. Backup Chief never returns the token again, so there is no reason to store it. If it expires or gets lost, [issue a new enrollment token](/api/backupchief/servers#issue-an-enrollment-token) for the pending server.
+
+### Wait for the agent
+
+[Get the server](/api/backupchief/servers#get-a-server) until `status` is `enrolled` and `connected` is `true`. The agent usually connects within a minute after the setup command finishes.
+
+## Create a backup job
+
+A backup job backs up directories, a MySQL server, or a PostgreSQL server from one enrolled server to one storage destination. This workflow needs `backupchief:jobs:write`.
+
+### Pick a storage destination
+
+[List the storage destinations](/api/backupchief/storage-destinations#list-storage-destinations) with `backupchief:storage:read`, or [create one](/api/backupchief/storage-destinations#create-a-storage-destination) with `backupchief:storage:write`. Backup Chief checks that it can list, read, write, and delete files at the destination before it saves it. Credentials are never returned.
+
+### Test the source
+
+The agent tests every new source on the server before Backup Chief saves it. Start a test with the same `type` and `source` you will create the job with:
+
+```http
+POST /api/v1/source-inspections HTTP/1.1
+Host: backup.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "server": "server_01j8q8zk2f4m6n7p9r1s3t5v7x",
+  "type": "file",
+  "source": {"paths": ["/var/www"], "excludes": ["*.log"]}
+}
+```
+
+The agent runs the test the next time it checks in, usually within a minute. [Get the source inspection](/api/backupchief/source-inspections#get-a-source-inspection) until `status` is `completed` or `expired`:
+
+- `successful` is `true`. Create the job within 10 minutes.
+- `successful` is `false`. Show `guidance.action` and `guidance.detail` to the user, fix the source, and test again.
+- `status` is `expired`. The agent did not pick the test up in time. Check that the server is connected, then test again.
+
+### Create the job
+
+Pass the inspection ID as `source_inspection`. The `source` must match the tested source exactly:
+
+```http
+POST /api/v1/jobs HTTP/1.1
+Host: backup.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{
+  "name": "Website files",
+  "server": "server_01j8q8zk2f4m6n7p9r1s3t5v7x",
+  "storage_destination": "storage_01j8q8zk2f4m6n7p9r1s3t5v7x",
+  "type": "file",
+  "source": {"paths": ["/var/www"], "excludes": ["*.log"]},
+  "source_inspection": "inspection_01j8q8zk2f4m6n7p9r1s3t5v7x",
+  "attempt_id": "01JBA2C3D4E5F6G7H8J9K0M1N2"
+}
+```
+
+Generate a new ULID as `attempt_id` for every job you create. If the connection drops before you see the response, retry with the same `attempt_id` and body. Backup Chief then returns the job it created the first time instead of a second job.
+
+Leave out `schedule` and `retention` to start with a daily schedule and the default retention, or set them in the same request. The [create request](/api/backupchief/backup-jobs#create-a-backup-job) lists every field.
+
+### Finish the recovery setup in the app
+
+<Callout type="caution" title="A person must save the recovery document">
+  A new job stays `pending` until someone saves its recovery document and confirms it in the Backup Chief app. The API cannot do this step. The recovery document is the only way to read the backups without Backup Chief, so a person has to keep it.
+</Callout>
+
+`status_label` names the step a pending job waits for. When it reads `Save recovery document`, send the user to the job in Backup Chief. After the confirmation, the job turns `active` and runs on its schedule.
+
+If `provisioning_error_code` is set, the storage setup stopped. Fix the cause, such as the storage credentials, then [retry the storage setup](/api/backupchief/backup-jobs#retry-the-storage-setup).
+
+## Follow backups
+
+[List runs](/api/backupchief/runs#list-runs) returns backups and maintenance, newest first. Filter on `job`, `server`, `status`, `kind`, or `trigger`. Each backup run is a recovery point, and `restorable` tells whether all its snapshots can still be restored.
+
+To back up outside the schedule, [run a backup now](/api/backupchief/backup-jobs#run-a-backup-now). The agent starts the backup the next time it checks in. List the job's runs to find it, then get the run until its `status` is no longer `pending` or `running`. `result_code` tells why it ended, and [the run log](/api/backupchief/runs#get-the-log-of-a-run) returns the agent's output as plain text while `has_log` is `true`.
+
+Recovery points follow the job's retention. [Keep a recovery point forever](/api/backupchief/runs#keep-a-recovery-point-forever) to exempt it from cleanup.
+
+## Download from a backup
+
+A download is a ZIP that Backup Chief prepares from a snapshot and keeps for a limited time. This workflow needs `backupchief:downloads:write`, plus `backupchief:jobs:read` to list snapshots. New tokens do not include the downloads scopes unless you select them, because downloads expose backup contents.
+
+1. [List the snapshots](/api/backupchief/snapshots#list-the-snapshots-of-a-backup-job) of the job and pick one whose `availability` is `available`.
+2. [Prepare a download](/api/backupchief/downloads#prepare-a-download). A database snapshot downloads its dump. A file snapshot needs the absolute `path` and the `path_type` of the file or directory.
+3. [Get the download](/api/backupchief/downloads#get-a-download) until `status` is `ready`, `failed`, `cancelled`, or `expired`. A failed download explains why in `failure_code` and `failure_message`.
+4. [Create a download URL](/api/backupchief/downloads#create-a-download-url) for the ready download.
+
+```http
+POST /api/v1/downloads/$DOWNLOAD_ID/url HTTP/1.1
+Host: backup.chief.app
+Authorization: Bearer $TOKEN
+```
+
+```json
+{
+  "data": {
+    "url": "https://...",
+    "expires_at": "2026-11-01T13:00:00Z"
+  }
+}
+```
+
+<Callout type="caution" title="The URL works without a token">
+  Anyone with the URL can download the backup contents until it expires after 60 minutes. Give it only to the person or system that needs the file, and keep it out of logs.
+</Callout>
+
+Preparing the same content again while a download of it is in progress or ready returns that download. The team's plan limits the size of a download, the downloads per day, and the downloads prepared at once.
+
+## Handle responses
+
+### Errors
+
+| Status | Meaning |
+|---|---|
+| `401` | The token is missing, invalid, or expired. |
+| `403` | The token lacks the scope the operation needs. |
+| `404` | The resource does not exist in the team the request uses. |
+| `409` | The resource is not in a state that allows the change. The body has a `message` to show and `code` set to `state_conflict`. |
+| `422` | The request is invalid. `errors` lists the messages per field, such as `source.paths` or `settings.bucket`. |
+| `429` | The token sent too many requests. Wait a minute before you try again. |
+
+A conflict changes nothing, so you can retry once the state allows it. For example, deleting a job that is not paused returns `409` until you pause it and its agent drops it.
+
+### Pagination
+
+List endpoints return `data`, `links`, and `meta`. Request the next page with `page`, or follow `links.next` until it is `null`. `per_page` defaults to 50 and accepts up to 100.
+
+### New values
+
+Fields such as `status`, `kind`, `result_code`, and `failure_code` can gain new values. Treat a value you do not recognize as unknown instead of failing. When the response includes `status_label` or a message, show that to the user.
+
+## API documentation
+
+<div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
+  <Link
+    to="/developers/backupchief/scopes"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">API scopes</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Give a token only the Backup Chief permissions the integration needs.
+    </p>
+  </Link>
+  <Link
+    to="/api/backupchief"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">REST API reference</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Browse endpoints, request fields, response schemas, and required permissions.
+    </p>
+  </Link>
+</div>
