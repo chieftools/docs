@@ -15,6 +15,7 @@ Use this guide to move a domain between DNS providers, change its nameservers, o
 
 - [Move from Domain Chief to custom nameservers](#move-from-domain-chief-to-custom-nameservers)
 - [Move back to Domain Chief nameservers](#move-back-to-domain-chief-nameservers)
+- [Prepare records before switching to Domain Chief](#prepare-records-before-switching)
 - [Add or replace DNSSEC keys](#add-or-replace-dnssec-keys)
 - [Create a nameserver template](#use-nameserver-templates)
 - [Fix a nameserver or DNSSEC problem](#troubleshooting)
@@ -76,6 +77,25 @@ Nameserver and DNSSEC changes are processed in order. A pending notice means Dom
 
 ## Move back to Domain Chief nameservers
 
+If the website or email already runs on the domain, [prepare the records first](#prepare-records-before-switching). The domain keeps its current nameservers while you set up and check the Domain Chief zone, so nothing breaks while the records are incomplete. Switch directly only when the domain has no records you need to keep, such as a domain that isn't in use yet.
+
+### Prepare records before switching
+
+1. Export the complete zone from the current DNS provider.
+2. In the domain's **DNS** section, select **Manage nameservers**.
+3. Select **Prepare records first**. A **Preparing Hosted DNS** notice appears at the top of the domain page.
+4. Select **Edit records** in the notice and import or recreate the records. See [Import and migrate DNS records](/domainchief/dns-import-migration) for the import options.
+5. Check the records against the Domain Chief nameservers listed in the notice. They answer for the prepared records even though the rest of the internet still uses the old provider. For example, `dig @ns.domainchief.eu example.com MX` shows the prepared `MX` records.
+6. If DNSSEC is enabled, open **Manage DNSSEC**, remove every key, and select **Save keys**. Wait for the change to complete, then wait at least 24 hours before you continue.
+7. Select **Use these records** in the notice to switch the nameservers.
+8. Check the website, incoming and outgoing email, and any verification records.
+
+You have 30 days to switch. After that, Domain Chief removes the prepared zone and the domain stays on its current nameservers. The records you prepared are kept, so you can start again from where you left off. To stop earlier, select **Cancel** in the notice.
+
+Web redirects and mail forwarding become available after the switch, because they only work once the domain uses Domain Chief nameservers. DNS history and scheduled changes also start after the switch.
+
+### Switch directly
+
 1. Export the complete zone from the current DNS provider.
 2. If DNSSEC is enabled, open **Manage DNSSEC**, remove every key, and select **Save keys**. Wait for the change to complete, then wait at least 24 hours before changing nameservers.
 3. In the domain's **DNS** section, select **Manage nameservers**.
@@ -85,7 +105,9 @@ Nameserver and DNSSEC changes are processed in order. A pending notice means Dom
 
 ### What happens next
 
-Domain Chief manages DNSSEC when its nameservers are in use. You do not need to enter keys yourself, but enabling DNSSEC can take up to 24 hours. If the domain cannot tolerate any interruption, contact support before moving it because the app cannot pre-stage a new Domain Chief zone while custom nameservers are active.
+The nameserver change goes to the registry in the same way as any other nameserver change. Public resolvers may keep using the old provider's answers until the previous nameserver TTL expires, so leave the old zone in place for a few days.
+
+Domain Chief manages DNSSEC when its nameservers are in use. You do not need to enter keys yourself, but enabling DNSSEC can take up to 24 hours.
 
 For record formats and zone tools, see [Manage DNS records](/domainchief/dns-records).
 
@@ -150,6 +172,10 @@ The registry key and the provider's active key probably do not match. Check the 
 ### Why did the registry reject a nameserver?
 
 Check for spelling mistakes and duplicate hostnames. If the nameserver belongs to the domain itself, add the required glue IP addresses. Some registries also impose minimum or maximum nameserver counts.
+
+### Why is Prepare records first missing?
+
+The option appears only for active domains that use custom nameservers, while no other preparation is running. A domain that is still being registered or transferred can choose Domain Chief nameservers as part of that process instead.
 
 ### Why is a change still pending?
 

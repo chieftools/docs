@@ -627,6 +627,7 @@ const config: ZudokuConfig = {
                                 '/developers/domainchief/guides/sync-data',
                                 '/developers/domainchief/guides/notices',
                                 '/developers/domainchief/guides/domain-connect',
+                                '/developers/domainchief/guides/hosted-dns-migration',
                                 '/developers/domainchief/guides/acme',
                                 '/developers/domainchief/guides/terraform',
                             ],

@@ -23,12 +23,14 @@ Use this guide to bring an existing DNS zone into Domain Chief without replacing
 
 ## Before you import
 
-The domain must use Domain Chief hosted DNS. Open **Domains**, select the domain, and choose **Manage DNS records** in its **DNS** section.
+The domain must use Domain Chief hosted DNS, or be preparing it. Open **Domains**, select the domain, and choose **Manage DNS records** in its **DNS** section.
+
+If the domain still uses another DNS provider, select **Manage nameservers** and then **Prepare records first**. You can then import and check the zone before the nameservers change. See [Prepare records before switching](/domainchief/nameservers-dnssec#prepare-records-before-switching).
 
 Export the current zone before a migration, even when you plan to merge. Keep that export until the website, email, redirects, and verification records work with the imported zone.
 
 <Callout type="caution" title="Do not change nameservers before the new zone is complete">
-  An import changes the records stored in Domain Chief. It does not move nameservers or copy a zone between DNS providers automatically. Prepare and check the destination zone before directing traffic to it. See [Change nameservers and manage DNSSEC](/domainchief/nameservers-dnssec) for the safe migration order.
+  An import changes the records stored in Domain Chief. It does not move nameservers or copy a zone between DNS providers automatically. Prepare and check the destination zone before directing traffic to it. See [Prepare records before switching](/domainchief/nameservers-dnssec#prepare-records-before-switching) for the safe migration order.
 </Callout>
 
 ## Import a zone
@@ -148,7 +150,7 @@ If the destination zone changes after you review it, Domain Chief creates a new 
 
 ### Why is Copy a hosted zone missing?
 
-The team needs another domain with Domain Chief hosted DNS. The destination domain and domains using custom nameservers are not offered as sources.
+The team needs another domain with Domain Chief hosted DNS. The destination domain, domains using custom nameservers, and domains that are still preparing hosted DNS are not offered as sources.
 
 ### Why does the file fail before showing a preview?
 

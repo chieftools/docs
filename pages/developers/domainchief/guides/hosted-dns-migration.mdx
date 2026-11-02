@@ -1,0 +1,184 @@
+---
+title: Move a live domain to hosted DNS
+description: Prepare and check a domain's hosted DNS zone through the API before switching its nameservers.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Move a live domain to hosted DNS | Domain Chief</title>
+</Head>
+
+Prepare hosted DNS for a domain that still uses another DNS provider, load and check its records, and switch the nameservers only when the zone is complete.
+
+Enabling hosted DNS with `is_using_hosted_dns` switches the nameservers right away. That's fine for a new or unused domain. For a domain with a working website or mailbox, the gap between the switch and your last record import breaks things. Preparing hosted DNS first removes that gap:
+
+1. [Start preparing hosted DNS](#start-preparing-hosted-dns).
+2. [Load the records](#load-the-records) into the prepared zone.
+3. [Check the prepared zone](#check-the-prepared-zone) against the hosted nameservers.
+4. [Switch the nameservers](#switch-the-nameservers), or [cancel](#cancel-the-preparation).
+
+The domain keeps its current nameservers until step 4. Nothing changes at the registry before then.
+
+## Before you start
+
+The token needs `domainchief:domains:write` to start, cancel, and switch, and `domainchief:dns:write` to manage records. See [scopes](/developers/domainchief/api/scopes).
+
+Preparation is available for active domains that don't use hosted DNS yet. Domains that are still being registered or transferred can enable hosted DNS as part of that request instead. See [register a domain](/developers/domainchief/guides/registration) and [transfer a domain into Domain Chief](/developers/domainchief/guides/incoming-transfers).
+
+If the domain uses DNSSEC at its current provider, remove the keys and wait at least 24 hours before [switching the nameservers](#switch-the-nameservers). You can do this while the zone is being prepared. Switching with keys from the old provider still published makes the domain fail for validating resolvers.
+
+## Start preparing hosted DNS
+
+Set `is_staging_hosted_dns` to `true` with [update a domain](/api/domainchief/domains#update-a-domain):
+
+```http
+PATCH /api/v1/domains/$DOMAIN HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+Content-Type: application/json
+
+{
+  "is_staging_hosted_dns": true
+}
+```
+
+The response is the updated domain. `is_using_hosted_dns` stays `false` and the `nameservers` are unchanged:
+
+```json
+{
+  "data": {
+    "domain": "example.com",
+    "is_using_hosted_dns": false,
+    "is_staging_hosted_dns": true,
+    "hosted_dns_staging_expires_at": "2026-12-02T12:00:00.000000Z",
+    "notices": [
+      {
+        "code": "domain.hosted_dns.staged",
+        "actions": [
+          "domain.hosted_dns.enable",
+          "domain.hosted_dns.staging.cancel"
+        ],
+        "data": {
+          "hosted_dns_nameservers": [
+            "ns.domainchief.eu",
+            "ns.domainchief.net",
+            "ns.domainchief.nl",
+            "ns.domainchief.app"
+          ],
+          "hosted_dns_staging_expires_at": "2026-12-02T12:00:00.000000Z"
+        },
+        ...
+      }
+    ],
+    ...
+  }
+}
+```
+
+The `domain.hosted_dns.staged` notice carries the two values you need later. `hosted_dns_nameservers` lists the nameservers that serve the prepared zone. `hosted_dns_staging_expires_at` is when the preparation is cancelled automatically. Read the nameservers from the notice instead of hardcoding them, because they can differ per team.
+
+`is_staging_hosted_dns` can't be combined with `is_using_hosted_dns`, `nameservers`, `dnssec_keys`, or `is_dnssec_enabled` in one request. Sending `true` again while the domain is already being prepared succeeds without changes, so a retried request is safe.
+
+## Load the records
+
+The prepared zone starts with the default hosted DNS records. The [DNS record endpoints](/api/domainchief/dns#list-dns-records) work the same way they do for a hosted domain.
+
+To load a complete zone, send it to [import a DNS zone](/api/domainchief/dns-import-export#import-a-dns-zone) with `mode` set to `replace`:
+
+```http
+POST /api/v1/domains/$DOMAIN/dns/records/import HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+Content-Type: application/json
+
+{
+  "mode": "replace",
+  "zone": "@ 3600 IN MX 10 mx1.mail.example.net.\nwww 3600 IN CNAME example.net.\n..."
+}
+```
+
+Replace removes the default records that aren't in your export, so the prepared zone matches the old one. Use `merge` when you send only part of the zone. Call [preview a DNS zone import](/api/domainchief/dns-import-export#preview-a-dns-zone-import) first when you want to show the changes before applying them.
+
+To add individual records instead, use [create DNS record](/api/domainchief/dns#create-dns-record).
+
+While the zone is being prepared, the endpoints for web redirects, mail forwarding, DNS snapshots, and [ACME challenges](/developers/domainchief/guides/acme) return `409` with code `dns.not_hosted`. These features need the domain to point at the hosted nameservers, so configure them after the switch.
+
+## Check the prepared zone
+
+The hosted nameservers answer for the prepared zone even though public resolvers still use the old provider. Query them directly for each important record and compare the answers with the old provider:
+
+```bash
+dig @ns.domainchief.eu example.com MX +short
+dig @ns.domainchief.eu www.example.com CNAME +short
+```
+
+Check the website, mail (`MX`, SPF, DKIM, DMARC), and any verification records. A record you create or import can take a short time to reach the nameservers, so retry a missing answer before treating it as an error.
+
+## Switch the nameservers
+
+When the zone is complete, enable hosted DNS with [update a domain](/api/domainchief/domains#update-a-domain):
+
+```http
+PATCH /api/v1/domains/$DOMAIN HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+Content-Type: application/json
+
+{
+  "is_using_hosted_dns": true
+}
+```
+
+This is the same request as enabling hosted DNS without preparation. Domain Chief uses the prepared zone and its records, and sends the nameserver change to the registry. In the response, `is_using_hosted_dns` is `true`, `is_staging_hosted_dns` is `false`, and the staged notice is gone.
+
+The nameserver change is asynchronous. Follow it through the domain's notices as described in [handle domain notices](/developers/domainchief/guides/notices). If the registry rejects the change, the domain returns to its previous nameservers. The records you prepared are kept, and you can start preparing again.
+
+After the change completes, resolvers can keep using cached answers from the old provider until the previous nameserver TTL expires. Keep the old zone running for a few days.
+
+## Cancel the preparation
+
+Set `is_staging_hosted_dns` to `false` to stop. Domain Chief removes the prepared zone and the domain keeps its current nameservers:
+
+```http
+PATCH /api/v1/domains/$DOMAIN HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+Content-Type: application/json
+
+{
+  "is_staging_hosted_dns": false
+}
+```
+
+The records stay stored. If you prepare hosted DNS again later, the zone starts with those records instead of the defaults.
+
+If you don't switch before `hosted_dns_staging_expires_at`, the preparation is cancelled automatically in the same way. Domain Chief also cancels it when the hosted zone can't be set up. In both cases `is_staging_hosted_dns` becomes `false`. Use the [team event feed](/developers/domainchief/guides/sync-data) to notice the domain change, or read the domain again before switching.
+
+## Handle errors
+
+Errors use the standard error response. For `409` responses, branch on the [`code`](/api/domainchief/~schemas#errorcode):
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `403` | The domain can't be prepared, for example because it isn't active. | Check the domain `status`. Registrations and transfers enable hosted DNS in their own request. |
+| `409` with `dns.already_hosted` | The domain already uses hosted DNS. | Nothing to prepare. Manage its records directly. |
+| `409` with `dns.not_staged` | You sent `false`, but hosted DNS isn't being prepared. | Treat it as already cancelled. Read the domain to confirm. |
+| `409` with `dns.not_hosted` | A record request for a domain that neither uses nor prepares hosted DNS, or a feature that needs live delegation. | Start preparing first, or wait until after the switch. |
+| `422` | `is_staging_hosted_dns` was combined with another DNS field. | Send the preparation change on its own. |
+
+<Callout type="info" title="Unknown values">
+  Notice codes, notice actions, and error codes are extensible. Ignore notice codes you don't recognize, and treat unknown error codes as failures that need a person to look at the `message`.
+</Callout>
+
+## API reference
+
+- [Update a domain](/api/domainchief/domains#update-a-domain)
+- [Import a DNS zone](/api/domainchief/dns-import-export#import-a-dns-zone)
+- [List DNS records](/api/domainchief/dns#list-dns-records)
+- [`DomainNotice` schema](/api/domainchief/~schemas#domainnotice)
+- [`ErrorCode` schema](/api/domainchief/~schemas#errorcode)
