@@ -1,0 +1,205 @@
+---
+title: Search your servers
+description: Find servers, packages, applications, sites, and vulnerabilities across your fleet with plain text and filters.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Search your servers | Server Chief</title>
+</Head>
+
+Use this guide to find anything the agents report, such as every server on PHP 7.4 or every application with `statamic/cms` 5, with one search.
+
+## Choose your task
+
+- [Search the inventory](#search-the-inventory)
+- [Filter servers on the Servers page](#search-the-servers-page)
+- [Find a version or a range of versions](#filter-by-version)
+- [Find applications with a Composer, npm, or WordPress package](#composer-npm-and-wordpress-packages)
+- [Look up a filter](#filter-reference)
+- [Fix a search that finds nothing or shows an error](#troubleshooting)
+
+## Search the inventory
+
+1. Open **Inventory** in the main menu, or press <kbd>/</kbd> on the page to jump to the search field.
+2. Type at least two characters. Results appear as you type.
+3. Choose a category, such as **Packages** or **Applications**, to see more results of that kind.
+4. Select a result to open it.
+
+Plain text searches every category at once: server names, packages, software, package sources, sites, certificates, applications, vulnerabilities, tags, and IP addresses. Type `openssl` to see each installed OpenSSL version, how many servers run it, and its open vulnerabilities.
+
+A filter, such as `pkg:openssl<3.0.13`, narrows the search to the categories it belongs to. The **Search syntax** button next to the search field lists every filter, and you can select an example to try it.
+
+<Callout type="note" title="Filters in the inventory">
+  Each category uses only the filters that belong to it. The **Servers** category is the exception and always applies the whole search. For example, `composer:statamic/cms=5 tag:production` lists every application with Statamic 5 under **Applications**, and only the production servers running one under **Servers**.
+</Callout>
+
+## Search the Servers page
+
+The search on **Servers** uses the same filters and shows every server that matches all of them. Use it to combine conditions, for example `php:<8.1 updates:security tag:production`, or to export a list for a maintenance window.
+
+When the inventory finds more servers than it lists, **Show all** under **Servers** opens the same search on the **Servers** page.
+
+## Combine terms
+
+- Separate terms with spaces. A server must match every term.
+- Put `-` in front of a term to exclude matches. `-status:offline` skips offline servers.
+- Use double quotes for a value with spaces, like `meta:customer="Acme Inc"`.
+- A search combines at most 20 terms.
+
+Filter names and most values are not case-sensitive.
+
+## Filter by version
+
+Write the version right after the name, starting with an operator. `=` treats the version as a prefix, so fewer parts match a wider range. Software filters such as `php:8.2` also accept a version without an operator.
+
+| You write | It matches |
+| --- | --- |
+| `=5` | every 5.x release |
+| `=5.2` | every 5.2.x release |
+| `=5.2.1` | exactly 5.2.1 |
+| `~5` | 5.0 up to, but not including, 6.0 |
+| `~5.2` | 5.2.0 up to, but not including, 5.3 |
+| `<5.40` | anything below 5.40 |
+| `<=5.4` | anything up to and including every 5.4.x release |
+| `>5.4` | 5.5 and newer |
+| `>=5.30` | 5.30 and newer |
+
+### Composer, npm, and WordPress packages
+
+Server Chief reads the Composer and npm lockfiles of the applications it detects, and the plugins and themes of WordPress sites. Search them with these filters:
+
+- `composer:statamic/cms` for a Composer package
+- `npm:lodash` or `npm:@babel/core` for an npm package
+- `plugin:woocommerce` for a WordPress plugin by its slug
+- `theme:astra` for a WordPress theme by its slug
+
+Add a version after an operator. To find every application on Statamic 5:
+
+```text
+composer:statamic/cms=5
+```
+
+The operator is required for these filters. `composer:statamic/cms=5` works, while `composer:statamic/cms5` and `composer:statamic/cms@5` do not, because the version would look like part of the package name.
+
+Other examples:
+
+- `composer:guzzlehttp/guzzle<7.4.5` finds applications that still need a Guzzle security fix.
+- `plugin:woocommerce<8.5` finds WooCommerce versions older than 8.5.
+- `npm:lodash~4.17` finds every lodash 4.17 release.
+
+To filter on the framework itself, use `app:` with the application type: `app:laravel<11`, `app:wordpress=6.4`, or `app:symfony~6`.
+
+### Software
+
+Software filters use the product name: `php`, `mysql`, `mariadb`, `nginx`, `apache`, `openssl`, `kernel`, `nodejs`, `redis`, and `postgresql`. They compare the upstream version, so `php:8.2` matches 8.2.x whatever the distribution build.
+
+- `php:8.2` for any 8.2 release, `php:<8.1` for older ones
+- `php:eol` for a release past its end of life, `php:any` for any installed version
+- `software:eol` for any software past its end of life
+
+To find a server missing a backported security fix, write the full distribution version: `php:<8.2.35-1+deb12u2`.
+
+### Operating system packages
+
+`pkg:` filters installed operating system packages and compares versions the way the server's package manager does, including epochs and revisions.
+
+- `pkg:openssl` for any version, `pkg:linux-image*` with `*` as a wildcard
+- `pkg:openssl<1.0.2g-1ubuntu4.20` for an exact distribution version
+- `pkg:openssl<=3.0.13` to include every revision of 3.0.13, such as 3.0.13-1ubuntu1
+- `pkg:openssl~3.0` or `pkg:openssl=3.0.x` for 3.0 up to 3.1
+- `pkg:zlib1g<1:1.3` when the package has an epoch
+
+## Filter reference
+
+### Servers
+
+| Filter | Finds |
+| --- | --- |
+| `web-01` | servers by name, hostname, FQDN, IP address prefix, or tag name |
+| `tag:production` | servers with a tag of your team, or a tag shared with your team |
+| `status:offline` | servers by agent status: `online`, `offline`, or `pending` |
+| `os:ubuntu@22.04` | an operating system, optionally with a version; `os:eol` for unsupported releases |
+| `arch:arm64` | a CPU architecture; `aarch64` is the same as `arm64` and `x86_64` as `amd64` |
+| `updates:security` | pending updates: `updates:any`, `updates:security`, or `updates:none` |
+| `reboot:required` | servers that need a reboot |
+| `meta:customer=acme` | a metadata value, or `meta:customer` for any server with that key |
+| `agent:outdated` | servers running an older agent than the newest release |
+
+### Location
+
+| Filter | Finds |
+| --- | --- |
+| `provider:hetzner` | a hosting provider, such as `aws`, `digitalocean`, `gcp`, `azure`, or `ovh` |
+| `country:DE` | a country by ISO code or English name, like `country:germany` |
+| `city:frankfurt` | a city; `city:none` for servers without a known city |
+| `region:eu` | a continent, or a provider region like `region:fsn1` or `region:eu-central-1` |
+| `continent:eu` | a continent: `eu`, `na`, `as`, `oc`, `sa`, or `af` |
+
+### Applications
+
+| Filter | Finds |
+| --- | --- |
+| `app:wordpress` | an application type: `wordpress`, `laravel`, `symfony`, `composer`, or `node`, with an optional version |
+| `app:eol` | a WordPress, Laravel, or Symfony release past its end of life |
+| `app:vulnerable` | applications with open vulnerabilities |
+| `app:malicious` | applications with a known malicious package |
+| `app:any` | any detected application |
+| `composer:vendor/package` | a Composer package, with an optional version |
+| `npm:package` | an npm package, with an optional version |
+| `plugin:slug` and `theme:slug` | a WordPress plugin or theme, with an optional version |
+
+### Sites and certificates
+
+| Filter | Finds |
+| --- | --- |
+| `vhost:example.com` | a site by name or alias; `vhost:*.example.com` for every subdomain. `domain:` and `site:` work the same |
+| `vhost-php:7.4` | sites configured with a PHP version, or `vhost-php:any` |
+| `cert:expiring` | certificates expiring within 21 days; `cert:expiring<7d` for another window |
+| `cert:expired` | expired certificates |
+| `cert:issue=any` | certificates with any issue, or one issue such as `cert:issue=weak_key` |
+| `cert:manager=certbot` | certificates renewed by `certbot`, `acme.sh`, `plesk`, or `directadmin` |
+| `cert:unmanaged` | certificates without renewal automation |
+| `cert:issuer=letsencrypt` | certificates by issuer name; `cert:ca=zerossl` by certificate authority |
+
+### Vulnerabilities
+
+| Filter | Finds |
+| --- | --- |
+| `vulnerable:critical` | open vulnerabilities of that severity or worse: `critical`, `high`, `medium`, or `low`, or `vulnerable:any` |
+| `vulnerable:fixable` | vulnerabilities a pending update fixes |
+| `vulnerable:reboot` | vulnerabilities a reboot into an installed kernel fixes |
+| `vulnerable:unfixed` | vulnerabilities without a released fix |
+| `vulnerable:exploited` | vulnerabilities CISA lists as known exploited |
+| `vulnerable:public-exploit` | vulnerabilities with a public exploit |
+| `epss:10%` | vulnerabilities with at least that chance of exploitation in the next 30 days |
+| `cve:CVE-2024-1234` | servers affected by a CVE |
+| `advisory:DSA-5532-1` | servers affected by a security advisory, by ID or alias |
+
+### Package sources
+
+| Filter | Finds |
+| --- | --- |
+| `repo:sury` | an enabled repository by vendor; `repo:ppa:ondrej/php` for one Launchpad PPA |
+| `repo:third-party` | repositories outside the distribution |
+| `repo:insecure` | repositories installed without signature checks; `repo:http` for plain HTTP |
+| `repo:eol` | archives of end-of-life releases |
+| `origin:sury` | installed packages from a vendor's repository |
+| `origin:none` | installed packages that no configured repository offers |
+
+## Troubleshooting
+
+### "The search is invalid"
+
+The message names the term Server Chief could not read and shows an example. The usual cause is a version without an operator after a package name. Write `composer:statamic/cms=5` instead of `composer:statamic/cms 5` or `composer:statamic/cms@5`.
+
+### A version filter finds nothing
+
+- Check the operator. `=5.2` matches 5.2.x, while `=5.2.0` matches only 5.2.0.
+- Check the package name. Composer and npm filters need the full name, like `statamic/cms` rather than `statamic`.
+- Open **Applications** in the main menu to confirm Server Chief detected the application. Packages appear after the agent reports its lockfile.
+
+### The inventory ignores part of my search
+
+Each inventory category applies only its own filters. To see which servers match every term, run the search on the **Servers** page.

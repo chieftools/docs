@@ -479,6 +479,7 @@ const config: ZudokuConfig = {
                     icon: 'book',
                     items: [
                         '/serverchief/introduction',
+                        '/serverchief/search',
                         '/serverchief/ai',
                         {
                             type: 'link',
