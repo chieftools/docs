@@ -23,6 +23,12 @@ const config: ZudokuConfig = {
         },
         showPoweredBy: false,
     },
+    defaults: {
+        apis: {
+            // Only the group of the page you are on opens, file APIs expand every group by default
+            expandAllTags: false,
+        },
+    },
     apis: [
         {
             type: 'file',
