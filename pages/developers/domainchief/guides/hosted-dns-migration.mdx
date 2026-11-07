@@ -139,6 +139,8 @@ The nameserver change is asynchronous. Follow it through the domain's notices as
 
 After the change completes, resolvers can keep using cached answers from the old provider until the previous nameserver TTL expires. Keep the old zone running for a few days.
 
+DNSSEC follows about 24 hours after the registry accepts the nameserver change. Publishing it sooner would make the domain fail for validating resolvers that still ask the old provider, which doesn't serve the new keys. Until then `is_dnssec_enabled` stays `false`. You don't need to do anything, and the domain resolves normally in the meantime.
+
 ## Cancel the preparation
 
 Set `is_staging_hosted_dns` to `false` to stop. Domain Chief removes the prepared zone and the domain keeps its current nameservers:
@@ -158,6 +160,29 @@ Content-Type: application/json
 The records stay stored. If you prepare hosted DNS again later, the zone starts with those records instead of the defaults.
 
 If you don't switch before `hosted_dns_staging_expires_at`, the preparation is cancelled automatically in the same way. Domain Chief also cancels it when the hosted zone can't be set up. In both cases `is_staging_hosted_dns` becomes `false`. Use the [team event feed](/developers/domainchief/guides/sync-data) to notice the domain change, or read the domain again before switching.
+
+## Move away from hosted DNS later
+
+Sending `nameservers` for a domain that uses hosted DNS switches the nameservers and removes DNSSEC in one change. Resolvers can keep the old DNSSEC records cached for up to a day. While they do, they reject answers from the new provider, and the domain fails for them.
+
+Split the move into two requests instead:
+
+1. Set `is_using_hosted_dns` to `false` without `nameservers`. The domain keeps the hosted nameservers and only DNSSEC is removed.
+2. Wait at least 24 hours, then send the new `nameservers`.
+
+```http
+PATCH /api/v1/domains/$DOMAIN HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+Accept: application/json
+Content-Type: application/json
+
+{
+  "is_using_hosted_dns": false
+}
+```
+
+Domain Chief doesn't enforce the wait. The second request is accepted at any time, so your integration has to schedule it.
 
 ## Handle errors
 
