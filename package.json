@@ -10,7 +10,7 @@
     "preview": "zudoku preview",
     "test": "node --test test/*.test.mts",
     "lint": "eslint",
-    "postinstall": "patch-package",
+    "postinstall": "patch-package && rm -rf node_modules/.vite",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

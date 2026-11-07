@@ -1,3 +1,54 @@
+diff --git a/node_modules/zudoku/dist/cli/cli.js b/node_modules/zudoku/dist/cli/cli.js
+index 1d2f7dd..94ec897 100644
+--- a/node_modules/zudoku/dist/cli/cli.js
++++ b/node_modules/zudoku/dist/cli/cli.js
+@@ -4996,6 +4996,8 @@ var getAllTags = (schema2) => {
+     ...rootTags.filter((tag) => operationTags.has(tag.name)).map((tag) => ({ ...tag, slug: slugs[tag.name] })),
+     // Add tags found in operations but not defined in root tags
+     ...Array.from(operationTags).filter((tag) => !rootTags.some((rt) => rt.name === tag)).map((tag) => ({ name: tag, slug: slugs[tag] })),
++    // Webhooks get their own tag, so they get pages like operations (patched, see src/lib/oas/webhooks.ts)
++    ...getWebhookOperations(schema2).length > 0 ? [{ name: WEBHOOKS_TAG, slug: slugify2(WEBHOOKS_TAG), description: WEBHOOKS_TAG_DESCRIPTION }] : [],
+     // Add untagged operations if there are any
+     ...hasUntaggedOperations ? [{ name: void 0, slug: void 0 }] : []
+   ];
+@@ -5032,6 +5034,28 @@ var getAllSlugs = (ops, schemaTags = []) => {
+   };
+ };
+ var getOperationSlugKey = (op) => [op.path, op.method, op.operationId, op.summary].filter(Boolean).join("-");
++var WEBHOOKS_TAG = "Webhook events";
++var WEBHOOKS_TAG_DESCRIPTION = "Requests sent to your webhook endpoints when something happens. Each page shows the headers and body of the request, and the response your endpoint should give.";
++var getWebhookOperations = (schema2) => Object.entries(schema2.webhooks ?? {}).flatMap(
++  ([name, pathItem]) => HttpMethods.flatMap((method) => {
++    const operation = pathItem?.[method];
++    if (!operation) return [];
++    return {
++      ...operation,
++      summary: name,
++      description: [operation.summary, operation.description].filter(Boolean).join("\n\n") || void 0,
++      method,
++      path: name,
++      parameters: [...pathItem.parameters ?? [], ...operation.parameters ?? []],
++      servers: [],
++      security: [],
++      tags: [WEBHOOKS_TAG],
++      "x-zudoku-webhook": true,
++      "x-zudoku-request-box-enabled": false,
++      "x-zudoku-playground-enabled": false
++    };
++  })
++);
+ var getAllOperations = (paths) => {
+   const operations = Object.entries(paths ?? {}).flatMap(
+     ([path32, value]) => HttpMethods.flatMap((method) => {
+@@ -5672,7 +5696,7 @@ builder.queryType({
+         } else {
+           ctx.schema = await validate(args.input);
+         }
+-        ctx.operations = getAllOperations(ctx.schema.paths);
++        ctx.operations = [...getAllOperations(ctx.schema.paths), ...getWebhookOperations(ctx.schema)];
+         ctx.slugs = getAllSlugs(ctx.operations, ctx.schema.tags);
+         ctx.tags = getAllTags(ctx.schema);
+         return ctx.schema;
 diff --git a/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts b/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
 index a370634..d62d330 100644
 --- a/node_modules/zudoku/src/lib/components/navigation/useNavigationFrame.ts
@@ -20,6 +71,397 @@ index a370634..d62d330 100644
    });
  
  export const resolveNavigationFrame = (
+diff --git a/node_modules/zudoku/src/lib/components/navigation/utils.ts b/node_modules/zudoku/src/lib/components/navigation/utils.ts
+index a48446b..876cecd 100644
+--- a/node_modules/zudoku/src/lib/components/navigation/utils.ts
++++ b/node_modules/zudoku/src/lib/components/navigation/utils.ts
+@@ -1,4 +1,5 @@
+ import { cva } from "class-variance-authority";
++import { useEffect, useState } from "react";
+ import { useLocation } from "react-router";
+ import type {
+   NavigationCategory,
+@@ -148,7 +149,13 @@ export const useCurrentItem = () => {
+ };
+ 
+ export const useIsCategoryOpen = (category: NavigationCategory) => {
+-  const pathname = joinUrl(useLocation().pathname);
++  const location = useLocation();
++  const pathname = joinUrl(location.pathname);
++  // Categories of anchors on one page, like webhook groups, open for the anchor in the URL. Read after mounting: the
++  // server never sees the hash, a different first render fails hydration and loses the scroll to the anchor
++  const [hash, setHash] = useState("");
++  useEffect(() => setHash(location.hash), [location.hash]);
++  const pathnameWithHash = hash ? pathname + hash : undefined;
+ 
+   return traverseNavigationItem(category, (item) => {
+     switch (item.type) {
+@@ -163,7 +170,11 @@ export const useIsCategoryOpen = (category: NavigationCategory) => {
+       case "doc":
+         return joinUrl(item.path) === pathname ? true : undefined;
+       case "link":
+-        return joinUrl(item.to) === pathname ? true : undefined;
++        return joinUrl(item.to) === pathname ||
++          (pathnameWithHash !== undefined &&
++            joinUrl(item.to) === pathnameWithHash)
++          ? true
++          : undefined;
+       default:
+         return undefined;
+     }
+diff --git a/node_modules/zudoku/src/lib/oas/graphql/index.ts b/node_modules/zudoku/src/lib/oas/graphql/index.ts
+index dc58312..8d2f34e 100644
+--- a/node_modules/zudoku/src/lib/oas/graphql/index.ts
++++ b/node_modules/zudoku/src/lib/oas/graphql/index.ts
+@@ -7,6 +7,11 @@ import {
+   type CountableSlugify,
+   slugifyWithCounter,
+ } from "../../util/slugify.js";
++import {
++  WEBHOOK_GROUPS_EXTENSION,
++  WEBHOOKS_TAG,
++  WEBHOOKS_TAG_DESCRIPTION,
++} from "../webhooks.js";
+ import { HttpMethods, validate } from "../parser/index.js";
+ import type {
+   ContactObject,
+@@ -163,6 +168,17 @@ export const getAllTags = (
+     ...Array.from(operationTags)
+       .filter((tag) => !rootTags.some((rt) => rt.name === tag))
+       .map((tag) => ({ name: tag, slug: slugs[tag] })),
++    // Webhooks get their own tag, so they get pages like operations
++    ...(getWebhookOperations(schema).length > 0
++      ? [
++          {
++            name: WEBHOOKS_TAG,
++            slug: slugify(WEBHOOKS_TAG),
++            description: WEBHOOKS_TAG_DESCRIPTION,
++            [WEBHOOK_GROUPS_EXTENSION]: getWebhookGroups(schema),
++          },
++        ]
++      : []),
+     // Add untagged operations if there are any
+     ...(hasUntaggedOperations ? [{ name: undefined, slug: undefined }] : []),
+   ];
+@@ -212,6 +228,66 @@ export const getAllSlugs = (
+ const getOperationSlugKey = (op: GraphQLOperationObject) =>
+   [op.path, op.method, op.operationId, op.summary].filter(Boolean).join("-");
+ 
++/**
++ * The webhooks of the schema as operations of the webhooks tag, titled by their name, so they get pages, navigation
++ * and schema rendering like operations. They have no server, security, request box or playground.
++ */
++export const getWebhookOperations = (
++  schema: OpenAPIDocument,
++): GraphQLOperationObject[] =>
++  Object.entries((schema as any).webhooks ?? {}).flatMap(
++    ([name, pathItem]: [string, any]) =>
++      HttpMethods.flatMap((method) => {
++        const operation = pathItem?.[method] as OperationObject | undefined;
++
++        if (!operation) return [];
++
++        return {
++          ...operation,
++          summary: name,
++          description:
++            [operation.summary, operation.description]
++              .filter(Boolean)
++              .join("\n\n") || undefined,
++          method,
++          path: name,
++          parameters: [
++            ...(pathItem.parameters ?? []),
++            ...(operation.parameters ?? []),
++          ],
++          servers: [],
++          security: [],
++          tags: [WEBHOOKS_TAG],
++          "x-zudoku-webhook": true,
++          "x-zudoku-request-box-enabled": false,
++          "x-zudoku-playground-enabled": false,
++        } as GraphQLOperationObject;
++      }),
++  );
++
++/**
++ * The webhooks by the first tag of their operation, in schema order, so the navigation can group them like the API
++ * groups its operations. Webhooks without a tag are grouped under the webhooks tag itself.
++ */
++const getWebhookGroups = (
++  schema: OpenAPIDocument,
++): Array<{ name: string; webhooks: string[] }> => {
++  const groups = new Map<string, string[]>();
++
++  for (const [name, pathItem] of Object.entries(
++    (schema as any).webhooks ?? {},
++  ) as [string, any][]) {
++    const operation = HttpMethods.map((method) => pathItem?.[method]).find(
++      Boolean,
++    );
++    const group = operation?.tags?.[0] ?? WEBHOOKS_TAG;
++
++    groups.set(group, [...(groups.get(group) ?? []), name]);
++  }
++
++  return Array.from(groups, ([name, webhooks]) => ({ name, webhooks }));
++};
++
+ export const getAllOperations = (
+   paths?: PathsObject,
+ ): GraphQLOperationObject[] => {
+@@ -1038,7 +1114,10 @@ builder.queryType({
+           ctx.schema = await validate(args.input as string);
+         }
+ 
+-        ctx.operations = getAllOperations(ctx.schema.paths);
++        ctx.operations = [
++          ...getAllOperations(ctx.schema.paths),
++          ...getWebhookOperations(ctx.schema),
++        ];
+         ctx.slugs = getAllSlugs(ctx.operations, ctx.schema.tags);
+         ctx.tags = getAllTags(ctx.schema);
+ 
+diff --git a/node_modules/zudoku/src/lib/oas/webhooks.ts b/node_modules/zudoku/src/lib/oas/webhooks.ts
+new file mode 100644
+index 0000000..b80e557
+--- /dev/null
++++ b/node_modules/zudoku/src/lib/oas/webhooks.ts
+@@ -0,0 +1,8 @@
++/** The tag webhooks are listed under, the API's own tags are left to its operations. */
++export const WEBHOOKS_TAG = "Webhook events";
++
++export const WEBHOOKS_TAG_DESCRIPTION =
++  "Requests sent to your webhook endpoints when something happens. Each page shows the headers and body of the request, and the response your endpoint should give.";
++
++/** The extension of the webhooks tag that lists the webhooks per group: `[{ name, webhooks: [name] }]`. */
++export const WEBHOOK_GROUPS_EXTENSION = "x-zudoku-webhook-groups";
+diff --git a/node_modules/zudoku/src/lib/plugins/openapi/OperationListItem.tsx b/node_modules/zudoku/src/lib/plugins/openapi/OperationListItem.tsx
+index 8a18f5a..b4b01bc 100644
+--- a/node_modules/zudoku/src/lib/plugins/openapi/OperationListItem.tsx
++++ b/node_modules/zudoku/src/lib/plugins/openapi/OperationListItem.tsx
+@@ -47,6 +47,7 @@ export const OperationListItem = ({
+   const first = operation.responses.at(0);
+   const [selectedResponse, setSelectedResponse] = useState(first?.statusCode);
+   const isMCPEndpoint = operation.extensions?.["x-mcp-server"] !== undefined;
++  const isWebhook = operation.extensions?.["x-zudoku-webhook"] === true;
+   const graphqlEndpoint = getGraphQLEndpoint(operation);
+   const isGraphQLEndpoint = graphqlEndpoint !== undefined;
+ 
+@@ -61,7 +62,21 @@ export const OperationListItem = ({
+     </Heading>
+   );
+ 
+-  const methodPathBlock = !isMCPEndpoint && (
++  const webhookBlock = isWebhook && (
++    <div className="col-span-full flex items-center gap-2 text-sm font-mono">
++      <span className={methodForColor(operation.method)}>
++        {operation.method.toUpperCase()}
++      </span>
++      <span className="text-neutral-400 dark:text-neutral-500">
++        your webhook endpoint
++      </span>
++      <Badge variant="muted" className="font-sans">
++        Webhook
++      </Badge>
++    </div>
++  );
++
++  const methodPathBlock = isWebhook ? webhookBlock : !isMCPEndpoint && (
+     <div
+       className={cn(
+         "flex flex-col gap-1.5",
+diff --git a/node_modules/zudoku/src/lib/plugins/openapi/SchemaInfo.tsx b/node_modules/zudoku/src/lib/plugins/openapi/SchemaInfo.tsx
+index a86fe0f..a4c9ae9 100644
+--- a/node_modules/zudoku/src/lib/plugins/openapi/SchemaInfo.tsx
++++ b/node_modules/zudoku/src/lib/plugins/openapi/SchemaInfo.tsx
+@@ -28,6 +28,7 @@ import {
+ } from "../../ui/Item.js";
+ import { Popover, PopoverContent, PopoverTrigger } from "../../ui/Popover.js";
+ import { cn } from "../../util/cn.js";
++import { WEBHOOKS_TAG } from "../../oas/webhooks.js";
+ import { slugify } from "../../util/slugify.js";
+ import { ApiHeader } from "./ApiHeader.js";
+ import { useCreateQuery } from "./client/useCreateQuery.js";
+@@ -441,7 +442,11 @@ export const SchemaInfo = ({
+                     <Item
+                       key={`${webhook.name}-${webhook.method}`}
+                       variant="outline"
++                      asChild
+                     >
++                      <Link
++                        to={`${slugify(WEBHOOKS_TAG)}#${slugify(webhook.name)}`}
++                      >
+                       <ItemContent>
+                         <ItemTitle>{webhook.name}</ItemTitle>
+                         {(webhook.summary || webhook.description) && (
+@@ -458,6 +463,7 @@ export const SchemaInfo = ({
+                           {webhook.method}
+                         </Badge>
+                       </ItemActions>
++                      </Link>
+                     </Item>
+                   ))}
+                 </div>
+diff --git a/node_modules/zudoku/src/lib/plugins/openapi/Sidecar.tsx b/node_modules/zudoku/src/lib/plugins/openapi/Sidecar.tsx
+index e5c8295..a5cdb58 100644
+--- a/node_modules/zudoku/src/lib/plugins/openapi/Sidecar.tsx
++++ b/node_modules/zudoku/src/lib/plugins/openapi/Sidecar.tsx
+@@ -295,6 +295,11 @@ export const Sidecar = ({
+     response.content?.some((content) => (content.examples?.length ?? 0) > 0),
+   );
+ 
++  // A webhook's response usually has no body, an empty examples box says nothing
++  const hidesResponses =
++    operation.extensions["x-zudoku-webhook"] === true &&
++    !operation.responses.some((response) => (response.content?.length ?? 0) > 0);
++
+   const displayRequestBodyContent =
+     isGraphQLEndpoint && transformedRequestBodyContent
+       ? transformedRequestBodyContent.map((c) => ({
+@@ -446,7 +451,7 @@ export const Sidecar = ({
+         />
+       ) : null}
+ 
+-      {(hasResponseExamples || !isGraphQLEndpoint) && (
++      {(hasResponseExamples || !isGraphQLEndpoint) && !hidesResponses && (
+         <ResponsesSidecarBox
+           isOnScreen={isOnScreen}
+           shouldLazyHighlight={shouldLazyHighlight}
+diff --git a/node_modules/zudoku/src/lib/plugins/openapi/index.tsx b/node_modules/zudoku/src/lib/plugins/openapi/index.tsx
+index 2b0130f..466df93 100644
+--- a/node_modules/zudoku/src/lib/plugins/openapi/index.tsx
++++ b/node_modules/zudoku/src/lib/plugins/openapi/index.tsx
+@@ -3,7 +3,9 @@ import { type PropsWithChildren, Suspense, lazy } from "react";
+ import { matchPath } from "react-router";
+ import type { ZudokuPlugin } from "../../core/plugins.js";
+ import { Button } from "../../ui/Button.js";
++import type { NavigationItem } from "../../../config/validators/NavigationSchema.js";
+ import { joinUrl } from "../../util/joinUrl.js";
++import { WEBHOOK_GROUPS_EXTENSION, WEBHOOKS_TAG } from "../../oas/webhooks.js";
+ import { GraphQLClient } from "./client/GraphQLClient.js";
+ import { createQuery } from "./client/useCreateQuery.js";
+ import type { GetNavigationOperationsQuery as GetNavigationOperationsQueryResult } from "./graphql/graphql.js";
+@@ -145,9 +147,18 @@ export const openApiPlugin = (config: OasPluginConfig): ZudokuPlugin => {
+         });
+         const data = await context.queryClient.ensureQueryData(query);
+ 
++        const webhookTag = data.schema.tags.find(
++          (tag) => tag.name === WEBHOOKS_TAG && tag.operations.length > 0,
++        );
++
+         const tagCategories = new Map(
+           data.schema.tags
+-            .filter((tag) => tag.name && tag.operations.length > 0)
++            .filter(
++              (tag) =>
++                tag.name &&
++                tag.name !== WEBHOOKS_TAG &&
++                tag.operations.length > 0,
++            )
+             .map((tag) => {
+               if (!tag.name) {
+                 throw new Error(`Tag ${tag.slug} has no name`);
+@@ -185,43 +196,82 @@ export const openApiPlugin = (config: OasPluginConfig): ZudokuPlugin => {
+           expandAllTags: config.options?.expandAllTags,
+         });
+ 
++        const untaggedOperations = data.schema.tags.find(
++          (tag) => !tag.name,
++        )?.operations;
++
++        if (untaggedOperations && untaggedOperations.length > 0) {
++          categories.push(
++            createNavigationCategory({
++              label: categories.length === 0 ? "Endpoints" : "Other endpoints",
++              path: joinUrl(basePath, versionParam, UNTAGGED_PATH),
++              operations: untaggedOperations,
++              collapsed: !config.options?.expandAllTags,
++            }),
++          );
++        }
++
++        // Endpoints, webhooks and schemas each get their own section
++        const navigation: NavigationItem[] = [];
++
+         if (
+           shouldShowInfoPage(
+             config.options?.showInfoPage,
+             !!data.schema.description,
+           )
+         ) {
+-          categories.unshift({
++          navigation.push({
+             type: "link" as const,
+             to: joinUrl(basePath, versionParam),
+             label: "Information",
+           });
+         }
+ 
+-        const untaggedOperations = data.schema.tags.find(
+-          (tag) => !tag.name,
+-        )?.operations;
++        if (categories.length > 0) {
++          navigation.push({ type: "section", label: "Endpoints" }, ...categories);
++        }
+ 
+-        if (untaggedOperations && untaggedOperations.length > 0) {
+-          categories.push(
+-            createNavigationCategory({
+-              label: categories.length === 0 ? "Endpoints" : "Other endpoints",
+-              path: joinUrl(basePath, versionParam, UNTAGGED_PATH),
+-              operations: untaggedOperations,
+-              collapsed: !config.options?.expandAllTags,
++        if (webhookTag) {
++          const webhookPath = joinUrl(basePath, versionParam, webhookTag.slug);
++          const groups =
++            (webhookTag.extensions?.[WEBHOOK_GROUPS_EXTENSION] as
++              | { name: string; webhooks: string[] }[]
++              | undefined) ?? [];
++
++          navigation.push(
++            { type: "section", label: "Webhooks" },
++            ...groups.flatMap<NavigationItem>((group) => {
++              const operations = webhookTag.operations.filter((operation) =>
++                group.webhooks.includes(operation.path),
++              );
++
++              if (operations.length === 0) return [];
++
++              // A group of anchors on the one webhooks page, toggled without navigating
++              const { link: _link, ...category } = createNavigationCategory({
++                label: group.name,
++                path: webhookPath,
++                operations,
++                collapsed: !config.options?.expandAllTags,
++              }) as Extract<NavigationItem, { type: "category" }>;
++
++              return [category];
+             }),
+           );
+         }
+ 
+         if (data.schema.components?.schemas?.length) {
+-          categories.push({
+-            type: "link",
+-            label: "Schemas",
+-            to: joinUrl(basePath, versionParam, "~schemas"),
+-          });
++          navigation.push(
++            { type: "section", label: "Schemas" },
++            {
++              type: "link",
++              label: "All schemas",
++              to: joinUrl(basePath, versionParam, "~schemas"),
++            },
++          );
+         }
+ 
+-        return categories;
++        return navigation;
+       } catch {
+         return [];
+       }
 diff --git a/node_modules/zudoku/src/lib/plugins/openapi/schema/SchemaExampleAndDefault.tsx b/node_modules/zudoku/src/lib/plugins/openapi/schema/SchemaExampleAndDefault.tsx
 index 08da641..477d8b8 100644
 --- a/node_modules/zudoku/src/lib/plugins/openapi/schema/SchemaExampleAndDefault.tsx
@@ -35,3 +477,82 @@ index 08da641..477d8b8 100644
    const defaultValue = schema.default;
  
    if (example === undefined && defaultValue === undefined) return null;
+diff --git a/node_modules/zudoku/src/lib/plugins/openapi/util/generateSchemaExample.ts b/node_modules/zudoku/src/lib/plugins/openapi/util/generateSchemaExample.ts
+index af7874e..e39dacb 100644
+--- a/node_modules/zudoku/src/lib/plugins/openapi/util/generateSchemaExample.ts
++++ b/node_modules/zudoku/src/lib/plugins/openapi/util/generateSchemaExample.ts
+@@ -163,6 +163,12 @@ export const generateSchemaExample = (
+     return schema.enum[0];
+   }
+ 
++  // Extensible enums list their known values here instead of in `enum`
++  const extensibleEnum = (schema as Record<string, unknown>)["x-extensible-enum"];
++  if (Array.isArray(extensibleEnum) && extensibleEnum.length > 0) {
++    return extensibleEnum[0];
++  }
++
+   if (schema.oneOf && schema.oneOf.length > 0) {
+     const nonNull = schema.oneOf.find((s) => s.type !== "null");
+     return generateSchemaExample(nonNull ?? schema.oneOf[0]);
+diff --git a/node_modules/zudoku/src/lib/util/scrollIntoViewIfNeeded.ts b/node_modules/zudoku/src/lib/util/scrollIntoViewIfNeeded.ts
+index ea2ea75..6570c2b 100644
+--- a/node_modules/zudoku/src/lib/util/scrollIntoViewIfNeeded.ts
++++ b/node_modules/zudoku/src/lib/util/scrollIntoViewIfNeeded.ts
+@@ -1,3 +1,27 @@
++/** The nearest ancestor that scrolls on its own, like the sidebar, null when only the page scrolls. */
++const getScrollParent = (element: Element): HTMLElement | null => {
++  let parent = element.parentElement;
++
++  while (
++    parent &&
++    parent !== document.body &&
++    parent !== document.documentElement
++  ) {
++    const { overflowY } = getComputedStyle(parent);
++
++    if (
++      (overflowY === "auto" || overflowY === "scroll") &&
++      parent.scrollHeight > parent.clientHeight
++    ) {
++      return parent;
++    }
++
++    parent = parent.parentElement;
++  }
++
++  return null;
++};
++
+ export const scrollIntoViewIfNeeded = (
+   element: Element | null,
+   options: ScrollIntoViewOptions = { block: "center" },
+@@ -5,6 +29,29 @@ export const scrollIntoViewIfNeeded = (
+   if (!element) return;
+ 
+   const rect = element.getBoundingClientRect();
++
++  // Scroll only the element's own scroll container. `scrollIntoView` also scrolls the page when the container cannot
++  // center the element, like a link near the end of the sidebar, which moves the content the page just scrolled to.
++  const container = getScrollParent(element);
++
++  if (container) {
++    const bounds = container.getBoundingClientRect();
++
++    if (rect.top >= bounds.top && rect.bottom <= bounds.bottom) return;
++
++    const offset =
++      options.block === "center"
++        ? rect.top - bounds.top - (bounds.height - rect.height) / 2
++        : rect.top - bounds.top;
++
++    container.scrollTo({
++      top: container.scrollTop + offset,
++      behavior: options.behavior,
++    });
++
++    return;
++  }
++
+   const isInView =
+     rect.top >= 0 &&
+     rect.left >= 0 &&
