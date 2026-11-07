@@ -578,6 +578,18 @@ const config: ZudokuConfig = {
                 },
                 {
                     type: 'category',
+                    label: 'Webhooks',
+                    icon: 'webhook',
+                    items: [
+                        {
+                            type: 'doc',
+                            file: '/developers/webhooks',
+                            label: 'Receive webhooks',
+                        },
+                    ],
+                },
+                {
+                    type: 'category',
                     label: 'Account Chief',
                     icon: 'code',
                     items: [
@@ -847,6 +859,11 @@ const config: ZudokuConfig = {
                             type: 'doc',
                             file: '/developers/serverchief',
                             label: 'Introduction',
+                        },
+                        {
+                            type: 'doc',
+                            file: '/developers/serverchief/webhooks',
+                            label: 'Webhooks',
                         },
                         {
                             type: 'category',

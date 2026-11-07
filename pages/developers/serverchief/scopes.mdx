@@ -46,6 +46,15 @@ Setting the tags of a server needs `serverchief:servers:write`. The tags scopes 
 | `serverchief:alerts:read` | List metric alert rules and the alerts they raised |
 | `serverchief:alerts:write` | Create, update, and delete metric alert rules; also grants alert reads |
 
+### Webhooks
+
+| Scope | Access |
+|---|---|
+| `serverchief:webhooks:read` | List webhook endpoints, event types, events, and deliveries with their requests and responses |
+| `serverchief:webhooks:write` | Create, update, enable, disable, and delete webhook endpoints, rotate their signing secrets, send test events, and resend events and deliveries; also grants webhook reads |
+
+Signing secrets are only returned when an endpoint is created or its secret is rotated, so a read token cannot sign requests.
+
 <Callout type="info">
 Scopes are hierarchical. A resource write scope includes the matching read scope. `serverchief:read` grants every resource read scope, `serverchief:write` grants every resource write and read scope, and `serverchief` grants everything. A resource scope does not grant access to unrelated resources.
 </Callout>

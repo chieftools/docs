@@ -1,0 +1,185 @@
+---
+title: Receive webhooks
+description: Verify, acknowledge, and process the signed webhook requests Chief Tools products send when something happens in your team.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Receive webhooks | Chief Tools developers</title>
+</Head>
+
+A webhook is an HTTPS `POST` request that a Chief Tools product sends to your server when something happens in your team, such as a server going offline. Use webhooks when your system must react within seconds. Use the product's API when you need the current state of a resource, or to catch up after your receiver was down.
+
+Every product sends webhooks the same way. Requests are signed following the [Standard Webhooks](https://www.standardwebhooks.com) specification, so you can verify them with one of its open-source libraries instead of writing your own.
+
+Products that send webhooks:
+
+- [Server Chief](/developers/serverchief/webhooks)
+
+## Set up an endpoint
+
+Add an endpoint in the product's settings under **Webhooks**. Each endpoint has:
+
+- A URL. It must use HTTPS and resolve to a public address.
+- The events it receives. Choose **All events** to also receive event types added later, or select the ones your receiver handles.
+- A signing secret that starts with `whsec_`. Reveal it on the endpoint's page and store it with your other secrets.
+
+You can also manage endpoints through the product's API. Its webhook page shows how.
+
+Send a test event from the endpoint's page to check your receiver before relying on it. The test event has the type `webhook_endpoint.test`. Its `data.object` describes the endpoint itself.
+
+Endpoints belong to one team in one product. To receive events from several products, add an endpoint in each.
+
+## What a delivery looks like
+
+Each delivery is one `POST` request with a JSON body and these headers:
+
+```http
+POST /webhooks/chief HTTP/1.1
+Host: example.com
+Content-Type: application/json
+User-Agent: ServerChief-Webhooks/1.0
+Accept-Encoding: identity
+webhook-id: event_01m6v3f5aydrktmzrbpz1pqh7e
+webhook-timestamp: 1794058458
+webhook-signature: v1,uYsICejIfS+E2XH2uCj7HPjY6hz4cjgVbEFT7ANyzP8=
+
+{"id":"event_01m6v3f5aydrktmzrbpz1pqh7e","type":"server.offline",...}
+```
+
+The `User-Agent` names the product that sent the request.
+
+### The event body
+
+```json
+{
+  "id": "event_01m6v3f5aydrktmzrbpz1pqh7e",
+  "type": "server.offline",
+  "timestamp": "2026-11-07T13:34:18.461Z",
+  "api_version": "v1",
+  "data": {
+    "object": {
+      "id": "server_01jb9a2c3d4e5f6g7h8j9k0m1n",
+      "name": "web-1",
+      "status": "offline"
+    }
+  }
+}
+```
+
+- `id` identifies the event. It is the same as the `webhook-id` header and stays the same on every retry and resend.
+- `type` names what happened, as `resource.action`. Each product's webhook page lists its event types.
+- `timestamp` is when the event happened, in UTC. It does not change on retries.
+- `api_version` is the version of the body's format.
+- `data.object` is the resource the event is about, in the same shape as the product's API returns it at the time of the event. Some events add fields next to `object`, such as why an alert resolved.
+
+Each product's webhook page links every event type to its page in the API reference, and the product's OpenAPI document lists its events under `webhooks`.
+
+The request body is the exact text that was signed. Read the raw body for verification before you parse it as JSON.
+
+## Verify the signature
+
+Verify every request before you trust it. Anyone who learns your endpoint URL can send it requests, but only Chief Tools has your signing secret.
+
+### Use a Standard Webhooks library
+
+The [Standard Webhooks libraries](https://github.com/standard-webhooks/standard-webhooks/tree/main/libraries) take the secret, the raw body, and the three `webhook-*` headers. They check the signature and the timestamp, and return the parsed body or reject the request. Pass them the secret exactly as shown, including `whsec_`.
+
+### Verify without a library
+
+1. Take the part of the secret after `whsec_` and base64-decode it. The result is the key.
+2. Build the signed content by joining the `webhook-id` header, the `webhook-timestamp` header, and the raw body with periods: `{webhook-id}.{webhook-timestamp}.{body}`.
+3. Compute an HMAC-SHA256 of the signed content with the key, and base64-encode the result.
+4. The `webhook-signature` header holds one or more space-separated signatures, each as `v1,{base64}`. Accept the request when one of them equals your result. Use a constant-time comparison.
+
+Check your implementation against this example from the specification:
+
+| Input | Value |
+|---|---|
+| Secret | `whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw` |
+| `webhook-id` | `msg_p5jXN8AQM9LWM0D4loKWxJek` |
+| `webhook-timestamp` | `1614265330` |
+| Body | `{"test": 2432232314}` |
+| Expected signature | `v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=` |
+
+### Reject old requests
+
+`webhook-timestamp` is the Unix time the attempt was sent. Reject a request when it is more than five minutes from your clock. This stops someone from replaying a captured request later. Each retry is signed again with a new timestamp, so retries pass the check.
+
+### Rotate the secret
+
+Rotate an endpoint's secret from its page. For the next 24 hours, deliveries carry two signatures: one with the new secret and one with the old one. Update your receiver within that window. A receiver that knows either secret keeps accepting deliveries.
+
+Only two secrets sign at a time. Rotating again within those 24 hours stops the oldest secret right away, and the product warns you before it does. Update your receiver to the newest secret before you rotate a second time.
+
+## Respond to a delivery
+
+Answer with any `2xx` status within 15 seconds. The response body is ignored, but the first 16 KiB are kept in the delivery log to help you debug. Keep it short: a response larger than 1 MiB is cut off and the attempt fails, whatever its status. Deliveries ask for an uncompressed response. Bodies compressed with something other than gzip or deflate are left out of the log.
+
+Do slow work after you respond. Store the event, answer `200`, and process it from a queue. A receiver that waits for a database migration or another API call before answering will time out and get the event again.
+
+A delivery fails when the receiver answers with a status outside `2xx`, does not answer within 15 seconds, or cannot be reached. Redirects also fail, because they are not followed. Update the endpoint's URL instead of redirecting.
+
+## Retries
+
+A failed delivery is retried with growing waits between attempts:
+
+| Attempt | Sent after the previous attempt |
+|---|---|
+| 1 | Right away |
+| 2 | 1 minute |
+| 3 | 5 minutes |
+| 4 | 30 minutes |
+| 5 | 2 hours |
+| 6 | 6 hours |
+| 7 | 12 hours |
+| 8 | 24 hours |
+| 9 | 24 hours |
+
+After the ninth attempt, about three days after the event, the delivery fails for good.
+
+You can resend a delivery from the endpoint's delivery log while it is kept and the endpoint is enabled, whether it succeeded, failed, or is waiting for a retry. A resend goes out as the next attempt of the same delivery, with the same event `id`. It does not use up any of the nine attempts. When a resend of a delivery that is waiting for a retry fails, that retry still goes out as scheduled.
+
+### Endpoints that keep failing
+
+When an endpoint has failed every delivery for an hour, or a delivery runs out of attempts, the team gets an email. It is sent at most once a day per endpoint.
+
+When every delivery has failed for five days, the endpoint is disabled. It receives no events until someone enables it again, and events that happen in the meantime are not sent to it later. Its pending deliveries are cancelled. After you fix the receiver and enable the endpoint, resend those from its delivery log. An event that another of the team's endpoints received can be sent to this endpoint from the **Events** page. To catch up on anything else, read the current state from the product's API.
+
+## Pacing
+
+Each endpoint gets at most two requests at the same time and ten per second. When more events happen at once, for example when many servers change together or deliveries catch up after your receiver was down, they reach your receiver spread out instead of all at once.
+
+How long a burst takes depends on how fast your receiver answers. With two requests at a time, a receiver that takes one second per request handles about two events per second, so a burst of a few hundred events can take minutes to arrive. Answer quickly and process events afterwards, as described in [Respond to a delivery](#respond-to-a-delivery), to keep deliveries close to real time.
+
+### Ask for a pause
+
+Answer `429 Too Many Requests` or `503 Service Unavailable` with a `Retry-After` header to slow deliveries down. It takes seconds or an HTTP date:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 120
+```
+
+The next attempt of that delivery waits at least that long, up to six hours, even when the retry schedule would try sooner. A `429` does not count towards the failing streak that warns about or disables an endpoint. It does use one of the delivery's nine attempts, so keep pauses short enough for deliveries to get through.
+
+## Handle duplicates and order
+
+Your receiver can get the same event more than once. A retry after a timeout is the common case: your receiver processed the event, but the answer arrived too late. Store the `id` of each event you processed and skip events you have already seen.
+
+Events are not guaranteed to arrive in the order they happened. Retries make this common: a later event can succeed while an earlier one waits for its retry. Compare `timestamp` when order matters, or fetch the resource's current state from the API.
+
+## Plan for change
+
+New event types can appear for endpoints set to **All events**. New fields can appear in the body and in `data.object`. Ignore event types and fields your receiver does not know instead of rejecting the request. Answer `2xx` for an event you ignore, so it is not retried.
+
+Values that the API documents as extensible, such as statuses, can get new cases. Handle an unknown value without failing the whole event.
+
+## Inspect deliveries
+
+Each endpoint's page in the product shows how its deliveries went over the last day, week, or month, and a log of every delivery. Open a delivery to see each attempt, with the request that was sent and the response your receiver gave. Events, deliveries, and their attempts are kept for 30 days.
+
+<Callout type="note">
+The addresses deliveries come from are not published and can change. Verify the signature instead of allowing traffic by IP address.
+</Callout>

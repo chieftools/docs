@@ -1,0 +1,144 @@
+---
+title: Server Chief webhooks
+description: React to servers going offline, metric alerts, stalled metrics, and storage problems with signed webhook requests from Server Chief.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Webhooks | Server Chief</title>
+</Head>
+
+Server Chief sends a webhook when a server goes offline or comes back, a metric alert fires or resolves, metrics stop arriving, storage degrades, or a server is added, changed, or removed. Use them to page your on-call engineer, open a ticket, or keep an inventory in another system current without polling the API.
+
+Deliveries are signed, retried, and logged the same way in every Chief Tools product. Read [Receive webhooks](/developers/webhooks) first for verification, responses, retries, and duplicates. This page covers what is specific to Server Chief.
+
+## Set up an endpoint
+
+Add endpoints under **Settings › Webhooks** in Server Chief, then send a test event from the endpoint's page. Deliveries come with the `User-Agent` `ServerChief-Webhooks/1.0`.
+
+To set up endpoints from code, use the [webhooks API](/api/serverchief/webhooks) with a token that has the `serverchief:webhooks:write` [scope](/developers/serverchief/scopes#webhooks):
+
+```http
+POST /api/v1/webhooks/endpoints HTTP/1.1
+Host: server.chief.app
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{"url": "https://example.com/webhooks/chief", "description": "Paging", "events": ["server.offline", "server.online"]}
+```
+
+The response includes the endpoint's `secret`. Store it right away: it is only returned when the endpoint is created and when you [rotate its secret](/api/serverchief/webhooks#rotate-a-webhook-endpoints-secret). Then [send a test event](/api/serverchief/webhooks#send-a-test-event) to check your receiver. The same API lists event types, events, and deliveries with each attempt's request and response, and resends them.
+
+Events go to the endpoints of the team that owns the server. Teams that see a server because it was [shared with them](/developers/serverchief#servers-shared-with-your-team) get no events for it.
+
+## Events
+
+Each event's `data.object` is a [`Server`](/api/serverchief/~schemas#server) or an [`Alert`](/api/serverchief/~schemas#alert), as the API returns it when the event happens. Some events add fields next to `object` in `data`.
+
+Each event type below links to its page in the [API reference](/api/serverchief/webhook-events), with the request headers and every field of the payload. The OpenAPI document also lists the events under `webhooks`, so you can generate types for your receiver from it.
+
+### Servers
+
+| Type | Sent when |
+|---|---|
+| [`server.created`](/api/serverchief/webhook-events#server-created) | A server is added. It waits for its agent, with `status` set to `pending`. A server added by an install command that creates servers gets this event and `server.enrolled` together. |
+| [`server.enrolled`](/api/serverchief/webhook-events#server-enrolled) | A server's agent enrolls for the first time. Reinstalling the agent on the same server does not send it again. |
+| [`server.updated`](/api/serverchief/webhook-events#server-updated) | A server's name, hostname, metadata, location, settings, or tags change. |
+| [`server.deleted`](/api/serverchief/webhook-events#server-deleted) | A server is removed. `object` is the server as it was right before. |
+
+### Availability
+
+| Type | Sent when | Extra `data` fields |
+|---|---|---|
+| [`server.offline`](/api/serverchief/webhook-events#server-offline) | An active server has not checked in for 15 minutes. | |
+| [`server.online`](/api/serverchief/webhook-events#server-online) | An offline server checks in again. | `offline_since`: when it went offline |
+| [`server.reboot_stalled`](/api/serverchief/webhook-events#server-reboot-stalled) | A server has not checked in for 6 minutes after it started a reboot. The server counts as offline, and `server.online` follows once it is back. | `command_id`: the reboot command |
+
+A server whose reboot stalls gets `server.reboot_stalled` instead of `server.offline`.
+
+### Metric alerts
+
+| Type | Sent when | Extra `data` fields |
+|---|---|---|
+| [`alert.fired`](/api/serverchief/webhook-events#alert-fired) | A metric alert rule fires for a server. | |
+| [`alert.resolved`](/api/serverchief/webhook-events#alert-resolved) | A firing alert closes. | `reason`: why it closed |
+| [`metrics.stalled`](/api/serverchief/webhook-events#metrics-stalled) | An online server that collects metrics has delivered none for about 25 minutes. | `stalled_at`: when the stall was first noticed |
+| [`metrics.resumed`](/api/serverchief/webhook-events#metrics-resumed) | Metrics from that server arrive again. | `stalled_at` |
+
+`reason` on `alert.resolved` is one of:
+
+- `recovered`: the metric stayed within the rule for two checks in a row.
+- `out_of_scope`: the rule no longer covers the server, or the server stopped collecting metrics.
+- `rule_changed`, `rule_disabled`, or `rule_deleted`: someone changed, turned off, or deleted the rule.
+
+Only `recovered` means the problem went away. Handle unknown reasons like a closed alert.
+
+When many servers stop delivering metrics at the same moment, the cause is on our side, and Server Chief sends no `metrics.stalled` events for them.
+
+### Storage health
+
+| Type | Sent when | Extra `data` fields |
+|---|---|---|
+| [`server.storage_unhealthy`](/api/serverchief/webhook-events#server-storage-unhealthy) | A RAID array or ZFS pool degrades, or a disk fails, or storage that was unhealthy gets worse. | `health`, `problems`, `unhealthy_since` |
+| [`server.storage_healthy`](/api/serverchief/webhook-events#server-storage-healthy) | The server's storage is healthy again. | `unhealthy_since` |
+
+`health` is `degraded` or `failed`. `problems` lists what is wrong, each with its own `health`, a `subject` such as an array or disk name, and a `description` you can show to a person. Storage that improves but stays unhealthy sends no event.
+
+## Examples
+
+### A server went offline
+
+```json
+{
+  "id": "event_01m6v4k2p8c3xq7d9fz1w5g6ht",
+  "type": "server.offline",
+  "timestamp": "2026-11-07T13:45:02.117Z",
+  "api_version": "v1",
+  "data": {
+    "object": {
+      "id": "server_01jb9a2c3d4e5f6g7h8j9k0m1n",
+      "name": "web-1",
+      "hostname": "web-1.example.com",
+      "owner_team": {"slug": "acme1234", "name": "Acme"},
+      "access": "owner",
+      "status": "offline",
+      "last_contact_at": "2026-11-07T13:29:58+00:00",
+      "tags": [...]
+    }
+  }
+}
+```
+
+The full object has every field of the [`Server`](/api/serverchief/~schemas#server) schema. `enrollment` is always `null` in webhooks, so enrollment tokens never leave Server Chief this way.
+
+### An alert resolved
+
+```json
+{
+  "id": "event_01m6v5q7d2r8hk3c6zj9t1x4wb",
+  "type": "alert.resolved",
+  "timestamp": "2026-11-07T14:02:41.530Z",
+  "api_version": "v1",
+  "data": {
+    "object": {
+      "id": "alert_01m6v3w9b1n5e8r2t6y4u7i0oa",
+      "status": "resolved",
+      "server": {"id": "server_01jb9a2c3d4e5f6g7h8j9k0m1n", "name": "web-1"},
+      "description": "Disk space used on /var is 93.2%",
+      "fired_at": "2026-11-07T13:31:00+00:00",
+      "resolved_at": "2026-11-07T14:02:41+00:00"
+    },
+    "reason": "recovered"
+  }
+}
+```
+
+The alert's own `closed_reason` field is a sentence for people. Branch on `data.reason` instead.
+
+## Common integrations
+
+- **Paging.** Subscribe to `server.offline`, `server.reboot_stalled`, `alert.fired`, and `server.storage_unhealthy`. Close the page on `server.online`, `alert.resolved` with `reason` set to `recovered`, and `server.storage_healthy`.
+- **Inventory sync.** Subscribe to `server.created`, `server.updated`, and `server.deleted`, and store the server from `data.object`. Use [List servers](/api/serverchief/servers#list-servers) once to load existing servers, and again to catch up after your receiver was down for longer than the retries last.
+
+Events are kept for 30 days. For anything older, read the current state from the API.

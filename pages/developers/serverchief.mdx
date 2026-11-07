@@ -9,7 +9,7 @@ import {Head, Link} from "zudoku/components";
   <title>Developer documentation | Server Chief</title>
 </Head>
 
-Use the Server Chief REST API to search your team's servers and read their packages, software, sites, certificates, vulnerabilities, and metrics. You can also manage tags, metric alert rules, and install commands that add new servers. AI clients can use the same operations through the [MCP server](/serverchief/ai).
+Use the Server Chief REST API to search your team's servers and read their packages, software, sites, certificates, vulnerabilities, and metrics. You can also manage tags, metric alert rules, and install commands that add new servers. AI clients can use the same operations through the [MCP server](/serverchief/ai). To react when a server goes offline or an alert fires, receive [webhooks](/developers/serverchief/webhooks) instead of polling.
 
 Looking for help using Server Chief in the browser? Go to the [Server Chief documentation](/serverchief/introduction).
 
@@ -63,6 +63,15 @@ Teams can share servers with each other through a tag. The API returns those ser
     <div className="font-semibold">API scopes</div>
     <p className="mt-1.5 text-sm text-muted-foreground">
       Give a token only the Server Chief permissions the integration needs.
+    </p>
+  </Link>
+  <Link
+    to="/developers/serverchief/webhooks"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Webhooks</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Get a signed request when servers go offline, alerts fire, or storage degrades.
     </p>
   </Link>
   <Link
