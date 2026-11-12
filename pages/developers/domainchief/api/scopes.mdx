@@ -57,6 +57,17 @@ Registration, transfer, and immediate deletion use separate scopes because they 
 |---|---|
 | `domainchief:events:read` | Read the team's event feed |
 
+### Webhooks
+
+| Scope | Access |
+|---|---|
+| `domainchief:webhooks:read` | List webhook endpoints, event types, events, and deliveries with their requests and responses |
+| `domainchief:webhooks:write` | Create, update, enable, disable, and delete webhook endpoints, rotate their signing secrets, send test events, and resend events and deliveries; also grants webhook reads |
+
+An endpoint receives every event of the team, including domain activity with prices, registry messages, and who caused it, whatever other scopes the token has. The same payloads can be read back through the webhooks API. Grant these scopes only to integrations that may see all of the team's events and activity.
+
+Tokens restricted to specific domains or contacts cannot use these scopes, because an endpoint receives the events of every domain and contact of the team. The [webhooks page](/developers/domainchief/api/webhooks) explains endpoints and events.
+
 ### DNS records
 
 | Scope | Access |
@@ -100,6 +111,7 @@ A restricted token:
 - Reads the contacts of the listed domains and the listed contacts, when its scopes allow reading contacts.
 - Only changes or deletes listed contacts, because a contact can be shared by domains the token cannot reach. It cannot create contacts. Both return `403` with code `token.resource_not_allowed`.
 - Publishes ACME challenges on the most specific listed domain that matches the challenge name.
+- Cannot manage webhook endpoints, which receive the events of every domain and contact of the team. The webhooks API returns `403` with code `token.resource_not_allowed`.
 
 For example, a token for Certbot that only issues certificates for `example.com`:
 
@@ -136,7 +148,7 @@ The token can only publish and delete TXT records on `_acme-challenge` names thr
 domainchief:read
 ```
 
-The token can read domains, contacts, events, DNS records, redirects, TLDs, and activity. It cannot change them.
+The token can read domains, contacts, events, DNS records, redirects, TLDs, activity, and webhook endpoints. It cannot change them.
 
 ### Keep a local copy in sync
 

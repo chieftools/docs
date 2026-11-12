@@ -1,0 +1,137 @@
+---
+title: Domain Chief webhooks
+description: Receive every team event as a signed webhook to react to registrations, transfers, renewals, and expirations, and to keep a local copy current without polling.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Webhooks | Domain Chief</title>
+</Head>
+
+Domain Chief sends a webhook for every event in the [team event feed](/developers/domainchief/guides/sync-data). That covers domain activity, such as a registration that succeeded or a domain that expired, and changes to domains, contacts, DNS records, web redirects, and mail forwards. Use webhooks to complete an order, notify a customer, or update a local copy within seconds instead of polling the feed.
+
+Deliveries are signed, retried, and logged the same way in every Chief Tools product. Read [Receive webhooks](/developers/webhooks) first for verification, responses, retries, and duplicates. This page covers what is specific to Domain Chief.
+
+## Set up an endpoint
+
+Add endpoints under **Settings › Webhooks** in Domain Chief, then send a test event from the endpoint's page. Deliveries come with the `User-Agent` `DomainChief-Webhooks/1.0`.
+
+To set up endpoints from code, use the [webhooks API](/api/domainchief/webhooks) with a token that has the `domainchief:webhooks:write` [scope](/developers/domainchief/api/scopes#webhooks):
+
+```http
+POST /api/v1/webhooks/endpoints HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Content-Type: application/json
+
+{"url": "https://example.com/webhooks/chief", "description": "Orders", "events": ["domain.registration.succeeded", "domain.registration.failed"]}
+```
+
+The response includes the endpoint's `secret`. Store it right away, because it is only returned when the endpoint is created and when you [rotate its secret](/api/domainchief/webhooks#rotate-a-webhook-endpoints-secret). Then [send a test event](/api/domainchief/webhooks#send-a-test-event) to check your receiver. The same API lists event types, events, and deliveries with each attempt's request and response, and resends them.
+
+An endpoint receives the events of every domain and contact of its team, including domain activity, so the webhooks scopes give access to all of that without the events or activity scopes. A token restricted to [specific domains or contacts](/developers/domainchief/api/scopes#restrict-a-token-to-specific-domains) therefore cannot use the webhooks API. It gets `403` with code `token.resource_not_allowed`.
+
+## What a webhook contains
+
+Each webhook is one event from the team event feed:
+
+- `id` is the feed event's `id`, a ULID without a prefix. A webhook and the feed never show the same event under two IDs.
+- `type` is the feed event's `type`.
+- `timestamp` is the feed event's `occurred_at`.
+- `data.object` is the resource the event is about. It is the same as `resource` in the feed: its `type`, its `id`, and the `parent` domain of a DNS record, web redirect, or mail forward.
+- `data.activity` is only present on domain activity events. It is the [`DomainActivity`](/api/domainchief/~schemas#domainactivity), in the same shape as the [activity endpoints](/api/domainchief/domain-activity-notices#list-domain-activity) and `expand[]=activity` on the feed return it. It is `null` when the activity no longer belongs to the team, for example after the domain moved to another team.
+
+`data.object` identifies the resource. It is not a copy, so retrieve the resource when you need its current state, as the [sync guide](/developers/domainchief/guides/sync-data#route-resource-changes) describes for feed events.
+
+### A domain was renewed
+
+```json
+{
+  "id": "01m73hxnwepnc2y33f09wpxdsj",
+  "type": "domain.renewal.succeeded",
+  "timestamp": "2026-11-10T20:20:49.000Z",
+  "api_version": "v1",
+  "data": {
+    "object": {
+      "type": "domain",
+      "id": "01m73hxnvsf6jryk1b6azy5dbq",
+      "parent": null
+    },
+    "activity": {
+      "id": "01m73hxnwdb00rnybyw78vhv5c",
+      "event": "domain.renewal.succeeded",
+      "description": "successfully renewed the domain",
+      "causer": {"id": null, "type": "system", "name": "System"},
+      "subject": {"id": "01m73hxnvsf6jryk1b6azy5dbq", "type": "domain", "name": "example.com", ...},
+      "properties": {...},
+      "created_at": "2026-11-10T20:20:49.000000Z",
+      "domain": "01m73hxnvsf6jryk1b6azy5dbq",
+      ...
+    }
+  }
+}
+```
+
+Branch on `type` or `activity.event`, which are always equal for activity events. `activity.properties` holds details such as the price, the registry's message, the cause of a failure, or the old and new values of a setting. A renewal has the previous and new renewal date in `old.renews_at` and `new.renews_at`. `activity.description` is a sentence for people.
+
+Translated texts, such as `activity.properties.cause.message`, are always in English in webhooks. Every endpoint receives the same body, so `Accept-Language` does not apply.
+
+### A DNS record was created
+
+```json
+{
+  "id": "01m73hxnzvb3z20a5m15xz3kjc",
+  "type": "dns_record.created",
+  "timestamp": "2026-11-10T20:20:49.000Z",
+  "api_version": "v1",
+  "data": {
+    "object": {
+      "type": "dns_record",
+      "id": "01m73hxnzpnmz4kkqxt36p42j9",
+      "parent": {"type": "domain", "id": "01m73hxnvsf6jryk1b6azy5dbq"}
+    }
+  }
+}
+```
+
+Use `parent.id` as the domain in [Show DNS record](/api/domainchief/dns#show-dns-record) to retrieve the record.
+
+## Events
+
+Each event type links to its page in the [API reference](/api/domainchief/webhook-events), with the request headers and every field of the payload. The OpenAPI document also lists the events under `webhooks`, so you can generate types for your receiver from it.
+
+### Resource changes
+
+| Type | Sent when |
+|---|---|
+| [`domain.changed`](/api/domainchief/webhook-events#domain-changed) | Anything about a domain changed, such as its status, expiry date, nameservers, or settings. |
+| [`contact.created`](/api/domainchief/webhook-events#contact-created), [`contact.changed`](/api/domainchief/webhook-events#contact-changed), [`contact.deleted`](/api/domainchief/webhook-events#contact-deleted) | A contact was created, changed, or deleted. |
+| [`dns_record.created`](/api/domainchief/webhook-events#dns-record-created), [`dns_record.changed`](/api/domainchief/webhook-events#dns-record-changed), [`dns_record.deleted`](/api/domainchief/webhook-events#dns-record-deleted) | A hosted DNS record was created, changed, or deleted. |
+| [`web_redirect.created`](/api/domainchief/webhook-events#web-redirect-created), [`web_redirect.changed`](/api/domainchief/webhook-events#web-redirect-changed), [`web_redirect.deleted`](/api/domainchief/webhook-events#web-redirect-deleted) | A web redirect was created, changed, or deleted. |
+| [`mail_forward.created`](/api/domainchief/webhook-events#mail-forward-created), [`mail_forward.changed`](/api/domainchief/webhook-events#mail-forward-changed), [`mail_forward.deleted`](/api/domainchief/webhook-events#mail-forward-deleted) | A mail forward was created, changed, or deleted. |
+
+Several changes to the same resource in quick succession arrive as one `*.changed` event, so do not count them. Apply `*.deleted` events directly, because the resource no longer exists.
+
+### Domain activity
+
+Every [domain activity](/api/domainchief/~schemas#domainactivityevent) is also a webhook event, with the activity in `data.activity`. The reference groups them as registrations, incoming transfers, outgoing transfers, renewals and payments, expiry and deletion, domain settings, hosted DNS, mail forwarding, and verification and registry restrictions. These are the ones most integrations act on:
+
+| Type | Sent when |
+|---|---|
+| [`domain.registration.succeeded`](/api/domainchief/webhook-events#domain-registration-succeeded), [`domain.registration.failed`](/api/domainchief/webhook-events#domain-registration-failed) | A registration finished. A failed registration can be retried. |
+| [`domain.transfer.incoming.succeeded`](/api/domainchief/webhook-events#domain-transfer-incoming-succeeded), [`domain.transfer.incoming.failed`](/api/domainchief/webhook-events#domain-transfer-incoming-failed) | An incoming transfer finished. |
+| [`domain.transfer.outgoing.requested`](/api/domainchief/webhook-events#domain-transfer-outgoing-requested), [`domain.transfer.outgoing.succeeded`](/api/domainchief/webhook-events#domain-transfer-outgoing-succeeded) | Another registrar asked for a domain, or took it over. |
+| [`domain.renewal.succeeded`](/api/domainchief/webhook-events#domain-renewal-succeeded) | A domain was renewed and its expiry date moved. |
+| [`domain.expired`](/api/domainchief/webhook-events#domain-expired), [`domain.restorable`](/api/domainchief/webhook-events#domain-restorable), [`domain.deleted`](/api/domainchief/webhook-events#domain-deleted) | A domain expired, was deleted but can still be restored, or was deleted for good. On `domain.deleted`, `activity.properties.reason` is `expired` or `deleted`, and `was_restorable` tells whether the domain could still be restored right before, so you may have notified the customer already. |
+| [`domain.contact_verification.required`](/api/domainchief/webhook-events#domain-contact-verification-required) | The registrant must verify their contact details. Show the domain's [notices](/developers/domainchief/guides/notices) to guide them. |
+| [`domain.update.nameservers_failed`](/api/domainchief/webhook-events#domain-update-nameservers-failed) and the other `domain.update.*_failed` events | A requested change to a domain's settings failed. `activity.properties.cause` explains why when it is known. |
+
+Event types are extensible. Answer `2xx` for a type your receiver does not handle, and do not treat it as an error.
+
+## Replace event feed polling
+
+A webhook carries the same event, under the same `id`, as the feed, so an integration that polls the feed can move to webhooks without rebuilding its local copy. [Replace polling with webhooks](/developers/domainchief/guides/webhooks) walks through the receiver, processing the events, and the scheduled feed read that catches events the receiver missed.
+
+Events and their deliveries are kept for 30 days in the webhooks dashboard and API. Use the feed and the resource endpoints for anything older.

@@ -15,6 +15,7 @@ Every product sends webhooks the same way. Requests are signed following the [St
 
 Products that send webhooks:
 
+- [Domain Chief](/developers/domainchief/api/webhooks)
 - [Server Chief](/developers/serverchief/webhooks)
 
 ## Set up an endpoint
@@ -72,7 +73,7 @@ The `User-Agent` names the product that sent the request.
 - `type` names what happened, as `resource.action`. Each product's webhook page lists its event types.
 - `timestamp` is when the event happened, in UTC. It does not change on retries.
 - `api_version` is the version of the body's format.
-- `data.object` is the resource the event is about, in the same shape as the product's API returns it at the time of the event. Some events add fields next to `object`, such as why an alert resolved.
+- `data.object` is the resource the event is about. Most products send it in the same shape as their API returns it at the time of the event. Domain Chief sends a reference with the resource's type and ID instead, which you use to retrieve its current state. Some events add fields next to `object`, such as why an alert resolved.
 
 Each product's webhook page links every event type to its page in the API reference, and the product's OpenAPI document lists its events under `webhooks`.
 
