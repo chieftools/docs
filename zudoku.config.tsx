@@ -644,6 +644,7 @@ const config: ZudokuConfig = {
                                 '/developers/domainchief/guides/registration',
                                 '/developers/domainchief/guides/incoming-transfers',
                                 '/developers/domainchief/guides/sync-data',
+                                '/developers/domainchief/guides/webhooks',
                                 '/developers/domainchief/guides/notices',
                                 '/developers/domainchief/guides/domain-connect',
                                 '/developers/domainchief/guides/hosted-dns-migration',
@@ -658,6 +659,7 @@ const config: ZudokuConfig = {
                             items: [
                                 '/developers/domainchief/api/introduction',
                                 '/developers/domainchief/api/scopes',
+                                '/developers/domainchief/api/webhooks',
                                 '/developers/domainchief/api/metadata',
                                 '/developers/domainchief/api/languages',
                                 {

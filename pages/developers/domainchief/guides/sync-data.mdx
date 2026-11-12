@@ -35,6 +35,8 @@ Grant the read scope for each resource type the application stores:
 
 Continuous sync also needs `domainchief:events:read`. The broader `domainchief:read` scope works for a read-only integration that stores every supported type. Resource-specific scopes give a dedicated sync process less access.
 
+Instead of polling every minute, you can receive each event as a [webhook](/developers/domainchief/api/webhooks) within seconds. Webhooks carry the same events under the same IDs, so build the snapshot and checkpoint as described here, then follow [Replace polling with webhooks](/developers/domainchief/guides/webhooks) to receive events as they happen and read the feed only to catch missed events.
+
 Pin the team with `X-Chief-Team` when the token does not already belong to one team. Use the same team for the snapshot, event feed, and every resource request. The [API introduction](/developers/domainchief/api/introduction#select-a-team) explains team selection.
 
 ## Build the initial snapshot

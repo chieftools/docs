@@ -92,7 +92,7 @@ Leave the expansion out when the list does not show notice state. Resolving noti
 
 ### Watch for notice changes
 
-Do not repeatedly fetch a domain to discover whether its notices changed. Poll [List team events](/api/domainchief/team#list-team-events), then retrieve a domain when the feed reports `domain.changed`. The event is an invalidation signal. It does not describe which field or notice changed.
+Do not repeatedly fetch a domain to discover whether its notices changed. Poll [List team events](/api/domainchief/team#list-team-events), or receive the events as [webhooks](/developers/domainchief/guides/webhooks), then retrieve a domain when it reports `domain.changed`. The event is an invalidation signal. It does not describe which field or notice changed.
 
 Use the notices returned by a mutation immediately. For later changes, collect the event feed's unique domain IDs and retrieve their current state with the `notices` expansion.
 
@@ -214,7 +214,7 @@ Dismissal hides that notice for the whole team. It does not remove the failed at
 
 - Treat `notices` as a current snapshot, not as an event stream or audit log.
 - When a mutation returns a domain resource, use its notices immediately. Do not wait for a second request before updating the interface.
-- Poll the team event feed, not individual domain endpoints. Retrieve a domain after `domain.changed` reports that its current state may have changed.
+- Follow the team event feed or webhooks, not individual domain endpoints. Retrieve a domain after `domain.changed` reports that its current state may have changed.
 - After a user completes an external action, such as contact verification or unlocking a domain at another registrar, wait for `domain.changed` before retrieving the resulting state.
 - Honor endpoint-specific status codes and `Retry-After` headers. Do not retry a state-changing request only because a notice still exists.
 

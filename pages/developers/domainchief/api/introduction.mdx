@@ -114,7 +114,7 @@ Error messages are in English by default. Send an `Accept-Language` header to re
 
 ### Follow asynchronous work
 
-Domain registration, transfers, and some updates continue after a `202 Accepted` response. Use the domain resource returned by the request when one is present, including its current notices. Poll the team event feed for later changes, then retrieve the domain when it reports `domain.changed`.
+Domain registration, transfers, and some updates continue after a `202 Accepted` response. Use the domain resource returned by the request when one is present, including its current notices. Poll the team event feed or receive its events as [webhooks](/developers/domainchief/guides/webhooks) for later changes, then retrieve the domain when it reports `domain.changed`.
 
 The [data synchronization guide](/developers/domainchief/guides/sync-data) explains initial snapshots, cursors, and targeted resource refreshes. The [domain notices guide](/developers/domainchief/guides/notices) covers pending work, available resolutions, customer handoffs, and failures without hard-coding every notice value.
 

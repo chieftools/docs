@@ -17,6 +17,7 @@ Looking for help using Domain Chief in the browser? Go to the [Domain Chief docu
 
 - Use the **REST API** when your application needs to read or manage domains, contacts, DNS records, redirects, or related data directly.
 - Use the **team event feed** to keep domains, contacts, DNS records, web redirects, and mail forwards current without repeatedly retrieving complete collections.
+- Use **webhooks** to receive the same events within seconds, without polling the feed.
 - Use **domain notices** with the REST API to show current problems, available resolutions, and operation progress.
 - Use **Domain Connect** when your service needs to propose a known set of DNS records for the customer to approve without giving your application API access.
 - Use the **ACME endpoints**, or the Certbot and cert-manager integrations built on them, to issue certificates with DNS-01 validation.
@@ -68,6 +69,15 @@ Looking for help using Domain Chief in the browser? Go to the [Domain Chief docu
     <div className="font-semibold">Sync Domain Chief data with your system</div>
     <p className="mt-1.5 text-sm text-muted-foreground">
       Build an initial snapshot, then keep it current with events and targeted batch requests.
+    </p>
+  </Link>
+  <Link
+    to="/developers/domainchief/guides/webhooks"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Replace polling with webhooks</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Receive events within seconds to complete orders and notify customers, with the feed as a safety net.
     </p>
   </Link>
   <Link
@@ -136,6 +146,15 @@ Looking for help using Domain Chief in the browser? Go to the [Domain Chief docu
     <div className="font-semibold">Scopes</div>
     <p className="mt-1.5 text-sm text-muted-foreground">
       Give an integration only the Domain Chief permissions it needs.
+    </p>
+  </Link>
+  <Link
+    to="/developers/domainchief/api/webhooks"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Webhooks</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      Receive every team event as a signed request instead of polling the event feed.
     </p>
   </Link>
   <Link

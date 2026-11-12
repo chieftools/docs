@@ -1,0 +1,211 @@
+---
+title: Replace polling with webhooks
+description: Receive Domain Chief events as signed webhooks to complete orders, notify customers, and keep a local copy current within seconds, with the event feed as a safety net.
+---
+
+import {Callout, Head} from "zudoku/components";
+
+<Head>
+  <title>Replace polling with webhooks | Domain Chief</title>
+</Head>
+
+Polling the [team event feed](/developers/domainchief/guides/sync-data) every minute works, but your application learns about a finished registration up to a minute late and sends a request even when nothing happened. With webhooks, Domain Chief sends each event to your server within seconds of it happening.
+
+A webhook carries the same event as the feed, under the same `id`. Keep reading the feed only to catch up on events your receiver missed. This guide builds a receiver, sets up the endpoint, processes the events most integrations need, and moves an existing polling integration over without losing events.
+
+The [Domain Chief webhooks](/developers/domainchief/api/webhooks) page is the reference for the payload and the event types. [Receive webhooks](/developers/webhooks) covers signatures, retries, and pacing, which work the same in every Chief Tools product.
+
+## Recommended flow
+
+1. Create a token that can manage webhooks and read the resources you refresh.
+2. Build a receiver that verifies each request, stores the event once, and answers right away.
+3. Create the endpoint, store its signing secret, and send a test event.
+4. Process stored events from a queue: act on domain activity and refresh changed resources.
+5. Read the event feed on a schedule to catch events the receiver missed.
+
+## Prepare a token
+
+The integration needs these [scopes](/developers/domainchief/api/scopes):
+
+- `domainchief:webhooks:write` to create and manage the endpoint. Skip it when you add the endpoint under **Settings › Webhooks** instead.
+- `domainchief:events:read` for the scheduled feed read.
+- The read scope of every resource you retrieve after an event, such as `domainchief:domains:read` and `domainchief:contacts:read`.
+
+An endpoint receives every event of the team, including domain activity, whatever other scopes the token has. A token restricted to specific domains or contacts cannot manage endpoints at all.
+
+## Build the receiver
+
+### Verify and acknowledge each request
+
+Domain Chief sends each event as a `POST` with a JSON body:
+
+```http
+POST /webhooks/domainchief HTTP/1.1
+Host: example.com
+Content-Type: application/json
+User-Agent: DomainChief-Webhooks/1.0
+webhook-id: 01m73hxnwepnc2y33f09wpxdsj
+webhook-timestamp: 1794474049
+webhook-signature: v1,uYsICejIfS+E2XH2uCj7HPjY6hz4cjgVbEFT7ANyzP8=
+
+{"id":"01m73hxnwepnc2y33f09wpxdsj","type":"domain.registration.succeeded",...}
+```
+
+For every request:
+
+1. Read the raw body before parsing it.
+2. [Verify the signature](/developers/webhooks#verify-the-signature) and reject requests whose `webhook-timestamp` is more than five minutes from your clock. A [Standard Webhooks library](https://github.com/standard-webhooks/standard-webhooks/tree/main/libraries) does both.
+3. Store the event by its `id`. When that `id` is already stored, the event is a retry or a resend, so store nothing.
+4. Answer `200` within 15 seconds, then process the event from a queue.
+
+Answer `200` for duplicates and for event types your application ignores, so Domain Chief does not retry them. Do the slow work, such as API requests and emails, after you respond. [Respond to a delivery](/developers/webhooks#respond-to-a-delivery) explains what counts as a failure.
+
+### Store the event once
+
+Give the stored `id` a unique constraint. The same constraint deduplicates events that arrive both as a webhook and through the scheduled feed read, because both use the same ID.
+
+Store the event's `type`, `timestamp`, and `data` next to the `id`. Your queue worker needs nothing else to process it.
+
+## Create the endpoint
+
+Create the endpoint with [Create a webhook endpoint](/api/domainchief/webhooks#create-a-webhook-endpoint). Subscribe to the types your application handles, or to `*` for every event including types added later:
+
+```http
+POST /api/v1/webhooks/endpoints HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Content-Type: application/json
+
+{
+  "url": "https://example.com/webhooks/domainchief",
+  "description": "Orders and portfolio sync",
+  "events": ["*"]
+}
+```
+
+The `201 Created` response contains the endpoint with its signing secret:
+
+```json
+{
+  "data": {
+    "id": "$ENDPOINT_ID",
+    "url": "https://example.com/webhooks/domainchief",
+    "events": ["*"],
+    "status": "enabled",
+    "secret": "whsec_...",
+    ...
+  }
+}
+```
+
+Store `secret` with your other secrets right away. It is `null` in every later response, until you [rotate it](/api/domainchief/webhooks#rotate-a-webhook-endpoints-secret).
+
+Then [send a test event](/api/domainchief/webhooks#send-a-test-event) to `POST /api/v1/webhooks/endpoints/$ENDPOINT_ID/test`. Your receiver gets a `webhook_endpoint.test` event. Check that it verifies the signature and answers `200`. The endpoint's delivery log in Domain Chief shows the request and your response.
+
+## Process events
+
+Route each stored event by its `type`. Two kinds of events arrive:
+
+- Domain activity, such as `domain.registration.succeeded`, records something that happened to a domain. The activity is in `data.activity`, so act on it without another request.
+- Resource changes, such as `domain.changed` or `dns_record.deleted`, tell you that a resource changed. `data.object` identifies the resource, so retrieve its current state when you need it.
+
+### Complete an order after registration or transfer
+
+Registrations and incoming transfers finish later than the request that started them. Act on their outcome:
+
+| Type | What to do |
+|---|---|
+| `domain.registration.succeeded`, `domain.transfer.incoming.succeeded` | Complete the order and start billing. |
+| `domain.registration.failed`, `domain.transfer.incoming.failed` | Mark the order as failed and show the customer what to do next. |
+
+`data.object.id` is the domain ID. Retrieve the domain with its notices through [List specific domains](/api/domainchief/domains#list-specific-domains) when you show the customer its status. A failed registration or transfer has a notice that explains the problem and the available actions. The [domain notices guide](/developers/domainchief/guides/notices) shows how to present them.
+
+`activity.properties.cause` describes a failure when Domain Chief knows the cause. Use its `code` to decide, and show its `message` to people. Webhooks always send that message in English.
+
+### Notify customers about renewals, expiry, and deletion
+
+```json
+{
+  "id": "01m77b2c4p0x3k8e6r1v9n5t7q",
+  "type": "domain.deleted",
+  "timestamp": "2026-11-12T09:00:00.000Z",
+  "api_version": "v1",
+  "data": {
+    "object": {"type": "domain", "id": "$DOMAIN_ID", "parent": null},
+    "activity": {
+      "event": "domain.deleted",
+      "properties": {"reason": "expired", "was_restorable": true},
+      ...
+    }
+  }
+}
+```
+
+- `domain.renewal.succeeded` has the previous and new renewal date in `activity.properties.old.renews_at` and `new.renews_at`.
+- `domain.expired` and `domain.restorable` mean the domain can still be restored. Offer the customer a restore before it is deleted for good.
+- `domain.deleted` means the domain is gone. `reason` is `expired` when it lapsed, or `deleted` when someone asked for the deletion. When `was_restorable` is `true`, you probably told the customer already when it expired or became restorable, so send a short closing message or none at all.
+
+`reason` is extensible. Treat an unknown value like `deleted`.
+
+### Keep a local copy current
+
+Handle resource changes the way the [sync guide](/developers/domainchief/guides/sync-data#route-resource-changes) handles feed events:
+
+- Remove the local copy on `contact.deleted`, `dns_record.deleted`, `web_redirect.deleted`, and `mail_forward.deleted`.
+- Retrieve the current state for the other resource events. Use `data.object.parent.id` as the domain of a DNS record, web redirect, or mail forward.
+- Several changes to one resource in quick succession arrive as one `*.changed` event. When many events arrive at once, retrieve each resource once.
+
+Webhooks can arrive out of order. Retrieving the current state, instead of applying each event as a change, keeps the local copy correct regardless of the order.
+
+### Handle what you do not recognize
+
+Event types, activity events, and values such as `reason` are extensible. Store an unknown event, answer `200`, and log it for review instead of failing.
+
+## Catch up from the event feed
+
+Deliveries are retried for about three days. Events can still be missed when your receiver is down for longer, when the endpoint was disabled after failing for five days, or when the endpoint did not exist yet. The event feed has them all.
+
+Read the feed from your saved cursor on a schedule, such as every hour:
+
+```http
+GET /api/v1/events?cursor=$CURSOR&expand[]=activity&per_page=100 HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+```
+
+Skip every event whose `id` you already stored, process the rest, and save `meta.cursor` once the page is done. Continue while `meta.has_more` is `true`. A feed event has the same content as a webhook: its `resource` is the webhook's `data.object`, its expanded `activity` is `data.activity`, and its `occurred_at` is the `timestamp`.
+
+The [sync guide](/developers/domainchief/guides/sync-data#apply-event-pages) describes the cursor in detail, including what to do with an [invalid cursor](/developers/domainchief/guides/sync-data#replace-a-lost-or-invalid-cursor).
+
+## Move an existing polling integration
+
+An integration that already polls the feed keeps its snapshot and cursor:
+
+1. Deploy the receiver and create the endpoint while polling continues.
+2. Let both run side by side. The shared event `id` makes your application process each event once.
+3. Check the endpoint's delivery log in Domain Chief until deliveries succeed.
+4. Lower the polling interval to the catch-up schedule, such as once an hour.
+
+Keep the polling code. It becomes the catch-up read.
+
+<Callout type="tip" title="Test with .example domains">
+  [`.example` domains](/domainchief/example-tld) exist only inside Domain Chief and cost nothing. Register one, change its DNS records, and delete it to receive real registration, resource, and deletion events before you rely on your receiver.
+</Callout>
+
+## Monitor the endpoint
+
+The endpoint's page in Domain Chief shows how its deliveries went, with each attempt's request and response, and resends any of them. When every delivery has failed for an hour, the team gets an email. After five days of failures, Domain Chief disables the endpoint. Fix the receiver, enable the endpoint again, and resend its pending deliveries from the delivery log. The scheduled feed read covers anything else.
+
+## API reference
+
+- [Create a webhook endpoint](/api/domainchief/webhooks#create-a-webhook-endpoint)
+- [Send a test event](/api/domainchief/webhooks#send-a-test-event)
+- [Rotate a webhook endpoint's secret](/api/domainchief/webhooks#rotate-a-webhook-endpoints-secret)
+- [Webhook events](/api/domainchief/webhook-events)
+- [List team events](/api/domainchief/team#list-team-events)
+- [List specific domains](/api/domainchief/domains#list-specific-domains)
+- [`DomainActivity` schema](/api/domainchief/~schemas#domainactivity)
+- [`DomainActivityProperties` schema](/api/domainchief/~schemas#domainactivityproperties)
