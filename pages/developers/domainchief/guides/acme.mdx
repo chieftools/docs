@@ -17,6 +17,8 @@ Use an existing client when one fits:
 
 - [Certbot](#certbot) for servers that run Certbot.
 - [cert-manager](#cert-manager) for Kubernetes clusters.
+- [Caddy](#caddy) for sites served by Caddy.
+- The [libdns provider](#libdns) for Go programs that use libdns, such as CertMagic.
 - The [ACME endpoints](#publish-and-delete-challenges) directly when you build or extend your own ACME client.
 
 ## Before you start
@@ -112,6 +114,43 @@ spec:
 The webhook publishes the challenge on the `_acme-challenge` name in the domain's own hosted DNS zone, so the `cnameStrategy: Follow` solver option is not supported.
 
 cert-manager checks the nameservers itself and only asks for validation once the record is visible. The <ExternalLink href="https://artifacthub.io/packages/search?repo=cert-manager-webhook-domainchief">chart documentation</ExternalLink> lists every chart value, including how to read the Secret from other namespaces for namespaced issuers and how to run multiple replicas.
+
+### Caddy
+
+The <ExternalLink href="https://github.com/caddy-dns/domainchief">caddy-dns/domainchief</ExternalLink> module adds Domain Chief as a DNS provider for <ExternalLink href="https://caddyserver.com/">Caddy</ExternalLink>. Caddy plugins are compiled into the binary, so build a Caddy binary that includes the module with <ExternalLink href="https://github.com/caddyserver/xcaddy">xcaddy</ExternalLink>:
+
+```bash
+xcaddy build --with github.com/caddy-dns/domainchief
+```
+
+Give the Caddy process the token in an environment variable, then reference it in the `tls` directive of each site:
+
+```text
+example.com, *.example.com {
+	tls {
+		dns domainchief {env.DOMAINCHIEF_API_TOKEN}
+		propagation_delay 60s
+	}
+}
+```
+
+Keep the `propagation_delay`. Caddy checks the nameservers it can reach before it asks for validation, but a new value reaches all hosted DNS nameservers a little later, and the certificate authority can query one that does not serve it yet. Without the delay, validation can fail with `NXDOMAIN looking up TXT for _acme-challenge`.
+
+The <ExternalLink href="https://github.com/caddy-dns/domainchief#readme">module documentation</ExternalLink> shows the JSON configuration and how to fix common errors.
+
+### libdns
+
+Go programs that manage DNS through <ExternalLink href="https://github.com/libdns/libdns">libdns</ExternalLink>, such as <ExternalLink href="https://github.com/caddyserver/certmagic">CertMagic</ExternalLink>, can use the <ExternalLink href="https://github.com/libdns/domainchief">libdns/domainchief</ExternalLink> provider. The Caddy module uses the same provider.
+
+```go
+import "github.com/libdns/domainchief"
+
+provider := &domainchief.Provider{
+	APIToken: os.Getenv("DOMAINCHIEF_API_TOKEN"),
+}
+```
+
+The provider sends TXT records on `_acme-challenge` names to the ACME endpoints, so solving DNS-01 challenges only needs the `domainchief:acme:write` scope. Reading and changing other records needs `domainchief:dns:read` or `domainchief:dns:write`, and listing zones needs `domainchief:domains:read`. The <ExternalLink href="https://github.com/libdns/domainchief#readme">provider documentation</ExternalLink> describes how it handles TTLs, record types and retries.
 
 ## Publish and delete challenges
 
