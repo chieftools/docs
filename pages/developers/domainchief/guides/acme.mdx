@@ -133,12 +133,11 @@ Give the Caddy process the token in an environment variable, then reference it i
 example.com, *.example.com {
 	tls {
 		dns domainchief {env.DOMAINCHIEF_API_TOKEN}
-		propagation_delay 60s
 	}
 }
 ```
 
-Keep the `propagation_delay`. Caddy checks the nameservers it can reach before it asks for validation, but a new value reaches all hosted DNS nameservers a little later, and the certificate authority can query one that does not serve it yet. Without the delay, validation can fail with `NXDOMAIN looking up TXT for _acme-challenge`.
+The module waits until every hosted DNS nameserver serves the challenge value before Caddy asks for validation. This usually takes one to three minutes per certificate, so you don't need to set `propagation_delay`.
 
 The <ExternalLink href="https://github.com/caddy-dns/domainchief#readme">module documentation</ExternalLink> shows the JSON configuration and how to fix common errors.
 
@@ -150,9 +149,12 @@ Go programs that manage DNS through <ExternalLink href="https://github.com/libdn
 import "github.com/libdns/domainchief"
 
 provider := &domainchief.Provider{
-	APIToken: os.Getenv("DOMAINCHIEF_API_TOKEN"),
+	APIToken:           os.Getenv("DOMAINCHIEF_API_TOKEN"),
+	WaitForPublication: true,
 }
 ```
+
+With `WaitForPublication` enabled, `AppendRecords` returns once every hosted DNS nameserver serves the challenge value, so you can ask for validation right away. Enable it when you solve DNS-01 challenges. Checking the nameservers yourself only reaches the ones near you, which can serve the value before the others do.
 
 The provider sends TXT records on `_acme-challenge` names to the ACME endpoints, so solving DNS-01 challenges only needs the `domainchief:acme:write` scope. Reading and changing other records needs `domainchief:dns:read` or `domainchief:dns:write`, and listing zones needs `domainchief:domains:read`. The <ExternalLink href="https://github.com/libdns/domainchief#readme">provider documentation</ExternalLink> describes how it handles TTLs, record types and retries.
 
