@@ -113,7 +113,9 @@ spec:
 
 The webhook publishes the challenge on the `_acme-challenge` name in the domain's own hosted DNS zone, so the `cnameStrategy: Follow` solver option is not supported.
 
-cert-manager checks the nameservers itself and only asks for validation once the record is visible. The <ExternalLink href="https://artifacthub.io/packages/search?repo=cert-manager-webhook-domainchief">chart documentation</ExternalLink> lists every chart value, including how to read the Secret from other namespaces for namespaced issuers and how to run multiple replicas.
+The webhook waits until every hosted DNS nameserver serves the challenge value before cert-manager asks for validation. This usually takes one to three minutes per challenge, and cert-manager validates challenges for the same name one at a time, so a certificate for `example.com` and `*.example.com` takes a few minutes longer than one for a single name. While it waits, the challenge shows the warning `Error presenting challenge: challenge for … is not served by every hosted DNS nameserver yet`. That is expected, and cert-manager presents the challenge again until the value is published.
+
+The <ExternalLink href="https://artifacthub.io/packages/search?repo=cert-manager-webhook-domainchief">chart documentation</ExternalLink> lists every chart value, including how to read the Secret from other namespaces for namespaced issuers and how to run multiple replicas.
 
 ### Caddy
 
