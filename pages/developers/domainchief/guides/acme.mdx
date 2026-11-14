@@ -117,7 +117,11 @@ cert-manager checks the nameservers itself and only asks for validation once the
 
 ### Caddy
 
-The <ExternalLink href="https://github.com/caddy-dns/domainchief">caddy-dns/domainchief</ExternalLink> module adds Domain Chief as a DNS provider for <ExternalLink href="https://caddyserver.com/">Caddy</ExternalLink>. Caddy plugins are compiled into the binary, so build a Caddy binary that includes the module with <ExternalLink href="https://github.com/caddyserver/xcaddy">xcaddy</ExternalLink>:
+The <ExternalLink href="https://github.com/caddy-dns/domainchief">caddy-dns/domainchief</ExternalLink> module adds Domain Chief as a DNS provider for <ExternalLink href="https://caddyserver.com/">Caddy</ExternalLink>. Caddy plugins are compiled into the binary, so you need a Caddy binary that includes the module. Get one in any of these ways:
+
+- Download it from the <ExternalLink href="https://caddyserver.com/download?package=github.com%2Fcaddy-dns%2Fdomainchief">Caddy download page</ExternalLink>. The link selects the module for you, and the page shows it as one extra feature.
+- Add it to an installed Caddy with `caddy add-package github.com/caddy-dns/domainchief`. This experimental command downloads a new binary with your current plugins plus this module and replaces the installed one. If a package manager installed Caddy, its next upgrade replaces the binary again and removes the module.
+- Build it yourself with <ExternalLink href="https://github.com/caddyserver/xcaddy">xcaddy</ExternalLink>:
 
 ```bash
 xcaddy build --with github.com/caddy-dns/domainchief
