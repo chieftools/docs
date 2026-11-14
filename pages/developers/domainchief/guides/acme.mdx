@@ -162,7 +162,7 @@ Use these requests when you build your own ACME client or add Domain Chief to on
 
 1. Your ACME client receives a DNS-01 challenge and computes the TXT value.
 2. [Publish the value](#publish-a-challenge-value) on the `_acme-challenge` name.
-3. [Wait until the nameservers serve it](#wait-for-the-record).
+3. [Repeat the publish request](#wait-until-the-value-is-published) until `status` is `published`.
 4. Tell the certificate authority to validate the challenge.
 5. [Delete the value](#delete-a-challenge-value) once validation finishes, whether it succeeded or not.
 
@@ -185,7 +185,7 @@ Content-Type: application/json
 
 The `name` must start with `_acme-challenge.`. A trailing dot is accepted, so you can pass the name exactly as most ACME libraries return it. The `value` is the base64url-encoded challenge value, without padding.
 
-You don't send the domain. Domain Chief finds it from the name, using the most specific matching domain in the team. The response returns an [`ACMEChallenge`](/api/domainchief/~schemas#acmechallenge) with the domain it chose:
+You don't send the domain. Domain Chief finds it from the name, using the most specific matching domain in the team. A new value returns `201 Created` with an [`ACMEChallenge`](/api/domainchief/~schemas#acmechallenge) that includes the domain it chose:
 
 ```json
 {
@@ -195,20 +195,43 @@ You don't send the domain. Domain Chief finds it from the name, using the most s
     "name": "_acme-challenge.www.example.com",
     "value": "gfj9Xq...Rg85nM",
     "ttl": 60,
+    "status": "pending",
     "created_at": "2026-10-30T12:20:12.000000Z"
   }
 }
 ```
 
-Publishing is safe to repeat. If the value is already published, Domain Chief returns the existing challenge instead of adding a second record.
+Publishing is safe to repeat. If the value is already published, Domain Chief returns the existing challenge with `200 OK` instead of adding a second record. The next step uses this to check the status.
 
 Other values on the same name are kept. A certificate for both `example.com` and `*.example.com` needs two values on `_acme-challenge.example.com`, and you can publish both before validating either.
 
-### Wait for the record
+### Wait until the value is published
 
-A successful response means Domain Chief accepted the value, not that the nameservers already serve it. Publishing to the hosted DNS nameservers takes a short time.
+A successful response means Domain Chief saved the value, not that every nameserver serves it. The certificate authority can query any of the hosted DNS nameservers, and a nameserver that does not serve the value yet fails the validation.
 
-Before you ask the certificate authority to validate, look up the TXT record on the domain's authoritative nameservers until the value appears. Query the authoritative nameservers directly. A public resolver may cache the earlier answer and keep returning it for longer than the record takes to publish.
+Repeat the same publish request every 5 to 10 seconds and read the [`status`](/api/domainchief/~schemas#acmechallengestatus) field. A repeated request does not add a second record or change the zone, so it doesn't delay the publication.
+
+| `status` | What to do |
+|---|---|
+| `pending` | Keep polling. The value is saved but not in the hosted DNS zone yet. |
+| `publishing` | Keep polling. Some nameservers don't serve the value yet. |
+| `published` | Ask the certificate authority to validate the challenge. |
+| `failed` | Stop polling. Delete the value and publish it again later. |
+
+Treat an unknown `status` like `publishing` and keep polling until your timeout.
+
+A new value usually reaches every nameserver within one to three minutes. Until then, every other change to the same domain's hosted DNS, including deleting another challenge value, starts that wait again. When you validate several challenges for the same domain, such as `example.com` and `*.example.com`:
+
+1. Publish every value first.
+2. Poll until each one is `published`.
+3. Validate the challenges.
+4. Delete the values after all validations finish.
+
+Set a timeout of at least 10 minutes. If a value is still not `published` by then, delete it and report the failure.
+
+Stop polling once the value is `published` or you have deleted it. A publish request after the delete publishes the value again.
+
+You don't need to look up the record on the nameservers yourself. A lookup only reaches the nameservers near you, which can serve the value before the others do.
 
 ### Delete a challenge value
 
