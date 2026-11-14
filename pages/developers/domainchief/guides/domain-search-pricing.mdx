@@ -115,7 +115,22 @@ Show the TLD's `renewal_price` separately for ordinary `free` and `active` resul
 
 Availability values are extensible. For an unrecognized value, show no registration or transfer action, preserve the result for diagnostics, and allow a later availability check. Do not treat every value other than `active` as available. The [`DomainAvailability`](/api/domainchief/~schemas#domainavailability) schema documents the current contract.
 
-The optional `auth_code` query parameter is not part of a normal search. Use it only when the customer has an authorization code and the registry supports an authenticated check, such as retrieving a renewal date before a transfer. Do not log or place authorization codes in analytics.
+An authorization code is not part of a normal search. Send one only when the customer has it and the registry supports an authenticated check, such as retrieving a renewal date before a transfer. Use [Check domain availability with a request body](/api/domainchief/domain-registration#check-domain-availability-with-a-request-body) and put the code in the JSON body, so it never appears in a URL:
+
+```http
+POST /api/v1/domains/availability/customer-site.example HTTP/1.1
+Host: domain.chief.app
+Authorization: Bearer $TOKEN
+X-Chief-Team: $TEAM_ID
+Accept: application/json
+Content-Type: application/json
+
+{
+  "auth_code": "$AUTH_CODE"
+}
+```
+
+The `GET` endpoint still accepts a deprecated `auth_code` query parameter, but URLs end up in server logs, proxies, and browser history. Do not log or place authorization codes in analytics.
 
 ## Request exact pricing when needed
 
@@ -200,6 +215,7 @@ Retain the association between each request and its returned canonical `domain`,
 - [List TLDs](/api/domainchief/tlds#list-tlds)
 - [Show TLD](/api/domainchief/tlds#show-tld)
 - [Check domain availability](/api/domainchief/domain-registration#check-domain-availability)
+- [Check domain availability with a request body](/api/domainchief/domain-registration#check-domain-availability-with-a-request-body)
 - [`TLD` schema](/api/domainchief/~schemas#tld)
 - [`DomainAvailabilityResult` schema](/api/domainchief/~schemas#domainavailabilityresult)
 
