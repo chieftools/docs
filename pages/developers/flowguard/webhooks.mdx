@@ -65,23 +65,23 @@ Each outage sends `server.offline` once, and `server.online` ends it. A proxy th
 | [`server.upgrade_started`](/api/flowguard/webhook-events#server-upgrade-started) | Someone upgrades a proxy, or the automatic rollout does. | |
 | [`server.upgrade_succeeded`](/api/flowguard/webhook-events#server-upgrade-succeeded) | The proxy reports the version it was upgraded to. | |
 | [`server.upgrade_failed`](/api/flowguard/webhook-events#server-upgrade-failed) | The proxy did not report that version within 10 minutes. | |
-| [`server_rollout.paused`](/api/flowguard/webhook-events#server-rollout-paused) | The automatic rollout of a release paused for your team because too many upgrades to it failed. | `failures`: the failed upgrades since the rollout was last resumed |
+| [`proxy_rollout.paused`](/api/flowguard/webhook-events#proxy-rollout-paused) | The automatic rollout of a release paused for your team because too many upgrades to it failed. | `failures`: the failed upgrades since the rollout was last resumed |
 
 The upgrade events carry the server, and `object.upgrades.latest` is the upgrade. Its `source` is `manual` or `automatic`, and on a failed upgrade `failure` says why, such as `timeout`.
 
 A proxy that reports the new version after its upgrade failed sends `server.upgrade_succeeded` too, so a failure is not always final. Fleets and FlowGuard in Caddy are upgraded by redeploying them, which sends no upgrade events.
 
-For `server_rollout.paused`, `object` is the [`ProxyRelease`](/api/flowguard/~schemas#proxyrelease) whose rollout paused. Servers that already upgraded keep the new version. The rollout stays paused until someone resumes it in the team settings, which sends no event.
+For `proxy_rollout.paused`, `object` is the [`ProxyRelease`](/api/flowguard/~schemas#proxyrelease) whose rollout paused. Servers that already upgraded keep the new version. The rollout stays paused until someone resumes it in the team settings, which sends no event.
 
 ### Rules
 
 | Type | Sent when |
 |---|---|
 | [`rule.created`](/api/flowguard/webhook-events#rule-created) | A rule is added. |
-| [`rule.updated`](/api/flowguard/webhook-events#rule-updated) | A rule's name, action, conditions, server scope, or position changes. Disabling a rule sends this event with `action_id` set to `null`. |
+| [`rule.updated`](/api/flowguard/webhook-events#rule-updated) | A rule's name, action, conditions, server scope, or position changes. A disabled rule, and a rule whose action was deleted, has `action_id` set to `null`. |
 | [`rule.deleted`](/api/flowguard/webhook-events#rule-deleted) | A rule is removed. `object` is the rule as it was right before. |
 
-FlowGuard runs rules in order of `position`. Adding, moving, or removing one rule shifts the positions of the rules after it, and only the rule that was added, moved, or removed gets an event. If you keep the order of your rules elsewhere, [list the rules](/api/flowguard/rules#list-rules) after any rule event.
+FlowGuard runs rules in order of `position`. Adding, moving, or removing one rule shifts the positions of other rules, and each rule whose position changes gets its own `rule.updated` event. Blocking an IP address from the request stream puts its rule at the top, which shifts the other rules down when it was not there yet.
 
 ### Actions
 
@@ -91,7 +91,9 @@ FlowGuard runs rules in order of `position`. Adding, moving, or removing one rul
 | [`action.updated`](/api/flowguard/webhook-events#action-updated) | An action's name or configuration changes. This changes what every rule that uses it does. |
 | [`action.deleted`](/api/flowguard/webhook-events#action-deleted) | An action is removed. `object` is the action as it was right before. |
 
-Deleting an action leaves the rules that used it without an action, so they stop acting on requests. Those rules get no `rule.updated` event. Treat every rule with the deleted action's ID in `action_id` as disabled, or list the rules again.
+Deleting an action leaves the rules that used it without an action, so they stop acting on requests. Each of those rules gets a `rule.updated` event after `action.deleted`.
+
+FlowGuard adds a set of default actions when your team adds its first server, and an action, IP list, and rule the first time you block an IP address from the request stream. Each of those sends its `.created` event too.
 
 ### IP lists
 
@@ -101,7 +103,15 @@ Deleting an action leaves the rules that used it without an action, so they stop
 | [`ip_list.updated`](/api/flowguard/webhook-events#ip-list-updated) | A team IP list is renamed. |
 | [`ip_list.deleted`](/api/flowguard/webhook-events#ip-list-deleted) | A team IP list is removed. `object` is the list as it was right before. |
 
-Adding or removing entries sends no event, and neither do the global lists FlowGuard maintains. Use [List IP-list entries](/api/flowguard/ip-lists#list-ip-list-entries) to read a list's entries.
+| Type | Sent when | Extra `data` fields |
+|---|---|---|
+| [`ip_list_entry.created`](/api/flowguard/webhook-events#ip-list-entry-created) | An entry is added to a team IP list, also by blocking an IP address from the request stream. | `ip_list_id`: the list the entry belongs to |
+| [`ip_list_entry.updated`](/api/flowguard/webhook-events#ip-list-entry-updated) | An entry's address or comment changes. | `ip_list_id` |
+| [`ip_list_entry.deleted`](/api/flowguard/webhook-events#ip-list-entry-deleted) | An entry is removed. `object` is the entry as it was right before. | `ip_list_id` |
+
+An import sends `ip_list_entry.created` for every entry it adds, up to 1,000 per request, and none for entries the list already had. Deleting a list sends only `ip_list.deleted`, not an event for each of its entries.
+
+The global lists FlowGuard maintains, such as the cloud provider and abuse lists, send no events. They change often and belong to no team. Use [List IP-list entries](/api/flowguard/ip-lists#list-ip-list-entries) to read them.
 
 ## Examples
 
@@ -189,9 +199,9 @@ The payload is the rule after the change. FlowGuard does not send the previous v
 
 ## Common integrations
 
-- **Paging.** Subscribe to `server.offline`, `server.upgrade_failed`, and `server_rollout.paused`. Close the page on `server.online` and `server.upgrade_succeeded`.
+- **Paging.** Subscribe to `server.offline`, `server.upgrade_failed`, and `proxy_rollout.paused`. Close the page on `server.online` and `server.upgrade_succeeded`.
 - **Change audit.** Subscribe to the rule, action, and IP list events, and store each payload with its `timestamp`. Every change made in the dashboard, through the API, or by an AI client over MCP sends the same events.
-- **Configuration sync.** Subscribe to every server, rule, action, and IP list event, and store the resource from `data.object`. Use the list endpoints once to load what already exists, and again to catch up after your receiver was down for longer than the retries last.
+- **Configuration sync.** Subscribe to every server, rule, action, IP list, and IP list entry event, and store the resource from `data.object`. Use the list endpoints once to load what already exists, and again to catch up after your receiver was down for longer than the retries last.
 
 Event types can be added later. Ignore types your receiver does not handle, and handle unknown values in extensible fields such as `deployment` and the upgrade's `status`, `source`, and `failure` without failing the delivery.
 
