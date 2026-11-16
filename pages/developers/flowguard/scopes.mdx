@@ -54,6 +54,15 @@ Both `GET /logs/fields` and `POST /logs/query` use this read scope. FlowGuard do
 | `flowguard:ip_lists:read` | Read team and global IP lists and their entries |
 | `flowguard:ip_lists:write` | Create, update, and delete team IP lists and manage their entries; also grants IP-list reads |
 
+### Webhooks
+
+| Scope | Access |
+|---|---|
+| `flowguard:webhooks:read` | List webhook endpoints, event types, events, and deliveries with their requests and responses |
+| `flowguard:webhooks:write` | Create, update, enable, disable, and delete webhook endpoints, rotate their signing secrets, send test events, and resend events and deliveries; also grants webhook reads |
+
+Signing secrets are only returned when an endpoint is created or its secret is rotated, so a read token cannot sign requests. Event payloads include the servers, rules, actions, and IP lists they are about, so a webhooks read token can see those without the matching resource scopes.
+
 <Callout type="info">
 Scopes are hierarchical. A resource write scope includes the matching read scope. `flowguard:read` grants every resource read scope, `flowguard:write` grants every resource write and read scope, and `flowguard` grants everything. A resource scope does not grant access to unrelated resources.
 </Callout>

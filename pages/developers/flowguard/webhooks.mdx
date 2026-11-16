@@ -1,0 +1,198 @@
+---
+title: FlowGuard webhooks
+description: React to proxies going offline, proxy upgrades, and changes to rules, actions, and IP lists with signed webhook requests from FlowGuard.
+---
+
+import {Head} from "zudoku/components";
+
+<Head>
+  <title>Webhooks | FlowGuard</title>
+</Head>
+
+FlowGuard sends a webhook when a proxy goes offline or comes back, or when a proxy upgrade starts, succeeds, or fails. It also sends one when an automatic rollout pauses, and when someone adds, changes, or removes a server, rule, action, or IP list. Use them to page someone when a proxy stops reporting, to keep an audit trail of every change to your traffic rules, or to keep a copy of your configuration in another system without polling the API.
+
+Deliveries are signed, retried, and logged the same way in every Chief Tools product. Read [Receive webhooks](/developers/webhooks) first for verification, responses, retries, and duplicates. This page covers what is specific to FlowGuard.
+
+## Set up an endpoint
+
+Add endpoints under **Settings › Webhooks** in FlowGuard, then send a test event from the endpoint's page. Deliveries come with the `User-Agent` `FlowGuard-Webhooks/1.0`.
+
+To set up endpoints from code, use the [webhooks API](/api/flowguard/webhooks) with a token that has the `flowguard:webhooks:write` [scope](/developers/flowguard/scopes#webhooks):
+
+```http
+POST /api/v1/webhooks/endpoints HTTP/1.1
+Host: flowguard.network
+Authorization: Bearer $TOKEN
+Content-Type: application/json
+
+{"url": "https://example.com/webhooks/chief", "description": "Paging", "events": ["server.offline", "server.online"]}
+```
+
+The response includes the endpoint's `secret`. Store it right away. FlowGuard only returns it when the endpoint is created and when you [rotate its secret](/api/flowguard/webhooks#rotate-a-webhook-endpoints-secret). Then [send a test event](/api/flowguard/webhooks#send-a-test-event) to check your receiver. The same API lists event types, events, and deliveries with each attempt's request and response, and resends them.
+
+Events go to the endpoints of the team the server, rule, action, or IP list belongs to.
+
+## Events
+
+Each event's `data.object` is the resource the event is about, as the API returns it when the event happens: a [`Server`](/api/flowguard/~schemas#server), [`Rule`](/api/flowguard/~schemas#rule), [`Action`](/api/flowguard/~schemas#action), [`IPList`](/api/flowguard/~schemas#iplist), or [`ProxyRelease`](/api/flowguard/~schemas#proxyrelease). Some events add fields next to `object` in `data`.
+
+Each event type below links to its page in the [API reference](/api/flowguard/webhook-events), with the request headers and every field of the payload. The OpenAPI document also lists the events under `webhooks`, so you can generate types for your receiver from it.
+
+### Servers
+
+| Type | Sent when |
+|---|---|
+| [`server.created`](/api/flowguard/webhook-events#server-created) | A server is added. Its proxy has not reported in yet, so `version` and `heartbeat_status` are `null`. |
+| [`server.enrolled`](/api/flowguard/webhook-events#server-enrolled) | A server's proxy reports in for the first time. For a fleet, its first instance does. Reinstalling the proxy with the same key does not send it again. |
+| [`server.updated`](/api/flowguard/webhook-events#server-updated) | Someone changes a server's name or settings, such as its protocols, certificate paths, or whether FlowGuard may upgrade it. |
+| [`server.deleted`](/api/flowguard/webhook-events#server-deleted) | A server is removed. `object` is the server as it was right before. |
+
+What the proxy reports itself, such as its version, its instances, and whether it loaded the latest configuration, changes without a `server.updated` event. [Show the server](/api/flowguard/servers#show-a-server) when you need those.
+
+### Availability
+
+| Type | Sent when | Extra `data` fields |
+|---|---|---|
+| [`server.offline`](/api/flowguard/webhook-events#server-offline) | A server's proxy has not reported in for 15 minutes. For a fleet, none of its instances has. | |
+| [`server.online`](/api/flowguard/webhook-events#server-online) | An offline server's proxy reports in again. | `offline_since`: when FlowGuard marked it offline, the time of its `server.offline` event |
+
+Each outage sends `server.offline` once, and `server.online` ends it. A proxy that misses reports for less than 15 minutes sends neither.
+
+### Proxy upgrades
+
+| Type | Sent when | Extra `data` fields |
+|---|---|---|
+| [`server.upgrade_started`](/api/flowguard/webhook-events#server-upgrade-started) | Someone upgrades a proxy, or the automatic rollout does. | |
+| [`server.upgrade_succeeded`](/api/flowguard/webhook-events#server-upgrade-succeeded) | The proxy reports the version it was upgraded to. | |
+| [`server.upgrade_failed`](/api/flowguard/webhook-events#server-upgrade-failed) | The proxy did not report that version within 10 minutes. | |
+| [`server_rollout.paused`](/api/flowguard/webhook-events#server-rollout-paused) | The automatic rollout of a release paused for your team because too many upgrades to it failed. | `failures`: the failed upgrades since the rollout was last resumed |
+
+The upgrade events carry the server, and `object.upgrades.latest` is the upgrade. Its `source` is `manual` or `automatic`, and on a failed upgrade `failure` says why, such as `timeout`.
+
+A proxy that reports the new version after its upgrade failed sends `server.upgrade_succeeded` too, so a failure is not always final. Fleets and FlowGuard in Caddy are upgraded by redeploying them, which sends no upgrade events.
+
+For `server_rollout.paused`, `object` is the [`ProxyRelease`](/api/flowguard/~schemas#proxyrelease) whose rollout paused. Servers that already upgraded keep the new version. The rollout stays paused until someone resumes it in the team settings, which sends no event.
+
+### Rules
+
+| Type | Sent when |
+|---|---|
+| [`rule.created`](/api/flowguard/webhook-events#rule-created) | A rule is added. |
+| [`rule.updated`](/api/flowguard/webhook-events#rule-updated) | A rule's name, action, conditions, server scope, or position changes. Disabling a rule sends this event with `action_id` set to `null`. |
+| [`rule.deleted`](/api/flowguard/webhook-events#rule-deleted) | A rule is removed. `object` is the rule as it was right before. |
+
+FlowGuard runs rules in order of `position`. Adding, moving, or removing one rule shifts the positions of the rules after it, and only the rule that was added, moved, or removed gets an event. If you keep the order of your rules elsewhere, [list the rules](/api/flowguard/rules#list-rules) after any rule event.
+
+### Actions
+
+| Type | Sent when |
+|---|---|
+| [`action.created`](/api/flowguard/webhook-events#action-created) | An action is added. |
+| [`action.updated`](/api/flowguard/webhook-events#action-updated) | An action's name or configuration changes. This changes what every rule that uses it does. |
+| [`action.deleted`](/api/flowguard/webhook-events#action-deleted) | An action is removed. `object` is the action as it was right before. |
+
+Deleting an action leaves the rules that used it without an action, so they stop acting on requests. Those rules get no `rule.updated` event. Treat every rule with the deleted action's ID in `action_id` as disabled, or list the rules again.
+
+### IP lists
+
+| Type | Sent when |
+|---|---|
+| [`ip_list.created`](/api/flowguard/webhook-events#ip-list-created) | A team IP list is added. |
+| [`ip_list.updated`](/api/flowguard/webhook-events#ip-list-updated) | A team IP list is renamed. |
+| [`ip_list.deleted`](/api/flowguard/webhook-events#ip-list-deleted) | A team IP list is removed. `object` is the list as it was right before. |
+
+Adding or removing entries sends no event, and neither do the global lists FlowGuard maintains. Use [List IP-list entries](/api/flowguard/ip-lists#list-ip-list-entries) to read a list's entries.
+
+## Examples
+
+### A proxy went offline
+
+```json
+{
+  "id": "event_01m6v4k2p8c3xq7d9fz1w5g6ht",
+  "type": "server.offline",
+  "timestamp": "2026-11-16T13:45:02.117Z",
+  "api_version": "v1",
+  "data": {
+    "object": {
+      "id": "server_01jb9a2c3d4e5f6g7h8j9k0m1n",
+      "name": "edge-ams-1",
+      "deployment": "host",
+      "live_instance_count": 0,
+      "version": "0.31.0",
+      "heartbeat_status": "offline",
+      ...
+    }
+  }
+}
+```
+
+The full object has every field of the [`Server`](/api/flowguard/~schemas#server) schema. The server's key never appears in webhooks.
+
+### An upgrade failed
+
+```json
+{
+  "id": "event_01m6v5q7d2r8hk3c6zj9t1x4wb",
+  "type": "server.upgrade_failed",
+  "timestamp": "2026-11-16T14:12:00.530Z",
+  "api_version": "v1",
+  "data": {
+    "object": {
+      "id": "server_01jb9a2c3d4e5f6g7h8j9k0m1n",
+      "name": "edge-ams-1",
+      "version": "0.31.0",
+      "upgrades": {
+        "automatic": true,
+        "follows_team": true,
+        "latest": {
+          "id": "upgrade_01m6v58hy3s0q2w1e9r7t5c4vb",
+          "status": "failed",
+          "source": "automatic",
+          "from_version": "0.31.0",
+          "target_version": "0.32.0",
+          "failure": "timeout",
+          "created_at": "2026-11-16T14:01:12+00:00",
+          "finished_at": "2026-11-16T14:12:00+00:00"
+        }
+      },
+      ...
+    }
+  }
+}
+```
+
+### A rule was disabled
+
+```json
+{
+  "id": "event_01m6v6c1x9b4nd7f2kq8s3z5ra",
+  "type": "rule.updated",
+  "timestamp": "2026-11-16T15:20:41.004Z",
+  "api_version": "v1",
+  "data": {
+    "object": {
+      "id": "rule_01m6t2e8w4q6r1y3u5i7o9p0as",
+      "name": "Block scanners",
+      "position": 2,
+      "action_id": null,
+      "conditions": {...},
+      "server_scope": {"mode": "all", "server_ids": []},
+      "created_at": "2026-11-02T09:14:33+00:00",
+      "updated_at": "2026-11-16T15:20:41+00:00"
+    }
+  }
+}
+```
+
+The payload is the rule after the change. FlowGuard does not send the previous values, so keep your own copy if you need to show what changed.
+
+## Common integrations
+
+- **Paging.** Subscribe to `server.offline`, `server.upgrade_failed`, and `server_rollout.paused`. Close the page on `server.online` and `server.upgrade_succeeded`.
+- **Change audit.** Subscribe to the rule, action, and IP list events, and store each payload with its `timestamp`. Every change made in the dashboard, through the API, or by an AI client over MCP sends the same events.
+- **Configuration sync.** Subscribe to every server, rule, action, and IP list event, and store the resource from `data.object`. Use the list endpoints once to load what already exists, and again to catch up after your receiver was down for longer than the retries last.
+
+Event types can be added later. Ignore types your receiver does not handle, and handle unknown values in extensible fields such as `deployment` and the upgrade's `status`, `source`, and `failure` without failing the delivery.
+
+Events are kept for 30 days. For anything older, read the current state from the API.

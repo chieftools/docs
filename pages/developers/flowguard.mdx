@@ -9,7 +9,7 @@ import {Head, Link} from "zudoku/components";
   <title>Developer documentation | FlowGuard</title>
 </Head>
 
-Use the FlowGuard REST API to query request logs and manage your team's rules, actions, proxies, and IP lists.
+Use the FlowGuard REST API to query request logs and manage your team's rules, actions, proxies, and IP lists. To react when a proxy goes offline or your rules change, receive [webhooks](/developers/flowguard/webhooks) instead of polling.
 
 Looking for help with the proxy or control plane? Go to the [FlowGuard documentation](/flowguard/introduction).
 
@@ -44,6 +44,15 @@ The response lists the supported condition operators, match types, action result
     <div className="font-semibold">API scopes</div>
     <p className="mt-1.5 text-sm text-muted-foreground">
       Give a token only the FlowGuard permissions the integration needs.
+    </p>
+  </Link>
+  <Link
+    to="/developers/flowguard/webhooks"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Webhooks</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      React to offline proxies, proxy upgrades, and rule changes as they happen.
     </p>
   </Link>
   <Link
