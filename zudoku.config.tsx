@@ -773,6 +773,11 @@ const config: ZudokuConfig = {
                             label: 'Introduction',
                         },
                         {
+                            type: 'doc',
+                            file: '/developers/backupchief/webhooks',
+                            label: 'Webhooks',
+                        },
+                        {
                             type: 'category',
                             label: 'API',
                             collapsible: true,

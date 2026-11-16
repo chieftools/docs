@@ -9,7 +9,7 @@ import {Callout, Head, Link} from "zudoku/components";
   <title>Developer documentation | Backup Chief</title>
 </Head>
 
-Use the Backup Chief REST API to add servers, connect storage, create and run backup jobs, follow their runs, and prepare downloads from recovery points. AI clients can use the same operations through the [MCP server](/backupchief/ai).
+Use the Backup Chief REST API to add servers, connect storage, create and run backup jobs, follow their runs, and prepare downloads from recovery points. AI clients can use the same operations through the [MCP server](/backupchief/ai). To react when backups fail or a run finishes, receive [webhooks](/developers/backupchief/webhooks) instead of polling.
 
 Looking for help using Backup Chief in the browser? Go to the [Backup Chief documentation](/backupchief/introduction).
 
@@ -154,6 +154,8 @@ If `provisioning_error_code` is set, the storage setup stopped. Fix the cause, s
 
 To back up outside the schedule, [run a backup now](/api/backupchief/backup-jobs#run-a-backup-now). The agent starts the backup the next time it checks in. List the job's runs to find it, then get the run until its `status` is no longer `pending` or `running`. `result_code` tells why it ended, and [the run log](/api/backupchief/runs#get-the-log-of-a-run) returns the agent's output as plain text while `has_log` is `true`.
 
+To hear about finished runs and failing backups as they happen, subscribe to the [`run.finished` and backup alert webhooks](/developers/backupchief/webhooks#backup-alerts) instead of polling.
+
 Recovery points follow the job's retention. [Keep a recovery point forever](/api/backupchief/runs#keep-a-recovery-point-forever) to exempt it from cleanup.
 
 ## Download from a backup
@@ -220,6 +222,15 @@ Fields such as `status`, `kind`, `result_code`, and `failure_code` can gain new 
     <div className="font-semibold">API scopes</div>
     <p className="mt-1.5 text-sm text-muted-foreground">
       Give a token only the Backup Chief permissions the integration needs.
+    </p>
+  </Link>
+  <Link
+    to="/developers/backupchief/webhooks"
+    className="rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+  >
+    <div className="font-semibold">Webhooks</div>
+    <p className="mt-1.5 text-sm text-muted-foreground">
+      React to failing backups, finished runs, and offline servers as they happen.
     </p>
   </Link>
   <Link
