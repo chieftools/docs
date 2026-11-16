@@ -64,10 +64,10 @@ Each outage sends `server.offline` once, and `server.online` ends it. A proxy th
 |---|---|---|
 | [`server.upgrade_started`](/api/flowguard/webhook-events#server-upgrade-started) | Someone upgrades a proxy, or the automatic rollout does. | |
 | [`server.upgrade_succeeded`](/api/flowguard/webhook-events#server-upgrade-succeeded) | The proxy reports the version it was upgraded to. | |
-| [`server.upgrade_failed`](/api/flowguard/webhook-events#server-upgrade-failed) | The proxy did not report that version within 10 minutes. | |
+| [`server.upgrade_failed`](/api/flowguard/webhook-events#server-upgrade-failed) | The proxy did not report that version within 10 minutes, or the server was deleted while the upgrade was running. | |
 | [`proxy_rollout.paused`](/api/flowguard/webhook-events#proxy-rollout-paused) | The automatic rollout of a release paused for your team because too many upgrades to it failed. | `failures`: the failed upgrades since the rollout was last resumed |
 
-The upgrade events carry the server, and `object.upgrades.latest` is the upgrade. Its `source` is `manual` or `automatic`, and on a failed upgrade `failure` says why, such as `timeout`.
+The upgrade events carry the server, and `object.upgrades.latest` is the upgrade. Its `source` is `manual` or `automatic`. On a failed upgrade, `failure` is `timeout` when the proxy did not report the version in time, or `cancelled` when the server was deleted during the upgrade. In that case `server.upgrade_failed` comes right before `server.deleted`. Every `server.upgrade_started` is followed by `server.upgrade_succeeded` or `server.upgrade_failed`.
 
 A proxy that reports the new version after its upgrade failed sends `server.upgrade_succeeded` too, so a failure is not always final. Fleets and FlowGuard in Caddy are upgraded by redeploying them, which sends no upgrade events.
 
