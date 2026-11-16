@@ -1,6 +1,6 @@
 ---
 title: Server Chief webhooks
-description: React to servers going offline, metric alerts, stalled metrics, and storage problems with signed webhook requests from Server Chief.
+description: React to servers going offline, metric alerts, stalled metrics, storage problems, maintenance batches, and agent updates with signed webhook requests from Server Chief.
 ---
 
 import {Head} from "zudoku/components";
@@ -9,7 +9,7 @@ import {Head} from "zudoku/components";
   <title>Webhooks | Server Chief</title>
 </Head>
 
-Server Chief sends a webhook when a server goes offline or comes back, a metric alert fires or resolves, metrics stop arriving, storage degrades, or a server is added, changed, or removed. Use them to page your on-call engineer, open a ticket, or keep an inventory in another system current without polling the API.
+Server Chief sends a webhook when a server goes offline or comes back, a metric alert fires or resolves, metrics stop arriving, storage degrades, a batch of updates or reboots starts, pauses, or finishes, an agent update starts, succeeds, or fails, or a server is added, changed, or removed. Use them to page your on-call engineer, open a ticket, or keep an inventory in another system current without polling the API.
 
 Deliveries are signed, retried, and logged the same way in every Chief Tools product. Read [Receive webhooks](/developers/webhooks) first for verification, responses, retries, and duplicates. This page covers what is specific to Server Chief.
 
@@ -34,7 +34,7 @@ Events go to the endpoints of the team that owns the server. Teams that see a se
 
 ## Events
 
-Each event's `data.object` is a [`Server`](/api/serverchief/~schemas#server) or an [`Alert`](/api/serverchief/~schemas#alert), as the API returns it when the event happens. Some events add fields next to `object` in `data`.
+Each event's `data.object` is a [`Server`](/api/serverchief/~schemas#server), an [`Alert`](/api/serverchief/~schemas#alert), a [`Batch`](/api/serverchief/~schemas#batch), or an [`AgentRelease`](/api/serverchief/~schemas#agentrelease), as the API returns it when the event happens. Some events add fields next to `object` in `data`.
 
 Each event type below links to its page in the [API reference](/api/serverchief/webhook-events), with the request headers and every field of the payload. The OpenAPI document also lists the events under `webhooks`, so you can generate types for your receiver from it.
 
@@ -84,6 +84,49 @@ When many servers stop delivering metrics at the same moment, the cause is on ou
 | [`server.storage_healthy`](/api/serverchief/webhook-events#server-storage-healthy) | The server's storage is healthy again. | `unhealthy_since` |
 
 `health` is `degraded` or `failed`. `problems` lists what is wrong, each with its own `health`, a `subject` such as an array or disk name, and a `description` you can show to a person. Storage that improves but stays unhealthy sends no event.
+
+### Updates and reboots
+
+| Type | Sent when | Extra `data` fields |
+|---|---|---|
+| [`batch.started`](/api/serverchief/webhook-events#batch-started) | A batch starts installing updates on or rebooting several servers, from Server Chief or a maintenance schedule. | |
+| [`batch.paused`](/api/serverchief/webhook-events#batch-paused) | A batch paused because too many of its servers failed. Running servers finish, the others wait until someone resumes it. | `failed`: the servers that failed |
+| [`batch.completed`](/api/serverchief/webhook-events#batch-completed) | Every server of a batch finished, failed, or did not start in time. | `failed` |
+| [`batch.cancelled`](/api/serverchief/webhook-events#batch-cancelled) | Someone cancelled a batch. Servers that did not start yet are left alone, running ones finish. | |
+
+`object` is the [`Batch`](/api/serverchief/~schemas#batch). Its `action` is `upgrade_packages` or `reboot`, and `schedule` names the maintenance schedule that started it. `failed` lists each server that failed or did not start within the batch's window, with `server_id`, `server_name`, and a `detail` you can show to a person. Servers the batch left out from the start are in the batch's `skipped`.
+
+A run of a maintenance schedule that no server could take sends `batch.started` and `batch.completed` together. Resuming a paused batch sends no event.
+
+### Agent updates
+
+| Type | Sent when | Extra `data` fields |
+|---|---|---|
+| [`server.agent_update_started`](/api/serverchief/webhook-events#server-agent-update-started) | Someone updates a server's agent in Server Chief or through the API, or the automatic rollout does. | `command_id`: the update command |
+| [`server.agent_update_succeeded`](/api/serverchief/webhook-events#server-agent-update-succeeded) | The agent reports the version it was updated to. | `command_id` |
+| [`server.agent_update_failed`](/api/serverchief/webhook-events#server-agent-update-failed) | The agent reports that the update failed, does not pick up the update within 3 hours, or reports no result within 3 hours after it picked it up. Also sent when the server is deleted during an update, before `server.deleted`. | `command_id`, `result`: why it failed |
+| [`agent_rollout.paused`](/api/serverchief/webhook-events#agent-rollout-paused) | The automatic rollout of a release paused for your team because too many updates to it failed. | `failures`: the failed updates since the rollout was last resumed |
+
+The update events carry the server. Asking for an update while one to the same release is already queued or running sends no second `server.agent_update_started`.
+
+`result` on `server.agent_update_failed` is one of:
+
+- `install_failed`: the package could not be installed, the previous version still runs. An update that reported no result in time counts as this too.
+- `readiness_failed_rolled_back`: the new version did not start, and the previous version was restored.
+- `rollback_failed`: the new version did not start, and restoring the previous version failed too. The agent may not be running.
+- `target_unavailable` or `rollback_unavailable`: the package repository does not offer the new version, or the installed version that a rollback needs.
+- `package_manager_busy`: another process held the package manager for an hour.
+- `unsupported_install`: the agent was not installed from the Server Chief package repository, so it cannot update itself.
+- `expired`: the agent did not pick up the update within 3 hours, for example because the server went offline.
+- `cancelled`: the server was deleted before the update finished.
+
+`result` is `null` when the agent reported no reason. Handle unknown results like a failed update.
+
+An agent that reports the new version after its update failed, because its result was lost, sends `server.agent_update_succeeded` too, so a failure is not always final. Every `server.agent_update_started` is followed by `server.agent_update_failed` or `server.agent_update_succeeded`.
+
+Only `install_failed`, `readiness_failed_rolled_back`, and `rollback_failed` count towards pausing a rollout, so an offline server whose update expired, or a server deleted during its update, cannot pause it for your team. The automatic rollout tries a server again 6 hours after `target_unavailable`, `rollback_unavailable`, or `package_manager_busy`. After `unsupported_install`, the server cannot be updated until its agent reports that it can update itself.
+
+For `agent_rollout.paused`, `object` is the [`AgentRelease`](/api/serverchief/~schemas#agentrelease) whose rollout paused. Servers that already updated keep the new version. The rollout stays paused until someone resumes it in the team settings, which sends no event.
 
 ## Examples
 
