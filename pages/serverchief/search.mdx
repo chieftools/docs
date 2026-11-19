@@ -44,6 +44,7 @@ When the inventory finds more servers than it lists, **Show all** under **Server
 ## Combine terms
 
 - Separate terms with spaces. A server must match every term.
+- Filters on the same software, package, or application apply to one installed version together, so `php:>=8.5.0 php:<8.5.12` finds servers with a PHP version in that range.
 - Put `-` in front of a term to exclude matches. `-status:offline` skips offline servers.
 - Use double quotes for a value with spaces, like `meta:customer="Acme Inc"`.
 - A search combines at most 20 terms.
